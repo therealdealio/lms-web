@@ -41,7 +41,7 @@ export default async function Image() {
               padding: "8px 18px",
               fontSize: "15px",
               color: "#a78bfa",
-              fontWeight: 600,
+              fontWeight: 700,
             }}
           >
             AI-Powered Study Guide
@@ -53,10 +53,9 @@ export default async function Image() {
           <div
             style={{
               fontSize: "76px",
-              fontWeight: 800,
+              fontWeight: 700,
               color: "white",
-              lineHeight: 1.0,
-              letterSpacing: "-2px",
+              lineHeight: 1,
             }}
           >
             Learn Agent
@@ -64,10 +63,9 @@ export default async function Image() {
           <div
             style={{
               fontSize: "76px",
-              fontWeight: 800,
+              fontWeight: 700,
               color: "#a78bfa",
-              lineHeight: 1.0,
-              letterSpacing: "-2px",
+              lineHeight: 1,
             }}
           >
             Architecture
@@ -81,7 +79,8 @@ export default async function Image() {
               marginTop: "8px",
             }}
           >
-            Master Claude API, Agent SDK, MCP &amp; Claude Code — with AI explanations and practice exams.
+            Master Claude API, Agent SDK, MCP & Claude Code — with AI
+            explanations and practice exams.
           </div>
         </div>
 
@@ -106,10 +105,10 @@ export default async function Image() {
                 gap: "4px",
               }}
             >
-              <div style={{ fontSize: "30px", fontWeight: 800, color: "#a78bfa" }}>
+              <div style={{ fontSize: "30px", fontWeight: 700, color: "#a78bfa" }}>
                 {stat.value}
               </div>
-              <div style={{ fontSize: "13px", color: "#64748b", fontWeight: 500 }}>
+              <div style={{ fontSize: "13px", color: "#64748b", fontWeight: 400 }}>
                 {stat.label}
               </div>
             </div>
@@ -119,7 +118,7 @@ export default async function Image() {
               marginLeft: "auto",
               fontSize: "18px",
               color: "#334155",
-              fontWeight: 500,
+              fontWeight: 400,
             }}
           >
             learnagentarchitecture.com
