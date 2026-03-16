@@ -1,0 +1,128 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 61, 21, 9;
+  --background-start-rgb: 255, 250, 248;
+  --background-end-rgb: 250, 244, 241;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+    to bottom,
+    rgb(var(--background-start-rgb)),
+    rgb(var(--background-end-rgb))
+  );
+  min-height: 100vh;
+}
+
+/* Scrollbar styles */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F5ECE8;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D8BAB5;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #B07868;
+}
+
+/* Selection */
+::selection {
+  background-color: rgba(216, 90, 48, 0.25);
+  color: #3D1509;
+}
+
+/* Code blocks */
+pre {
+  background: #FEF0EC;
+  border: 1px solid #E8D5D0;
+  border-radius: 8px;
+  padding: 1rem;
+  overflow-x: auto;
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+
+code {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.875em;
+}
+
+/* Smooth transitions */
+.transition-all {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Chat message streaming cursor */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.streaming-cursor::after {
+  content: '▋';
+  animation: blink 1s step-start infinite;
+  color: #D85A30;
+}
+
+/* Progress bar animation */
+@keyframes progressFill {
+  from { width: 0%; }
+  to { width: var(--progress-width); }
+}
+
+.progress-animated {
+  animation: progressFill 1s ease-out forwards;
+}
+
+/* Card hover glow */
+.card-glow:hover {
+  box-shadow: 0 0 30px rgba(216, 90, 48, 0.12);
+}
+
+/* Glass morphism */
+.glass {
+  background: rgba(255, 250, 248, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(232, 213, 208, 0.6);
+}
+
+/* Certificate print styles */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .certificate-print {
+    box-shadow: none !important;
+    border: 2px solid #D85A30 !important;
+  }
+}
