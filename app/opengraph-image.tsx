@@ -10,8 +10,8 @@ export default async function Image() {
     (
       <div
         style={{
-          width: "1200px",
-          height: "630px",
+          width: "100%",
+          height: "100%",
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
@@ -75,44 +75,75 @@ export default async function Image() {
               fontSize: "24px",
               color: "#94a3b8",
               fontWeight: 400,
-              lineHeight: 1.4,
               marginTop: "8px",
             }}
           >
-            Master Claude API, Agent SDK, MCP & Claude Code — with AI
-            explanations and practice exams.
+            Master Claude API, Agent SDK, MCP and Claude Code
           </div>
         </div>
 
-        {/* Bottom stats + URL */}
+        {/* Bottom row */}
         <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-          {[
-            { value: "8", label: "Domains" },
-            { value: "58+", label: "Questions" },
-            { value: "AI", label: "Q&A Chat" },
-            { value: "Free", label: "To Start" },
-          ].map((stat) => (
-            <div
-              key={stat.label}
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                backgroundColor: "#13131f",
-                border: "1px solid #1e1b2e",
-                borderRadius: "12px",
-                padding: "16px 28px",
-                gap: "4px",
-              }}
-            >
-              <div style={{ fontSize: "30px", fontWeight: 700, color: "#a78bfa" }}>
-                {stat.value}
-              </div>
-              <div style={{ fontSize: "13px", color: "#64748b", fontWeight: 400 }}>
-                {stat.label}
-              </div>
-            </div>
-          ))}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              backgroundColor: "#13131f",
+              border: "1px solid #1e1b2e",
+              borderRadius: "12px",
+              padding: "16px 28px",
+              gap: "4px",
+            }}
+          >
+            <div style={{ fontSize: "30px", fontWeight: 700, color: "#a78bfa" }}>8</div>
+            <div style={{ fontSize: "13px", color: "#64748b", fontWeight: 400 }}>Domains</div>
+          </div>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              backgroundColor: "#13131f",
+              border: "1px solid #1e1b2e",
+              borderRadius: "12px",
+              padding: "16px 28px",
+              gap: "4px",
+            }}
+          >
+            <div style={{ fontSize: "30px", fontWeight: 700, color: "#a78bfa" }}>58+</div>
+            <div style={{ fontSize: "13px", color: "#64748b", fontWeight: 400 }}>Questions</div>
+          </div>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              backgroundColor: "#13131f",
+              border: "1px solid #1e1b2e",
+              borderRadius: "12px",
+              padding: "16px 28px",
+              gap: "4px",
+            }}
+          >
+            <div style={{ fontSize: "30px", fontWeight: 700, color: "#a78bfa" }}>AI</div>
+            <div style={{ fontSize: "13px", color: "#64748b", fontWeight: 400 }}>Q&A Chat</div>
+          </div>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              backgroundColor: "#13131f",
+              border: "1px solid #1e1b2e",
+              borderRadius: "12px",
+              padding: "16px 28px",
+              gap: "4px",
+            }}
+          >
+            <div style={{ fontSize: "30px", fontWeight: 700, color: "#a78bfa" }}>Free</div>
+            <div style={{ fontSize: "13px", color: "#64748b", fontWeight: 400 }}>To Start</div>
+          </div>
           <div
             style={{
               marginLeft: "auto",
