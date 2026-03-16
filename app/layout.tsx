@@ -36,21 +36,12 @@ export const metadata: Metadata = {
     title: "Learn Agent Architecture — Anthropic Certification Prep",
     description:
       "Master Claude API, Claude Code, Agent SDK, and MCP. AI-powered study guide with practice exams and instant explanations.",
-    images: [
-      {
-        url: "/opengraph-image",
-        width: 1200,
-        height: 630,
-        alt: "Learn Agent Architecture — Anthropic Certification Prep",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Learn Agent Architecture — Anthropic Certification Prep",
     description:
       "Master Claude API, Claude Code, Agent SDK, and MCP. AI-powered study guide with practice exams.",
-    images: ["/opengraph-image"],
   },
   robots: {
     index: true,
