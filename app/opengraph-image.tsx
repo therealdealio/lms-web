@@ -15,46 +15,31 @@ export default async function Image() {
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          background: "linear-gradient(135deg, #0a0a0f 0%, #0f0f1a 50%, #0d0d18 100%)",
+          backgroundColor: "#0a0a0f",
           padding: "64px",
-          fontFamily: "sans-serif",
-          position: "relative",
         }}
       >
-        {/* Background grid lines */}
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            backgroundImage:
-              "linear-gradient(rgba(139,92,246,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(139,92,246,0.05) 1px, transparent 1px)",
-            backgroundSize: "60px 60px",
-          }}
-        />
-
-        {/* Top: badge */}
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+        {/* Top badge row */}
+        <div style={{ display: "flex", gap: "12px" }}>
           <div
             style={{
-              background: "linear-gradient(135deg, #7c3aed, #6d28d9)",
+              backgroundColor: "#7c3aed",
               borderRadius: "8px",
-              padding: "6px 16px",
-              fontSize: "14px",
+              padding: "8px 18px",
+              fontSize: "15px",
               color: "white",
               fontWeight: 700,
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
             }}
           >
-            Anthropic Certification
+            Anthropic Certification Prep
           </div>
           <div
             style={{
-              background: "rgba(139,92,246,0.15)",
-              border: "1px solid rgba(139,92,246,0.3)",
+              backgroundColor: "#1e1b2e",
+              border: "1px solid #4c1d95",
               borderRadius: "8px",
-              padding: "6px 16px",
-              fontSize: "14px",
+              padding: "8px 18px",
+              fontSize: "15px",
               color: "#a78bfa",
               fontWeight: 600,
             }}
@@ -63,27 +48,29 @@ export default async function Image() {
           </div>
         </div>
 
-        {/* Center: main content */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+        {/* Main heading */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
           <div
             style={{
-              fontSize: "72px",
+              fontSize: "76px",
               fontWeight: 800,
               color: "white",
-              lineHeight: 1.05,
-              letterSpacing: "-0.02em",
+              lineHeight: 1.0,
+              letterSpacing: "-2px",
             }}
           >
-            Learn Agent{" "}
-            <span
-              style={{
-                background: "linear-gradient(90deg, #8b5cf6, #a78bfa)",
-                WebkitBackgroundClip: "text",
-                color: "transparent",
-              }}
-            >
-              Architecture
-            </span>
+            Learn Agent
+          </div>
+          <div
+            style={{
+              fontSize: "76px",
+              fontWeight: 800,
+              color: "#a78bfa",
+              lineHeight: 1.0,
+              letterSpacing: "-2px",
+            }}
+          >
+            Architecture
           </div>
           <div
             style={{
@@ -91,56 +78,47 @@ export default async function Image() {
               color: "#94a3b8",
               fontWeight: 400,
               lineHeight: 1.4,
-              maxWidth: "700px",
+              marginTop: "8px",
             }}
           >
-            Master Claude API, Agent SDK, MCP & Claude Code — with instant AI
-            explanations and practice exams.
+            Master Claude API, Agent SDK, MCP &amp; Claude Code — with AI explanations and practice exams.
           </div>
         </div>
 
-        {/* Bottom: stats row */}
-        <div style={{ display: "flex", gap: "32px", alignItems: "center" }}>
+        {/* Bottom stats + URL */}
+        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
           {[
             { value: "8", label: "Domains" },
-            { value: "58+", label: "Practice Questions" },
-            { value: "AI", label: "Q&A Assistant" },
-            { value: "$0", label: "Free to Start" },
+            { value: "58+", label: "Questions" },
+            { value: "AI", label: "Q&A Chat" },
+            { value: "Free", label: "To Start" },
           ].map((stat) => (
             <div
               key={stat.label}
               style={{
                 display: "flex",
                 flexDirection: "column",
-                gap: "4px",
-                background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(255,255,255,0.08)",
+                alignItems: "center",
+                backgroundColor: "#13131f",
+                border: "1px solid #1e1b2e",
                 borderRadius: "12px",
-                padding: "16px 24px",
+                padding: "16px 28px",
+                gap: "4px",
               }}
             >
-              <div
-                style={{
-                  fontSize: "32px",
-                  fontWeight: 800,
-                  color: "#a78bfa",
-                  lineHeight: 1,
-                }}
-              >
+              <div style={{ fontSize: "30px", fontWeight: 800, color: "#a78bfa" }}>
                 {stat.value}
               </div>
-              <div style={{ fontSize: "14px", color: "#64748b", fontWeight: 500 }}>
+              <div style={{ fontSize: "13px", color: "#64748b", fontWeight: 500 }}>
                 {stat.label}
               </div>
             </div>
           ))}
-
-          {/* URL */}
           <div
             style={{
               marginLeft: "auto",
               fontSize: "18px",
-              color: "#475569",
+              color: "#334155",
               fontWeight: 500,
             }}
           >
