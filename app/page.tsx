@@ -469,11 +469,11 @@ export default function LandingPage() {
             </div>
 
             {/* More certifications coming banner */}
-            <div className="mt-10 p-5 rounded-2xl bg-gradient-to-r from-brand-950/60 to-accent-950/60 border border-brand-800 flex items-center gap-4">
+            <div className="mt-10 p-5 rounded-2xl bg-white border border-brand-300 flex items-center gap-4">
               <div className="text-3xl flex-shrink-0">🚀</div>
               <div>
                 <p className="text-dark-50 font-semibold text-sm">More AI Certification Tracks Coming Soon</p>
-                <p className="text-dark-400 text-xs mt-0.5">
+                <p className="text-dark-400 text-sm mt-0.5">
                   We&apos;re expanding beyond Anthropic to cover the next most sought-after AI certifications. Start learning now and be ready when new tracks drop.
                 </p>
               </div>

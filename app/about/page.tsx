@@ -19,7 +19,7 @@ export default function AboutPage() {
             <Link href="/" className="flex items-center gap-3">
               <img src="/logo.svg" alt="LAA Logo" className="w-9 h-9 rounded-xl shadow-sm" />
               <div className="hidden sm:block">
-                <div className="font-bold text-dark-50 leading-tight text-sm">Agentic AI Architecture</div>
+                <div className="font-bold text-dark-50 leading-tight text-sm">Learn Agent Architecture</div>
                 <div className="text-xs text-brand-600 font-medium">Community study resource · Unofficial</div>
               </div>
             </Link>
