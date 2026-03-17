@@ -1,8 +1,15 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { Send, Lightbulb, HelpCircle, RotateCcw, Shuffle, MessageCircle } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Send, Lightbulb, HelpCircle, RotateCcw, Shuffle, MessageCircle, Zap } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import ReactMarkdown from "react-markdown";
+import {
+  loadMembership,
+  incrementPromptCount,
+  getPromptsRemaining,
+} from "@/lib/membership";
 
 interface ConceptQuizProps {
   conceptTitle: string;
@@ -17,12 +24,17 @@ export default function ConceptQuiz({
   keyPoints,
   domainName,
 }: ConceptQuizProps) {
+  const router = useRouter();
+  const { data: session } = useSession();
+  const userId = session?.user?.email ?? "";
+
   const [answer, setAnswer] = useState("");
   const [feedback, setFeedback] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [submittedText, setSubmittedText] = useState("");
   const [questionIndex, setQuestionIndex] = useState(0);
+  const [remaining, setRemaining] = useState(0);
 
   // Follow-up state
   const [followUp, setFollowUp] = useState("");
@@ -32,6 +44,12 @@ export default function ConceptQuiz({
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const followUpRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (userId) setRemaining(getPromptsRemaining(userId));
+  }, [userId]);
+
+  const isAtLimit = remaining <= 0;
 
   const callQuizApi = async (
     body: object,
@@ -68,10 +86,23 @@ export default function ConceptQuiz({
     }
   };
 
+  const deductPrompt = () => {
+    const updated = incrementPromptCount(userId);
+    const newRemaining = getPromptsRemaining(userId);
+    setRemaining(newRemaining);
+    fetch("/api/membership", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ membership: { tier: updated.tier, promptsUsed: updated.promptsUsed } }),
+    }).catch(() => {});
+    fetch("/api/track/prompt", { method: "POST" }).catch(() => {});
+  };
+
   const submit = async (overrideText?: string) => {
     const text = overrideText ?? answer.trim();
-    if (!text || isStreaming) return;
+    if (!text || isStreaming || isAtLimit) return;
 
+    deductPrompt();
     setIsStreaming(true);
     setFeedback("");
     setHasSubmitted(true);
@@ -95,8 +126,9 @@ export default function ConceptQuiz({
 
   const submitFollowUp = async () => {
     const text = followUp.trim();
-    if (!text || isFollowUpStreaming) return;
+    if (!text || isFollowUpStreaming || isAtLimit) return;
 
+    deductPrompt();
     setIsFollowUpStreaming(true);
     setFollowUpFeedback("");
     setHasFollowedUp(true);
@@ -166,12 +198,39 @@ export default function ConceptQuiz({
   return (
     <div className="rounded-xl border border-brand-200 bg-brand-50 overflow-hidden">
       {/* Header */}
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-brand-200 bg-white">
-        <HelpCircle size={15} className="text-brand-500 flex-shrink-0" />
-        <span className="text-brand-700 text-sm font-medium">Test your understanding</span>
+      <div className="flex items-center justify-between px-4 py-3 border-b border-brand-200 bg-white">
+        <div className="flex items-center gap-2">
+          <HelpCircle size={15} className="text-brand-500 flex-shrink-0" />
+          <span className="text-brand-700 text-sm font-medium">Test your understanding</span>
+        </div>
+        {userId && (
+          <span className={`text-xs font-medium ${remaining <= 3 && !isAtLimit ? "text-amber-600" : isAtLimit ? "text-red-500" : "text-dark-400"}`}>
+            {isAtLimit ? "No prompts left" : `${remaining} prompt${remaining !== 1 ? "s" : ""} left`}
+          </span>
+        )}
       </div>
 
       <div className="p-4 space-y-4">
+        {/* At-limit wall */}
+        {isAtLimit ? (
+          <div className="py-4 text-center space-y-3">
+            <div className="w-10 h-10 rounded-2xl bg-brand-100 flex items-center justify-center mx-auto">
+              <Zap size={18} className="text-brand-600" />
+            </div>
+            <div>
+              <p className="font-semibold text-dark-50 text-sm">You've used all your free prompts</p>
+              <p className="text-dark-400 text-xs mt-1">Upgrade to Pro to keep testing your understanding.</p>
+            </div>
+            <button
+              onClick={() => router.push("/upgrade")}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-semibold transition-colors shadow-sm text-xs"
+            >
+              <Zap size={13} />
+              Upgrade to Pro — $5
+            </button>
+          </div>
+        ) : (
+          <>
         {/* Prompt */}
         <div className="text-dark-200 text-sm leading-relaxed prose prose-sm max-w-none prose-strong:text-dark-50 prose-p:my-0">
           <ReactMarkdown>{currentQuestion}</ReactMarkdown>
@@ -359,6 +418,8 @@ export default function ConceptQuiz({
               </div>
             )}
           </div>
+        )}
+          </>
         )}
       </div>
     </div>

@@ -182,13 +182,9 @@ export default function AiChat({
           <div className="text-left">
             <div className="font-semibold text-dark-50 text-sm">AI Learning Assistant</div>
             <div className="text-dark-400 text-xs">
-              {tier === "pro" ? (
-                <span className="text-brand-600 font-medium">Pro · {remaining} prompts left</span>
-              ) : (
-                <span className={remaining <= 3 ? "text-amber-600 font-medium" : ""}>
-                  {remaining}/{FREE_LIMIT} free prompts remaining
-                </span>
-              )}
+              <span className={`font-medium ${remaining <= 3 && remaining > 0 ? "text-amber-600" : remaining <= 0 ? "text-red-500" : tier === "pro" ? "text-brand-600" : ""}`}>
+                {remaining} prompt{remaining !== 1 ? "s" : ""} left
+              </span>
             </div>
           </div>
         </div>
