@@ -399,20 +399,18 @@ export default function AdminPage() {
                         >
                           {isSaving ? "..." : isPro ? "Downgrade" : "Upgrade Pro"}
                         </button>
-                        {!isAdmin && (
-                          <button
-                            onClick={() => deleteUser(user)}
-                            disabled={isDeleting || isSaving}
-                            className="p-1.5 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
-                            title="Delete account"
-                          >
-                            {isDeleting ? (
-                              <RefreshCw size={16} className="animate-spin" />
-                            ) : (
-                              <Trash2 size={16} />
-                            )}
-                          </button>
-                        )}
+                        <button
+                          onClick={() => deleteUser(user)}
+                          disabled={isDeleting || isSaving || isAdmin}
+                          className="p-1.5 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                          title={isAdmin ? "Cannot delete admin account" : "Delete account"}
+                        >
+                          {isDeleting ? (
+                            <RefreshCw size={16} className="animate-spin" />
+                          ) : (
+                            <Trash2 size={16} />
+                          )}
+                        </button>
                         <button
                           onClick={() => setExpandedUser(isExpanded ? null : user.id)}
                           className="p-1.5 rounded-lg text-dark-400 hover:text-dark-100 hover:bg-dark-800 transition-colors"
