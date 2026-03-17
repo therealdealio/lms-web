@@ -16,6 +16,7 @@ model User {
   image         String?
   password      String?
   avatarEmoji   String?
+  avatarImage   String?    @db.Text
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
   accounts        Account[]

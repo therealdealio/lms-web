@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { ArrowLeft, Check, Loader2, User } from "lucide-react";
+import { ArrowLeft, Check, Loader2, User, Upload, X } from "lucide-react";
 import { loadProgress, setUser } from "@/lib/progress";
 
 const AVATAR_EMOJIS = [
@@ -20,20 +20,57 @@ const AVATAR_EMOJIS = [
   "🚀", "💡", "🎯", "🧠", "💎", "⚙️", "🎮", "🤖", "🔮", "🎲",
 ];
 
+const MAX_SIZE_BYTES = 20 * 1024; // 20 KB
+const AVATAR_PX = 100;
+
 interface ProfileData {
   id: string;
   name: string | null;
   email: string;
   avatarEmoji: string | null;
+  avatarImage: string | null;
+}
+
+/** Resize and center-crop an image file to AVATAR_PX × AVATAR_PX JPEG data URL. */
+function resizeImage(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const canvas = document.createElement("canvas");
+      canvas.width = AVATAR_PX;
+      canvas.height = AVATAR_PX;
+      const ctx = canvas.getContext("2d")!;
+
+      // Cover crop: scale so the shorter side fills the canvas, then center
+      const scale = Math.max(AVATAR_PX / img.width, AVATAR_PX / img.height);
+      const sw = img.width * scale;
+      const sh = img.height * scale;
+      const dx = (AVATAR_PX - sw) / 2;
+      const dy = (AVATAR_PX - sh) / 2;
+      ctx.drawImage(img, dx, dy, sw, sh);
+
+      resolve(canvas.toDataURL("image/jpeg", 0.82));
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("Failed to load image."));
+    };
+    img.src = url;
+  });
 }
 
 export default function ProfilePage() {
   const router = useRouter();
   const { data: session } = useSession();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [username, setUsername] = useState("");
   const [selectedEmoji, setSelectedEmoji] = useState<string | null>(null);
+  const [avatarImage, setAvatarImage] = useState<string | null>(null);
+  const [imageError, setImageError] = useState("");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
@@ -53,10 +90,44 @@ export default function ProfilePage() {
           setProfile(data);
           setUsername(data.name || "");
           setSelectedEmoji(data.avatarEmoji || null);
+          setAvatarImage(data.avatarImage || null);
         }
       })
       .finally(() => setLoading(false));
   }, [router]);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!fileInputRef.current) return;
+    fileInputRef.current.value = "";
+    if (!file) return;
+
+    setImageError("");
+
+    if (!file.type.startsWith("image/")) {
+      setImageError("Please select an image file (JPG, PNG, GIF, WebP).");
+      return;
+    }
+
+    try {
+      const dataUrl = await resizeImage(file);
+      // Check final encoded size
+      const base64 = dataUrl.split(",")[1] ?? "";
+      const bytes = Math.ceil((base64.length * 3) / 4);
+      if (bytes > MAX_SIZE_BYTES) {
+        setImageError("Image is still too large after resizing. Try a simpler image.");
+        return;
+      }
+      setAvatarImage(dataUrl);
+    } catch {
+      setImageError("Could not process image. Please try another file.");
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setAvatarImage(null);
+    setImageError("");
+  };
 
   const handleSave = async () => {
     if (!username.trim()) {
@@ -75,13 +146,16 @@ export default function ProfilePage() {
       const res = await fetch("/api/profile", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: username.trim(), avatarEmoji: selectedEmoji }),
+        body: JSON.stringify({
+          name: username.trim(),
+          avatarEmoji: selectedEmoji,
+          avatarImage: avatarImage,
+        }),
       });
 
       if (res.ok) {
         const updated = await res.json();
         setProfile(updated);
-        // Sync localStorage so dashboard shows updated name
         const p = loadProgress();
         if (p.user) {
           setUser({ ...p.user, name: updated.name || p.user.name });
@@ -97,7 +171,6 @@ export default function ProfilePage() {
     }
   };
 
-  const displayEmoji = selectedEmoji;
   const displayInitials = (profile?.name || "?")
     .split(" ")
     .map((n) => n[0])
@@ -137,16 +210,16 @@ export default function ProfilePage() {
         <div className="bg-white border border-dark-700 rounded-2xl p-6 space-y-8">
           {/* Avatar preview */}
           <div className="flex flex-col items-center gap-3">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center shadow-md">
-              {displayEmoji ? (
-                <span className="text-4xl">{displayEmoji}</span>
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center shadow-md overflow-hidden">
+              {avatarImage ? (
+                <img src={avatarImage} alt="Avatar" className="w-full h-full object-cover" />
+              ) : selectedEmoji ? (
+                <span className="text-4xl">{selectedEmoji}</span>
               ) : (
                 <span className="text-2xl font-bold text-white">{displayInitials}</span>
               )}
             </div>
-            <p className="text-dark-400 text-sm">
-              {profile?.email}
-            </p>
+            <p className="text-dark-400 text-sm">{profile?.email}</p>
           </div>
 
           {/* Username */}
@@ -167,18 +240,61 @@ export default function ProfilePage() {
             </p>
           </div>
 
+          {/* Avatar photo upload */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="block text-sm font-semibold text-dark-100">
+                Avatar Photo
+              </label>
+              {avatarImage && (
+                <button
+                  onClick={handleRemoveImage}
+                  className="flex items-center gap-1 text-xs text-dark-400 hover:text-red-400 transition-colors"
+                >
+                  <X size={12} />
+                  Remove photo
+                </button>
+              )}
+            </div>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleFileChange}
+            />
+
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-dashed border-dark-600 text-dark-400 hover:border-brand-400 hover:text-brand-400 transition-all text-sm"
+            >
+              <Upload size={15} />
+              {avatarImage ? "Replace photo" : "Upload photo"}
+            </button>
+
+            <p className="text-dark-500 text-xs">
+              JPG, PNG, GIF, or WebP · Max 20 KB · Resized to 100×100 px
+            </p>
+
+            {imageError && (
+              <p className="text-red-500 text-xs">{imageError}</p>
+            )}
+          </div>
+
           {/* Avatar emoji picker */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <label className="block text-sm font-semibold text-dark-100">
-                Avatar Icon
+                Avatar Icon <span className="font-normal text-dark-400 text-xs">(or pick an emoji instead)</span>
               </label>
               {selectedEmoji && (
                 <button
                   onClick={() => setSelectedEmoji(null)}
                   className="text-xs text-dark-400 hover:text-dark-100 transition-colors"
                 >
-                  Use initials instead
+                  Clear
                 </button>
               )}
             </div>
@@ -199,7 +315,7 @@ export default function ProfilePage() {
               ))}
             </div>
             <p className="text-dark-500 text-xs">
-              Click to select · Click again to deselect (shows initials)
+              Photo takes priority over emoji · Click to select · Click again to deselect
             </p>
           </div>
 
