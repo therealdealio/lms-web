@@ -7,8 +7,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ valid: false, error: "No license key provided" }, { status: 400 });
   }
 
+  const productId = process.env.GUMROAD_PRODUCT_ID;
+  if (!productId) {
+    return NextResponse.json({ valid: false, error: "License verification is not configured." }, { status: 500 });
+  }
+
   const params = new URLSearchParams({
-    product_id: process.env.GUMROAD_PRODUCT_ID!,
+    product_id: productId,
     license_key: licenseKey.trim(),
     increment_uses_count: "true",
   });
