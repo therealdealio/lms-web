@@ -7,15 +7,34 @@ import { prisma } from "@/lib/prisma";
 export async function GET(req: NextRequest) {
   const category = req.nextUrl.searchParams.get("category") || "general";
 
+  const session = await getServerSession(authOptions);
+  let currentUserId: string | null = null;
+  if (session?.user?.email) {
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { id: true },
+    });
+    currentUserId = user?.id ?? null;
+  }
+
   const posts = await prisma.forumPost.findMany({
     where: { category },
     orderBy: { createdAt: "desc" },
     include: {
-      _count: { select: { replies: true } },
+      _count: { select: { replies: true, likes: true } },
+      likes: currentUserId
+        ? { where: { userId: currentUserId }, select: { id: true } }
+        : false,
     },
   });
 
-  return NextResponse.json(posts);
+  const result = posts.map((p) => ({
+    ...p,
+    likedByMe: Array.isArray(p.likes) && p.likes.length > 0,
+    likes: undefined,
+  }));
+
+  return NextResponse.json(result);
 }
 
 // POST /api/forum/posts

@@ -99,20 +99,32 @@ model PromptLog {
 }
 
 model ForumPost {
-  id         String       @id @default(cuid())
-  title      String
-  content    String       @db.Text
-  category   String       // "general" or domain id "1"-"8"
+  id                String       @id @default(cuid())
+  title             String
+  content           String       @db.Text
+  category          String
   authorId          String
   authorName        String
   authorAvatarEmoji String?
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
   replies           ForumReply[]
+  likes             ForumLike[]
 
   @@index([category])
   @@index([authorId])
   @@index([createdAt])
+}
+
+model ForumLike {
+  id        String    @id @default(cuid())
+  postId    String
+  userId    String
+  post      ForumPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+
+  @@unique([postId, userId])
+  @@index([postId])
 }
 
 model ForumReply {

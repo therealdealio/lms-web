@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { ArrowLeft, MessageSquare, Plus, ChevronRight, Clock, X } from "lucide-react";
+import { ArrowLeft, MessageSquare, Plus, ChevronRight, Clock, X, Heart } from "lucide-react";
 import { loadProgress } from "@/lib/progress";
 import EmojiTextarea from "@/components/EmojiTextarea";
 
@@ -41,7 +41,8 @@ interface Post {
   content: string;
   authorName: string;
   createdAt: string;
-  _count: { replies: number };
+  likedByMe: boolean;
+  _count: { replies: number; likes: number };
 }
 
 function timeAgo(dateStr: string) {
@@ -69,6 +70,29 @@ export default function CategoryPage() {
   const [content, setContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [likingId, setLikingId] = useState<string | null>(null);
+
+  const handleLike = async (e: React.MouseEvent, postId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!session) return;
+    setLikingId(postId);
+    try {
+      const res = await fetch(`/api/forum/posts/${postId}/like`, { method: "POST" });
+      if (res.ok) {
+        const { liked, count } = await res.json();
+        setPosts((prev) =>
+          prev.map((p) =>
+            p.id === postId
+              ? { ...p, likedByMe: liked, _count: { ...p._count, likes: count } }
+              : p
+          )
+        );
+      }
+    } finally {
+      setLikingId(null);
+    }
+  };
 
   const meta = CATEGORY_META[category];
 
@@ -252,9 +276,24 @@ export default function CategoryPage() {
                       </span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1.5 flex-shrink-0 text-sm text-dark-400 bg-dark-800 px-3 py-1.5 rounded-xl">
-                    <MessageSquare size={13} />
-                    {post._count.replies}
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <button
+                      onClick={(e) => handleLike(e, post.id)}
+                      disabled={likingId === post.id || !session}
+                      title={session ? (post.likedByMe ? "Unlike" : "Like") : "Sign in to like"}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm transition-all ${
+                        post.likedByMe
+                          ? "bg-red-50 text-red-500 border border-red-200"
+                          : "bg-dark-800 text-dark-400 hover:bg-red-50 hover:text-red-400"
+                      } disabled:opacity-50`}
+                    >
+                      <Heart size={13} className={post.likedByMe ? "fill-red-500" : ""} />
+                      {post._count.likes}
+                    </button>
+                    <div className="flex items-center gap-1.5 text-sm text-dark-400 bg-dark-800 px-3 py-1.5 rounded-xl">
+                      <MessageSquare size={13} />
+                      {post._count.replies}
+                    </div>
                   </div>
                 </div>
               </Link>

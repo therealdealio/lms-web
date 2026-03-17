@@ -7,13 +7,27 @@ const ADMIN_EMAIL = "rrthai88@gmail.com";
 
 // GET /api/forum/posts/[postId]
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: { postId: string } }
 ) {
+  const session = await getServerSession(authOptions);
+  let currentUserId: string | null = null;
+  if (session?.user?.email) {
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { id: true },
+    });
+    currentUserId = user?.id ?? null;
+  }
+
   const post = await prisma.forumPost.findUnique({
     where: { id: params.postId },
     include: {
       replies: { orderBy: { createdAt: "asc" } },
+      _count: { select: { likes: true } },
+      likes: currentUserId
+        ? { where: { userId: currentUserId }, select: { id: true } }
+        : false,
     },
   });
 
@@ -21,7 +35,11 @@ export async function GET(
     return NextResponse.json({ error: "Post not found." }, { status: 404 });
   }
 
-  return NextResponse.json(post);
+  return NextResponse.json({
+    ...post,
+    likedByMe: Array.isArray(post.likes) && post.likes.length > 0,
+    likes: undefined,
+  });
 }
 
 // DELETE /api/forum/posts/[postId]

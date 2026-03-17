@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { ArrowLeft, ChevronRight, Trash2, Send, Clock } from "lucide-react";
+import { ArrowLeft, ChevronRight, Trash2, Send, Clock, Heart } from "lucide-react";
 import EmojiTextarea from "@/components/EmojiTextarea";
 import { loadProgress } from "@/lib/progress";
 
@@ -41,6 +41,8 @@ interface Post {
   authorName: string;
   authorAvatarEmoji: string | null;
   createdAt: string;
+  likedByMe: boolean;
+  _count: { likes: number };
   replies: Reply[];
 }
 
@@ -90,6 +92,21 @@ export default function PostPage() {
   const [deletingPost, setDeletingPost] = useState(false);
   const [deletingReply, setDeletingReply] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [likingPost, setLikingPost] = useState(false);
+
+  const handleLike = async () => {
+    if (!session || !post) return;
+    setLikingPost(true);
+    try {
+      const res = await fetch(`/api/forum/posts/${postId}/like`, { method: "POST" });
+      if (res.ok) {
+        const { liked, count } = await res.json();
+        setPost((prev) => prev ? { ...prev, likedByMe: liked, _count: { ...prev._count, likes: count } } : prev);
+      }
+    } finally {
+      setLikingPost(false);
+    }
+  };
 
   const isAdmin = session?.user?.email === ADMIN_EMAIL;
 
@@ -229,6 +246,23 @@ export default function PostPage() {
           </div>
 
           <p className="text-dark-200 leading-relaxed whitespace-pre-wrap">{post.content}</p>
+
+          {/* Like button */}
+          <div className="mt-4 pt-4 border-t border-dark-800 flex items-center gap-3">
+            <button
+              onClick={handleLike}
+              disabled={likingPost || !session}
+              title={session ? (post.likedByMe ? "Unlike" : "Like this post") : "Sign in to like"}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                post.likedByMe
+                  ? "bg-red-50 text-red-500 border border-red-200 hover:bg-red-100"
+                  : "bg-dark-800 text-dark-400 border border-dark-700 hover:bg-red-50 hover:text-red-400 hover:border-red-200"
+              } disabled:opacity-50`}
+            >
+              <Heart size={15} className={post.likedByMe ? "fill-red-500" : ""} />
+              {post._count.likes} {post._count.likes === 1 ? "like" : "likes"}
+            </button>
+          </div>
         </div>
 
         {/* Replies */}
