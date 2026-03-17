@@ -13,6 +13,9 @@ export default function UpgradePage() {
   const { data: session } = useSession();
   const userId = session?.user?.email ?? "";
   const [membership, setMembership] = useState<Membership>({ tier: "free", promptsUsed: 0 });
+  const [avatarEmoji, setAvatarEmoji] = useState<string | null>(null);
+  const [avatarImage, setAvatarImage] = useState<string | null>(null);
+  const [displayName, setDisplayName] = useState<string>("");
 
   useEffect(() => {
     if (userId) {
@@ -25,6 +28,17 @@ export default function UpgradePage() {
           if (db?.tier !== undefined) {
             const m = { tier: db.tier, promptsUsed: db.promptsUsed, promptLimit: db.promptLimit };
             setMembership(m);
+          }
+        })
+        .catch(() => {});
+      // Fetch profile for avatar + latest username
+      fetch("/api/profile")
+        .then((r) => r.ok ? r.json() : null)
+        .then((data) => {
+          if (data) {
+            setAvatarEmoji(data.avatarEmoji || null);
+            setAvatarImage(data.avatarImage || null);
+            setDisplayName(data.name || session?.user?.name || "");
           }
         })
         .catch(() => {});
@@ -114,14 +128,25 @@ export default function UpgradePage() {
           <Link href="/dashboard" className="flex items-center gap-3">
             <img src="/logo.svg" alt="LAA Logo" className="w-9 h-9 rounded-xl shadow-sm" />
             <div className="hidden sm:block">
-              <div className="font-bold text-dark-50 leading-tight text-sm">Anthropic Architecture Certification</div>
+              <div className="font-bold text-dark-50 leading-tight text-sm">Learn Agent Architecture</div>
               <div className="text-xs text-brand-600 font-medium">Upgrade to Pro</div>
             </div>
           </Link>
           {session?.user && (
             <div className="flex items-center gap-2 text-sm text-dark-400">
               <span>Welcome,</span>
-              <span className="text-dark-100 font-medium">{session.user.name}</span>
+              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center overflow-hidden flex-shrink-0">
+                {avatarImage ? (
+                  <img src={avatarImage} alt="" className="w-full h-full object-cover" />
+                ) : avatarEmoji ? (
+                  <span className="text-sm leading-none">{avatarEmoji}</span>
+                ) : (
+                  <span className="text-white text-xs font-bold">
+                    {(displayName || session.user.name || "?").slice(0, 2).toUpperCase()}
+                  </span>
+                )}
+              </div>
+              <span className="text-dark-100 font-medium">{displayName || session.user.name}</span>
             </div>
           )}
         </div>
