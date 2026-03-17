@@ -15,6 +15,7 @@ import {
   Heart,
   Zap,
   Shield,
+  MessageSquare,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { loadProgress, clearProgress, getOverallProgress } from "@/lib/progress";
@@ -277,10 +278,25 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Section cards */}
+        {/* Section cards + Forum tabs */}
         <div className="space-y-4">
-          <h2 className="text-xl font-bold text-dark-50">Course Sections</h2>
-          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div className="flex items-center gap-2 border-b border-dark-700 pb-0">
+            <Link
+              href="/dashboard"
+              className="flex items-center gap-2 px-4 py-3 text-sm font-semibold text-brand-600 border-b-2 border-brand-600 -mb-px transition-colors"
+            >
+              <BookOpen size={15} />
+              Course Sections
+            </Link>
+            <Link
+              href="/forum"
+              className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-dark-400 hover:text-dark-100 border-b-2 border-transparent hover:border-dark-500 -mb-px transition-colors"
+            >
+              <MessageSquare size={15} />
+              Community Forum
+            </Link>
+          </div>
+          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4 pt-2">
             {domains.map((domain, index) => {
               const domainProgress = progress.domains.find(
                 (d) => d.domainId === domain.id

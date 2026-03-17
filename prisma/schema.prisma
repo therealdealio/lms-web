@@ -96,3 +96,32 @@ model PromptLog {
   userId    String
   createdAt DateTime @default(now())
 }
+
+model ForumPost {
+  id         String       @id @default(cuid())
+  title      String
+  content    String       @db.Text
+  category   String       // "general" or domain id "1"-"8"
+  authorId   String
+  authorName String
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  replies    ForumReply[]
+
+  @@index([category])
+  @@index([authorId])
+  @@index([createdAt])
+}
+
+model ForumReply {
+  id         String    @id @default(cuid())
+  content    String    @db.Text
+  postId     String
+  post       ForumPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId   String
+  authorName String
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([postId])
+}
