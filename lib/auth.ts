@@ -68,14 +68,14 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
   },
   events: {
-    async createUser({ user }) {
-      console.log("[createUser] New user created:", user.email);
-      if (user.email) {
+    async signIn({ user, isNewUser }) {
+      console.log("[signIn] isNewUser:", isNewUser, "email:", user.email);
+      if (isNewUser && user.email) {
         try {
           await sendWelcomeEmail({ email: user.email, name: user.name });
-          console.log("[createUser] Welcome email sent to:", user.email);
+          console.log("[signIn] Welcome email sent to:", user.email);
         } catch (err) {
-          console.error("[createUser] Welcome email failed:", err);
+          console.error("[signIn] Welcome email failed:", err);
         }
       }
     },
