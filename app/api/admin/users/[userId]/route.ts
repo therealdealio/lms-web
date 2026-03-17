@@ -5,6 +5,28 @@ import { prisma } from "@/lib/prisma";
 
 const ADMIN_EMAIL = "rrthai88@gmail.com";
 
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: { userId: string } }
+) {
+  const session = await getServerSession(authOptions);
+  if (session?.user?.email !== ADMIN_EMAIL) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const { userId } = params;
+
+  const target = await prisma.user.findUnique({ where: { id: userId } });
+  if (target?.email === ADMIN_EMAIL) {
+    return NextResponse.json({ error: "Cannot delete admin account" }, { status: 400 });
+  }
+
+  // Cascades to Account, Session, Membership, UserDomainProgress via onDelete: Cascade
+  await prisma.user.delete({ where: { id: userId } });
+
+  return NextResponse.json({ success: true });
+}
+
 // Update membership tier and/or domain progress for a user
 export async function PUT(
   req: NextRequest,

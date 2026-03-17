@@ -18,6 +18,7 @@ import {
   MessageSquare,
   UserPlus,
   BarChart2,
+  Trash2,
 } from "lucide-react";
 
 const ADMIN_EMAIL = "rrthai88@gmail.com";
@@ -75,6 +76,7 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [expandedUser, setExpandedUser] = useState<string | null>(null);
   const [saving, setSaving] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
   const [promptInputs, setPromptInputs] = useState<Record<string, string>>({});
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [activeChart, setActiveChart] = useState<"visits" | "prompts" | "signups">("visits");
@@ -152,6 +154,16 @@ export default function AdminPage() {
         examScore: !isCompleted ? 100 : null,
       },
     });
+  };
+
+  const deleteUser = async (user: User) => {
+    if (!confirm(`Delete ${user.email}? This cannot be undone.`)) return;
+    setDeleting(user.id);
+    const res = await fetch(`/api/admin/users/${user.id}`, { method: "DELETE" });
+    if (res.ok) {
+      setUsers((prev) => prev.filter((u) => u.id !== user.id));
+    }
+    setDeleting(null);
   };
 
   const proCount = users.filter((u) => u.membership?.tier === "pro").length;
@@ -320,6 +332,8 @@ export default function AdminPage() {
                 const completedDomains = user.domainProgress.filter((d) => d.completed).length;
                 const isExpanded = expandedUser === user.id;
                 const isSaving = saving === user.id;
+                const isDeleting = deleting === user.id;
+                const isAdmin = user.email === ADMIN_EMAIL;
 
                 return (
                   <div key={user.id}>
@@ -385,6 +399,20 @@ export default function AdminPage() {
                         >
                           {isSaving ? "..." : isPro ? "Downgrade" : "Upgrade Pro"}
                         </button>
+                        {!isAdmin && (
+                          <button
+                            onClick={() => deleteUser(user)}
+                            disabled={isDeleting || isSaving}
+                            className="p-1.5 rounded-lg text-dark-500 hover:text-red-400 hover:bg-red-950 transition-colors disabled:opacity-50"
+                            title="Delete account"
+                          >
+                            {isDeleting ? (
+                              <RefreshCw size={16} className="animate-spin" />
+                            ) : (
+                              <Trash2 size={16} />
+                            )}
+                          </button>
+                        )}
                         <button
                           onClick={() => setExpandedUser(isExpanded ? null : user.id)}
                           className="p-1.5 rounded-lg text-dark-400 hover:text-dark-100 hover:bg-dark-800 transition-colors"
