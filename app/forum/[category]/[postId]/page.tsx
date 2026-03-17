@@ -26,6 +26,7 @@ interface Reply {
   content: string;
   authorId: string;
   authorName: string;
+  authorAvatarEmoji: string | null;
   createdAt: string;
 }
 
@@ -36,6 +37,7 @@ interface Post {
   category: string;
   authorId: string;
   authorName: string;
+  authorAvatarEmoji: string | null;
   createdAt: string;
   replies: Reply[];
 }
@@ -52,7 +54,7 @@ function timeAgo(dateStr: string) {
   return new Date(dateStr).toLocaleDateString();
 }
 
-function Avatar({ name }: { name: string }) {
+function Avatar({ name, emoji }: { name: string; emoji?: string | null }) {
   const initials = name
     .split(" ")
     .map((n) => n[0])
@@ -62,8 +64,12 @@ function Avatar({ name }: { name: string }) {
   const colors = ["bg-brand-500", "bg-purple-500", "bg-blue-500", "bg-emerald-500", "bg-amber-500", "bg-pink-500", "bg-teal-500"];
   const colorIndex = name.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0) % colors.length;
   return (
-    <div className={`w-8 h-8 rounded-full ${colors[colorIndex]} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}>
-      {initials}
+    <div className={`w-8 h-8 rounded-full ${colors[colorIndex]} flex items-center justify-center flex-shrink-0`}>
+      {emoji ? (
+        <span className="text-base leading-none">{emoji}</span>
+      ) : (
+        <span className="text-white text-xs font-bold">{initials}</span>
+      )}
     </div>
   );
 }
@@ -212,7 +218,7 @@ export default function PostPage() {
           </div>
 
           <div className="flex items-center gap-3 mt-3 mb-4 text-sm text-dark-400">
-            <Avatar name={post.authorName} />
+            <Avatar name={post.authorName} emoji={post.authorAvatarEmoji} />
             <span className="font-medium text-dark-300">{post.authorName}</span>
             <span className="flex items-center gap-1 text-xs">
               <Clock size={11} />
@@ -234,9 +240,9 @@ export default function PostPage() {
               No replies yet. Be the first to respond!
             </div>
           ) : (
-            post.replies.map((reply, index) => (
+            post.replies.map((reply) => (
               <div key={reply.id} className="flex gap-3">
-                <Avatar name={reply.authorName} />
+                <Avatar name={reply.authorName} emoji={reply.authorAvatarEmoji} />
                 <div className="flex-1 bg-white border border-dark-700 rounded-2xl p-4">
                   <div className="flex items-center justify-between gap-2 mb-2">
                     <div className="flex items-center gap-2 text-sm">

@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
 
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
-    select: { id: true, name: true },
+    select: { id: true, name: true, avatarEmoji: true },
   });
 
   if (!user) {
@@ -51,6 +51,7 @@ export async function POST(req: NextRequest) {
       category,
       authorId: user.id,
       authorName: user.name || session.user.email,
+      authorAvatarEmoji: user.avatarEmoji ?? null,
     },
   });
 

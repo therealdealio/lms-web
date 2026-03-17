@@ -75,7 +75,11 @@ export default function LandingPage() {
     setError("");
 
     if (!name.trim()) {
-      setError("Please enter your name.");
+      setError("Please enter a username.");
+      return;
+    }
+    if (name.trim().length < 2 || name.trim().length > 30) {
+      setError("Username must be 2–30 characters.");
       return;
     }
     if (!email.trim() || !email.includes("@")) {
@@ -321,15 +325,17 @@ export default function LandingPage() {
                     {authMode === "signup" && (
                       <div className="space-y-2">
                         <label className="block text-sm font-medium text-dark-200">
-                          Full Name
+                          Username
                         </label>
                         <input
                           type="text"
                           value={name}
                           onChange={(e) => setName(e.target.value)}
-                          placeholder="Alex Johnson"
+                          placeholder="e.g. alex_johnson"
+                          maxLength={30}
                           className="w-full px-4 py-3 rounded-xl bg-dark-950 border border-dark-700 text-dark-50 placeholder-dark-500 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-400 transition-colors"
                         />
+                        <p className="text-dark-500 text-xs">Shown on forum posts. You can change this later.</p>
                       </div>
                     )}
 
