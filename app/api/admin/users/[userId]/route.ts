@@ -42,18 +42,20 @@ export async function PUT(
 
   // Update membership
   if (body.membership !== undefined) {
-    const { tier, promptsUsed } = body.membership;
+    const { tier, promptsUsed, promptLimit } = body.membership;
     await prisma.membership.upsert({
       where: { userId },
       update: {
         ...(tier !== undefined && { tier }),
         ...(promptsUsed !== undefined && { promptsUsed }),
+        ...(promptLimit !== undefined && { promptLimit }),
         ...(tier === "pro" && { upgradedAt: new Date() }),
       },
       create: {
         userId,
         tier: tier ?? "free",
         promptsUsed: promptsUsed ?? 0,
+        promptLimit: promptLimit ?? null,
         upgradedAt: tier === "pro" ? new Date() : null,
       },
     });

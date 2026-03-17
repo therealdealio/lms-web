@@ -137,10 +137,13 @@ export default function AdminPage() {
     const raw = promptInputs[user.id] ?? "";
     const desired = parseInt(raw, 10);
     if (isNaN(desired) || desired < 0) return;
-    const limit = user.membership?.promptLimit ?? 15;
-    const newUsed = Math.max(0, limit - desired);
+    const currentUsed = user.membership?.promptsUsed ?? 0;
     updateUser(user.id, {
-      membership: { tier: user.membership?.tier ?? "free", promptsUsed: newUsed },
+      membership: {
+        tier: "pro",
+        promptsUsed: currentUsed,
+        promptLimit: currentUsed + desired,
+      },
     });
   };
 
