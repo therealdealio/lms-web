@@ -44,7 +44,7 @@ export async function GET(
   }
 
   // Look up live avatarImage for all unique authors (post + replies)
-  const authorIds = [...new Set([post.authorId, ...post.replies.map((r) => r.authorId)])];
+  const authorIds = Array.from(new Set([post.authorId, ...post.replies.map((r) => r.authorId)]));
   const authors = await prisma.user.findMany({
     where: { id: { in: authorIds } },
     select: { id: true, avatarImage: true },
