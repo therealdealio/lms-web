@@ -208,7 +208,7 @@ export default function UpgradePage() {
               ))}
             </ul>
             <a
-              href={process.env.NEXT_PUBLIC_GUMROAD_URL || "https://gumroad.com"}
+              href="https://uncachable.gumroad.com/l/lzycjc"
               target="_blank"
               rel="noopener noreferrer"
               className="w-full py-3 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-semibold transition-colors flex items-center justify-center gap-2 shadow-sm"
