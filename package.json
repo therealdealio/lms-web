@@ -23,6 +23,7 @@
     "react": "^18",
     "react-dom": "^18",
     "react-markdown": "^10.1.0",
+    "resend": "^6.9.4",
     "stripe": "^20.4.1"
   },
   "devDependencies": {

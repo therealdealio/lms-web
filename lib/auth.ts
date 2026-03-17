@@ -6,6 +6,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import bcrypt from "bcryptjs";
 import { prisma } from "./prisma";
+import { sendWelcomeEmail } from "./resend";
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -65,6 +66,15 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: "jwt",
+  },
+  events: {
+    async createUser({ user }) {
+      if (user.email) {
+        await sendWelcomeEmail({ email: user.email, name: user.name }).catch(
+          (err) => console.error("Welcome email failed:", err)
+        );
+      }
+    },
   },
   callbacks: {
     async jwt({ token, user, trigger, session }) {
