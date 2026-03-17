@@ -34,6 +34,8 @@ export default function DashboardPage() {
   const { data: session } = useSession();
   const [progress, setProgress] = useState<AppProgress | null>(null);
   const [membership, setMembership] = useState<Membership | null>(null);
+  const [avatarEmoji, setAvatarEmoji] = useState<string | null>(null);
+  const [avatarImage, setAvatarImage] = useState<string | null>(null);
 
   useEffect(() => {
     const p = loadProgress();
@@ -57,6 +59,17 @@ export default function DashboardPage() {
         }
       })
       .catch(() => setMembership(localMembership));
+
+    // Load avatar
+    fetch("/api/profile")
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => {
+        if (data) {
+          setAvatarEmoji(data.avatarEmoji || null);
+          setAvatarImage(data.avatarImage || null);
+        }
+      })
+      .catch(() => {});
 
     // Load admin-set domain progress from DB and merge with localStorage
     fetch("/api/progress")
@@ -112,8 +125,8 @@ export default function DashboardPage() {
           <Link href="/" className="flex items-center gap-3">
             <img src="/logo.svg" alt="LAA Logo" className="w-9 h-9 rounded-xl shadow-sm" />
             <div className="hidden sm:block">
-              <div className="font-bold text-dark-50 leading-tight text-sm">Anthropic Architecture Certification</div>
-              <div className="text-xs text-brand-600 font-medium">Preparing you for the official exam</div>
+              <div className="font-bold text-dark-50 leading-tight text-sm">Learn Agent Architecture</div>
+              <div className="text-xs text-brand-600 font-medium">Preparing you for AI certifications</div>
             </div>
           </Link>
 
@@ -143,6 +156,18 @@ export default function DashboardPage() {
             )}
             <div className="hidden md:flex items-center gap-2 text-sm text-dark-400">
               <span>Welcome,</span>
+              {/* Avatar bubble */}
+              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center overflow-hidden flex-shrink-0">
+                {avatarImage ? (
+                  <img src={avatarImage} alt="" className="w-full h-full object-cover" />
+                ) : avatarEmoji ? (
+                  <span className="text-sm leading-none">{avatarEmoji}</span>
+                ) : (
+                  <span className="text-white text-xs font-bold">
+                    {(progress.user.name || "?").slice(0, 2).toUpperCase()}
+                  </span>
+                )}
+              </div>
               <span className="text-dark-100 font-medium">{progress.user.name}</span>
             </div>
 
@@ -294,7 +319,7 @@ export default function DashboardPage() {
               className="flex items-center gap-2 px-4 py-3 text-sm font-semibold text-brand-600 border-b-2 border-brand-600 -mb-px transition-colors"
             >
               <BookOpen size={15} />
-              Course Sections
+              Anthropic Architecture Certification Prep
             </Link>
             <Link
               href="/forum"
