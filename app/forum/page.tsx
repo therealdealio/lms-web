@@ -18,6 +18,16 @@ const CATEGORIES = [
     badge: "bg-emerald-100 text-emerald-700",
   },
   {
+    id: "suggestions",
+    label: "Website Suggestions & Support",
+    description: "Share ideas to improve the site, report bugs, or get help with anything.",
+    icon: "💡",
+    color: "from-violet-500 to-purple-600",
+    bg: "bg-violet-50",
+    border: "border-violet-200",
+    badge: "bg-violet-100 text-violet-700",
+  },
+  {
     id: "1",
     label: "Domain 1: Agentic Architecture & Orchestration",
     description: "Discuss agentic loops, multi-agent coordination, subagent isolation, and orchestration patterns.",

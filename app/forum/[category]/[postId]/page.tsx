@@ -5,10 +5,12 @@ import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { ArrowLeft, ChevronRight, Trash2, Send, Clock } from "lucide-react";
+import EmojiTextarea from "@/components/EmojiTextarea";
 import { loadProgress } from "@/lib/progress";
 
 const CATEGORY_LABELS: Record<string, string> = {
   general: "General",
+  suggestions: "Website Suggestions & Support",
   "1": "Domain 1: Agentic Architecture",
   "2": "Domain 2: Tool Design & MCP",
   "3": "Domain 3: Claude Code",
@@ -273,12 +275,11 @@ export default function PostPage() {
         {session ? (
           <form onSubmit={handleReply} className="bg-white border border-dark-700 rounded-2xl p-5 space-y-4">
             <h3 className="font-semibold text-dark-50 text-sm">Add your reply</h3>
-            <textarea
-              placeholder="Share your thoughts or advice..."
+            <EmojiTextarea
               value={replyContent}
-              onChange={(e) => setReplyContent(e.target.value)}
+              onChange={setReplyContent}
+              placeholder="Share your thoughts or advice..."
               rows={4}
-              className="w-full px-4 py-3 rounded-xl border border-dark-700 bg-dark-950 text-dark-50 text-sm placeholder-dark-500 focus:outline-none focus:border-brand-400 resize-none"
               required
             />
             <div className="flex justify-end">

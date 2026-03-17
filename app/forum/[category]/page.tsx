@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { ArrowLeft, MessageSquare, Plus, ChevronRight, Clock, X } from "lucide-react";
 import { loadProgress } from "@/lib/progress";
+import EmojiTextarea from "@/components/EmojiTextarea";
 
 const CATEGORY_META: Record<string, { label: string; description: string; icon: string; badge: string; bg: string; border: string }> = {
   general: {
@@ -15,6 +16,14 @@ const CATEGORY_META: Record<string, { label: string; description: string; icon: 
     badge: "bg-emerald-100 text-emerald-700",
     bg: "bg-emerald-50",
     border: "border-emerald-200",
+  },
+  suggestions: {
+    label: "Website Suggestions & Support",
+    description: "Share ideas to improve the site, report bugs, or get help with anything.",
+    icon: "💡",
+    badge: "bg-violet-100 text-violet-700",
+    bg: "bg-violet-50",
+    border: "border-violet-200",
   },
   "1": { label: "Domain 1: Agentic Architecture & Orchestration", description: "Discuss agentic loops, multi-agent coordination, and orchestration patterns.", icon: "🤖", badge: "bg-purple-100 text-purple-700", bg: "bg-purple-50", border: "border-purple-200" },
   "2": { label: "Domain 2: Tool Design & MCP Integration", description: "Share insights on tool design patterns and MCP integration.", icon: "🔧", badge: "bg-blue-100 text-blue-700", bg: "bg-blue-50", border: "border-blue-200" },
@@ -173,12 +182,11 @@ export default function CategoryPage() {
                 className="w-full px-4 py-3 rounded-xl border border-dark-700 bg-dark-950 text-dark-50 text-sm placeholder-dark-500 focus:outline-none focus:border-brand-400"
                 required
               />
-              <textarea
-                placeholder="Share your thoughts, questions, or advice..."
+              <EmojiTextarea
                 value={content}
-                onChange={(e) => setContent(e.target.value)}
+                onChange={setContent}
+                placeholder="Share your thoughts, questions, or advice..."
                 rows={5}
-                className="w-full px-4 py-3 rounded-xl border border-dark-700 bg-dark-950 text-dark-50 text-sm placeholder-dark-500 focus:outline-none focus:border-brand-400 resize-none"
                 required
               />
               {error && <p className="text-red-500 text-sm">{error}</p>}
