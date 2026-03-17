@@ -69,10 +69,14 @@ export const authOptions: NextAuthOptions = {
   },
   events: {
     async createUser({ user }) {
+      console.log("[createUser] New user created:", user.email);
       if (user.email) {
-        await sendWelcomeEmail({ email: user.email, name: user.name }).catch(
-          (err) => console.error("Welcome email failed:", err)
-        );
+        try {
+          await sendWelcomeEmail({ email: user.email, name: user.name });
+          console.log("[createUser] Welcome email sent to:", user.email);
+        } catch (err) {
+          console.error("[createUser] Welcome email failed:", err);
+        }
       }
     },
   },
