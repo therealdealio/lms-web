@@ -15,7 +15,7 @@ export async function sendWelcomeEmail({
   await resend.emails.send({
     from: "Richard at Learn Agent Architecture <support@learnagentarchitecture.com>",
     to: email,
-    reply_to: "support@learnagentarchitecture.com",
+    replyTo: "support@learnagentarchitecture.com",
     subject: "Welcome to Learn Agent Architecture 👋",
     html: `
 <!DOCTYPE html>
