@@ -148,10 +148,10 @@ export default function DashboardPage() {
             {session?.user?.email === ADMIN_EMAIL && (
               <Link
                 href="/admin"
-                className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl bg-red-50 border border-red-200 text-red-700 hover:bg-red-100 transition-colors text-sm font-medium"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-50 border border-red-200 text-red-700 hover:bg-red-100 transition-colors text-sm font-medium"
               >
                 <Shield size={14} />
-                Admin
+                <span className="hidden sm:inline">Admin</span>
               </Link>
             )}
             <div className="hidden md:flex items-center gap-2 text-sm text-dark-400">
