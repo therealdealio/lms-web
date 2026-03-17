@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { ArrowLeft, ChevronRight, Trash2, Send, Clock, Heart } from "lucide-react";
+import { ChevronRight, Trash2, Send, Clock, Heart } from "lucide-react";
 import EmojiTextarea from "@/components/EmojiTextarea";
 import { loadProgress } from "@/lib/progress";
 
@@ -29,7 +29,10 @@ interface Reply {
   authorId: string;
   authorName: string;
   authorAvatarEmoji: string | null;
+  authorAvatarImage: string | null;
   createdAt: string;
+  likedByMe: boolean;
+  _count: { likes: number };
 }
 
 interface Post {
@@ -40,6 +43,7 @@ interface Post {
   authorId: string;
   authorName: string;
   authorAvatarEmoji: string | null;
+  authorAvatarImage: string | null;
   createdAt: string;
   likedByMe: boolean;
   _count: { likes: number };
@@ -58,7 +62,7 @@ function timeAgo(dateStr: string) {
   return new Date(dateStr).toLocaleDateString();
 }
 
-function Avatar({ name, emoji }: { name: string; emoji?: string | null }) {
+function Avatar({ name, emoji, image }: { name: string; emoji?: string | null; image?: string | null }) {
   const initials = name
     .split(" ")
     .map((n) => n[0])
@@ -68,8 +72,10 @@ function Avatar({ name, emoji }: { name: string; emoji?: string | null }) {
   const colors = ["bg-brand-500", "bg-purple-500", "bg-blue-500", "bg-emerald-500", "bg-amber-500", "bg-pink-500", "bg-teal-500"];
   const colorIndex = name.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0) % colors.length;
   return (
-    <div className={`w-8 h-8 rounded-full ${colors[colorIndex]} flex items-center justify-center flex-shrink-0`}>
-      {emoji ? (
+    <div className={`w-8 h-8 rounded-full ${colors[colorIndex]} flex items-center justify-center flex-shrink-0 overflow-hidden`}>
+      {image ? (
+        <img src={image} alt="" className="w-full h-full object-cover" />
+      ) : emoji ? (
         <span className="text-base leading-none">{emoji}</span>
       ) : (
         <span className="text-white text-xs font-bold">{initials}</span>
@@ -91,10 +97,12 @@ export default function PostPage() {
   const [submitting, setSubmitting] = useState(false);
   const [deletingPost, setDeletingPost] = useState(false);
   const [deletingReply, setDeletingReply] = useState<string | null>(null);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [likingPost, setLikingPost] = useState(false);
+  const [likingReply, setLikingReply] = useState<string | null>(null);
 
-  const handleLike = async () => {
+  const isAdmin = session?.user?.email === ADMIN_EMAIL;
+
+  const handleLikePost = async () => {
     if (!session || !post) return;
     setLikingPost(true);
     try {
@@ -108,7 +116,30 @@ export default function PostPage() {
     }
   };
 
-  const isAdmin = session?.user?.email === ADMIN_EMAIL;
+  const handleLikeReply = async (replyId: string) => {
+    if (!session || !post) return;
+    setLikingReply(replyId);
+    try {
+      const res = await fetch(`/api/forum/replies/${replyId}/like`, { method: "POST" });
+      if (res.ok) {
+        const { liked, count } = await res.json();
+        setPost((prev) =>
+          prev
+            ? {
+                ...prev,
+                replies: prev.replies.map((r) =>
+                  r.id === replyId
+                    ? { ...r, likedByMe: liked, _count: { ...r._count, likes: count } }
+                    : r
+                ),
+              }
+            : prev
+        );
+      }
+    } finally {
+      setLikingReply(null);
+    }
+  };
 
   useEffect(() => {
     const p = loadProgress();
@@ -117,14 +148,6 @@ export default function PostPage() {
       return;
     }
     fetchPost();
-    // Fetch current user ID for ownership checks
-    if (session?.user?.email) {
-      fetch("/api/membership").then(async (r) => {
-        if (r.ok) {
-          // Use a simple user lookup instead
-        }
-      });
-    }
   }, [postId, router, session]);
 
   const fetchPost = async () => {
@@ -186,9 +209,6 @@ export default function PostPage() {
     }
   };
 
-  const canDeletePost = isAdmin || (post?.authorId && currentUserId === post.authorId);
-  const canDeleteReply = (reply: Reply) => isAdmin || currentUserId === reply.authorId;
-
   if (loading) {
     return (
       <div className="min-h-screen bg-dark-950 flex items-center justify-center">
@@ -224,7 +244,7 @@ export default function PostPage() {
         <div className="bg-white border border-dark-700 rounded-2xl p-6 mb-6">
           <div className="flex items-start justify-between gap-4">
             <h1 className="text-xl font-bold text-dark-50 flex-1">{post.title}</h1>
-            {(isAdmin) && (
+            {isAdmin && (
               <button
                 onClick={handleDeletePost}
                 disabled={deletingPost}
@@ -237,7 +257,7 @@ export default function PostPage() {
           </div>
 
           <div className="flex items-center gap-3 mt-3 mb-4 text-sm text-dark-400">
-            <Avatar name={post.authorName} emoji={post.authorAvatarEmoji} />
+            <Avatar name={post.authorName} emoji={post.authorAvatarEmoji} image={post.authorAvatarImage} />
             <span className="font-medium text-dark-300">{post.authorName}</span>
             <span className="flex items-center gap-1 text-xs">
               <Clock size={11} />
@@ -247,10 +267,10 @@ export default function PostPage() {
 
           <p className="text-dark-200 leading-relaxed whitespace-pre-wrap">{post.content}</p>
 
-          {/* Like button */}
+          {/* Post like button */}
           <div className="mt-4 pt-4 border-t border-dark-800 flex items-center gap-3">
             <button
-              onClick={handleLike}
+              onClick={handleLikePost}
               disabled={likingPost || !session}
               title={session ? (post.likedByMe ? "Unlike" : "Like this post") : "Sign in to like"}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
@@ -278,7 +298,7 @@ export default function PostPage() {
           ) : (
             post.replies.map((reply) => (
               <div key={reply.id} className="flex gap-3">
-                <Avatar name={reply.authorName} emoji={reply.authorAvatarEmoji} />
+                <Avatar name={reply.authorName} emoji={reply.authorAvatarEmoji} image={reply.authorAvatarImage} />
                 <div className="flex-1 bg-white border border-dark-700 rounded-2xl p-4">
                   <div className="flex items-center justify-between gap-2 mb-2">
                     <div className="flex items-center gap-2 text-sm">
@@ -288,7 +308,7 @@ export default function PostPage() {
                         {timeAgo(reply.createdAt)}
                       </span>
                     </div>
-                    {(isAdmin) && (
+                    {isAdmin && (
                       <button
                         onClick={() => handleDeleteReply(reply.id)}
                         disabled={deletingReply === reply.id}
@@ -298,7 +318,25 @@ export default function PostPage() {
                       </button>
                     )}
                   </div>
+
                   <p className="text-dark-200 text-sm leading-relaxed whitespace-pre-wrap">{reply.content}</p>
+
+                  {/* Reply like button */}
+                  <div className="mt-3 pt-3 border-t border-dark-800">
+                    <button
+                      onClick={() => handleLikeReply(reply.id)}
+                      disabled={likingReply === reply.id || !session}
+                      title={session ? (reply.likedByMe ? "Unlike" : "Like this reply") : "Sign in to like"}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                        reply.likedByMe
+                          ? "bg-red-50 text-red-500 border border-red-200 hover:bg-red-100"
+                          : "bg-dark-800 text-dark-400 border border-dark-700 hover:bg-red-50 hover:text-red-400 hover:border-red-200"
+                      } disabled:opacity-50`}
+                    >
+                      <Heart size={12} className={reply.likedByMe ? "fill-red-500" : ""} />
+                      {reply._count.likes} {reply._count.likes === 1 ? "like" : "likes"}
+                    </button>
+                  </div>
                 </div>
               </div>
             ))

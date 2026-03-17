@@ -23,7 +23,15 @@ export async function GET(
   const post = await prisma.forumPost.findUnique({
     where: { id: params.postId },
     include: {
-      replies: { orderBy: { createdAt: "asc" } },
+      replies: {
+        orderBy: { createdAt: "asc" },
+        include: {
+          _count: { select: { likes: true } },
+          likes: currentUserId
+            ? { where: { userId: currentUserId }, select: { id: true } }
+            : false,
+        },
+      },
       _count: { select: { likes: true } },
       likes: currentUserId
         ? { where: { userId: currentUserId }, select: { id: true } }
@@ -35,10 +43,25 @@ export async function GET(
     return NextResponse.json({ error: "Post not found." }, { status: 404 });
   }
 
+  // Look up live avatarImage for all unique authors (post + replies)
+  const authorIds = [...new Set([post.authorId, ...post.replies.map((r) => r.authorId)])];
+  const authors = await prisma.user.findMany({
+    where: { id: { in: authorIds } },
+    select: { id: true, avatarImage: true },
+  });
+  const imageMap = Object.fromEntries(authors.map((a) => [a.id, a.avatarImage]));
+
   return NextResponse.json({
     ...post,
+    authorAvatarImage: imageMap[post.authorId] ?? null,
     likedByMe: Array.isArray(post.likes) && post.likes.length > 0,
     likes: undefined,
+    replies: post.replies.map((r) => ({
+      ...r,
+      authorAvatarImage: imageMap[r.authorId] ?? null,
+      likedByMe: Array.isArray(r.likes) && r.likes.length > 0,
+      likes: undefined,
+    })),
   });
 }
 
