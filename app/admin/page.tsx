@@ -402,8 +402,18 @@ export default function AdminPage() {
                         <button
                           onClick={() => deleteUser(user)}
                           disabled={isDeleting || isSaving || isAdmin}
-                          className="p-1.5 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                           title={isAdmin ? "Cannot delete admin account" : "Delete account"}
+                          style={{
+                            padding: "6px",
+                            borderRadius: "8px",
+                            color: isAdmin ? "#ccc" : "#f87171",
+                            background: "transparent",
+                            border: "none",
+                            cursor: isAdmin ? "not-allowed" : "pointer",
+                            opacity: isAdmin ? 0.4 : 1,
+                            display: "flex",
+                            alignItems: "center",
+                          }}
                         >
                           {isDeleting ? (
                             <RefreshCw size={16} className="animate-spin" />
