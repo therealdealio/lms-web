@@ -69,5 +69,23 @@ export async function PUT(req: NextRequest) {
     select: { id: true, name: true, email: true, avatarEmoji: true, avatarImage: true },
   });
 
+  // Sync updated name and emoji to all existing forum posts and replies
+  const postData: Record<string, string | null> = {};
+  const replyData: Record<string, string | null> = {};
+  if (name !== undefined) {
+    postData.authorName = name.trim();
+    replyData.authorName = name.trim();
+  }
+  if (avatarEmoji !== undefined) {
+    postData.authorAvatarEmoji = avatarEmoji || null;
+    replyData.authorAvatarEmoji = avatarEmoji || null;
+  }
+  if (Object.keys(postData).length > 0) {
+    await Promise.all([
+      prisma.forumPost.updateMany({ where: { authorId: user.id }, data: postData }),
+      prisma.forumReply.updateMany({ where: { authorId: user.id }, data: replyData }),
+    ]);
+  }
+
   return NextResponse.json(user);
 }
