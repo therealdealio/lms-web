@@ -403,7 +403,7 @@ export default function AdminPage() {
                           <button
                             onClick={() => deleteUser(user)}
                             disabled={isDeleting || isSaving}
-                            className="p-1.5 rounded-lg text-dark-500 hover:text-red-400 hover:bg-red-950 transition-colors disabled:opacity-50"
+                            className="p-1.5 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
                             title="Delete account"
                           >
                             {isDeleting ? (
