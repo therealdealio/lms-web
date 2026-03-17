@@ -171,7 +171,7 @@ export default function LandingPage() {
             <div className="space-y-8 animate-slide-up">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-50 border border-brand-200 text-brand-700 text-sm font-medium">
                 <Zap size={14} />
-                Unofficial community study resource
+                Community Driven Resources
               </div>
 
               <h1 className="text-5xl lg:text-6xl font-bold leading-tight">
