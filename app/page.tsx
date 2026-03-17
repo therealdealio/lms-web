@@ -143,7 +143,7 @@ export default function LandingPage() {
             <div className="flex items-center gap-3">
               <img src="/logo.svg" alt="LAA Logo" className="w-9 h-9 rounded-xl shadow-sm" />
               <div>
-                <div className="font-bold text-dark-50 leading-tight">Agentic AI Architecture</div>
+                <div className="font-bold text-dark-50 leading-tight">Learn Agent Architecture</div>
                 <div className="text-xs text-brand-600 font-medium">Community study resource · Unofficial</div>
               </div>
             </div>
@@ -160,7 +160,7 @@ export default function LandingPage() {
         {/* Disclaimer banner */}
         <div className="bg-dark-900 border-b border-dark-700 px-6 py-2.5 text-center">
           <p className="text-dark-400 text-xs">
-            Community study resource — not affiliated with or endorsed by Anthropic PBC, but designed to help you prepare for their certifications. More top AI certifications coming soon.
+            Independent community learning platform — not affiliated with or endorsed by Anthropic PBC. Built to prepare you for top AI certifications. More certification tracks coming soon.
           </p>
         </div>
 
@@ -175,22 +175,22 @@ export default function LandingPage() {
               </div>
 
               <h1 className="text-5xl lg:text-6xl font-bold leading-tight">
-                <span className="text-dark-50">Master</span>{" "}
+                <span className="text-dark-50">Learn</span>{" "}
                 <span className="bg-gradient-to-r from-brand-600 to-accent-600 bg-clip-text text-transparent">
-                  Agentic AI Architecture
+                  Agent Architecture
                 </span>
               </h1>
 
               <p className="text-dark-300 text-xl leading-relaxed">
-                Comprehensive coverage of agentic systems, tool design, prompt engineering, context management, and multi-agent coordination — a community-built study course designed to help you prepare for Anthropic&apos;s certifications and beyond.
+                Prepare for today&apos;s most sought-after AI certifications — starting with the <strong className="text-dark-100">Anthropic Architecture Certification</strong>, one of the most prestigious credentials in the field, built by the team behind Claude. Join our community forum, master every concept, and get ready for the next wave of top AI certifications we&apos;re adding.
               </p>
 
               <div className="grid grid-cols-2 gap-4">
                 {[
                   { icon: BookOpen, label: "8 Sections", sub: "Full exam coverage" },
                   { icon: Brain, label: "AI Q&A", sub: "AI-powered feedback" },
-                  { icon: Award, label: "Recognition", sub: "Earned on completion" },
-                  { icon: CheckCircle, label: "58 Questions", sub: "Realistic MCQ exams" },
+                  { icon: Award, label: "Cert Prep", sub: "Anthropic & more coming" },
+                  { icon: CheckCircle, label: "Community", sub: "Forum & peer support" },
                 ].map(({ icon: Icon, label, sub }) => (
                   <div key={label} className="flex items-center gap-3 p-4 rounded-xl bg-white border border-dark-700">
                     <div className="w-10 h-10 rounded-lg bg-brand-50 flex items-center justify-center flex-shrink-0">
@@ -431,33 +431,52 @@ export default function LandingPage() {
         {/* Features section */}
         <div className="border-t border-dark-700 bg-dark-900">
           <div className="max-w-7xl mx-auto px-6 py-16">
-            <h2 className="text-center text-2xl font-bold text-dark-50 mb-12">
-              Everything You Need to Learn Agentic AI Architecture
+            <h2 className="text-center text-2xl font-bold text-dark-50 mb-3">
+              Everything You Need to Get Certified in Agentic AI
             </h2>
-            <div className="grid md:grid-cols-3 gap-8">
+            <p className="text-center text-dark-400 mb-12 max-w-2xl mx-auto">
+              One platform to study, practice, connect, and earn credentials from the organizations defining the future of AI.
+            </p>
+            <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6">
               {[
+                {
+                  icon: "🏆",
+                  title: "Anthropic Architecture Certification",
+                  description: "Start with one of the most prestigious AI certifications available — created by Anthropic, a leading AI safety company and the team behind Claude. Passing signals deep expertise in agentic AI to employers.",
+                },
                 {
                   icon: "🤖",
                   title: "AI-Powered Q&A",
-                  description: "Ask an AI tutor about any concept in the course. Get instant, detailed explanations tailored to your question level.",
+                  description: "Ask an AI tutor about any concept in the course. Get instant, detailed explanations tailored to your level — available anytime you need a deeper understanding.",
                 },
                 {
                   icon: "📝",
                   title: "Realistic Practice Exams",
-                  description: "58 multiple-choice questions across 8 sections. Each question includes detailed explanations of why answers are correct or incorrect.",
+                  description: "58 multiple-choice questions across 8 sections. Each question includes detailed explanations of why answers are correct or incorrect, so you learn from every attempt.",
                 },
                 {
-                  icon: "🎓",
-                  title: "Certification Prep + Recognition",
-                  description: "Content aligned to help you prepare for Anthropic's certifications. Earn a printable community recognition when you pass all section exams. Not an official credential — future tracks for other top AI certifications coming soon.",
+                  icon: "💬",
+                  title: "Community Forum",
+                  description: "Connect with other learners in domain-specific discussions. Share tips, ask questions, get advice from people working through the same material — and introduce yourself in the General section.",
                 },
               ].map(({ icon, title, description }) => (
                 <div key={title} className="p-6 rounded-2xl bg-white border border-dark-700 shadow-sm space-y-4">
                   <div className="text-4xl">{icon}</div>
                   <h3 className="text-lg font-bold text-dark-50">{title}</h3>
-                  <p className="text-dark-400 leading-relaxed">{description}</p>
+                  <p className="text-dark-400 leading-relaxed text-sm">{description}</p>
                 </div>
               ))}
+            </div>
+
+            {/* More certifications coming banner */}
+            <div className="mt-10 p-5 rounded-2xl bg-gradient-to-r from-brand-950/60 to-accent-950/60 border border-brand-800 flex items-center gap-4">
+              <div className="text-3xl flex-shrink-0">🚀</div>
+              <div>
+                <p className="text-dark-50 font-semibold text-sm">More AI Certification Tracks Coming Soon</p>
+                <p className="text-dark-400 text-xs mt-0.5">
+                  We&apos;re expanding beyond Anthropic to cover the next most sought-after AI certifications. Start learning now and be ready when new tracks drop.
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -475,7 +494,7 @@ export default function LandingPage() {
                 </div>
 
                 <h2 className="text-3xl lg:text-4xl font-bold text-dark-50 leading-snug">
-                  Agentic AI is a{" "}
+                  Agent Architecture is a{" "}
                   <span className="bg-gradient-to-r from-brand-600 to-accent-600 bg-clip-text text-transparent">
                     paradigm shift
                   </span>
