@@ -96,14 +96,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <head>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body className="bg-dark-950 text-white antialiased">
+      <body className="bg-surface text-on-surface antialiased">
         <AuthProvider>
           <PageViewTracker />
           {children}

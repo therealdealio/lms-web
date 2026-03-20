@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { signIn, useSession } from "next-auth/react";
-import { BookOpen, Brain, Award, ArrowRight, CheckCircle, Zap, Heart, Eye, EyeOff } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, CheckCircle, X } from "lucide-react";
 import { loadProgress, setUser } from "@/lib/progress";
 import { domains } from "@/lib/curriculum";
 
@@ -22,8 +22,8 @@ export default function LandingPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [ssoLoading, setSsoLoading] = useState<string | null>(null);
   const [existingUser, setExistingUser] = useState<string | null>(null);
+  const [showModal, setShowModal] = useState(false);
 
-  // Bridge OAuth session → localStorage progress
   useEffect(() => {
     if (status === "authenticated" && session?.user) {
       const userName = session.user.name || "Learner";
@@ -35,9 +35,7 @@ export default function LandingPage() {
 
   useEffect(() => {
     const progress = loadProgress();
-    if (progress.user) {
-      setExistingUser(progress.user.name);
-    }
+    if (progress.user) setExistingUser(progress.user.name);
   }, []);
 
   const handleSSO = async (provider: string) => {
@@ -48,514 +46,547 @@ export default function LandingPage() {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-
-    if (!email.trim() || !password) {
-      setError("Please enter your email and password.");
-      return;
-    }
-
+    if (!email.trim() || !password) { setError("Please enter your email and password."); return; }
     setIsLoading(true);
-    const result = await signIn("credentials", {
-      email: email.trim().toLowerCase(),
-      password,
-      redirect: false,
-    });
-
-    if (result?.error) {
-      setError("Invalid email or password. Please try again.");
-      setIsLoading(false);
-      return;
-    }
-
-    // success — useEffect will redirect once session loads
+    const result = await signIn("credentials", { email: email.trim().toLowerCase(), password, redirect: false });
+    if (result?.error) { setError("Invalid email or password. Please try again."); setIsLoading(false); }
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-
-    if (!name.trim()) {
-      setError("Please enter a username.");
-      return;
-    }
-    if (name.trim().length < 2 || name.trim().length > 30) {
-      setError("Username must be 2–30 characters.");
-      return;
-    }
-    if (!email.trim() || !email.includes("@")) {
-      setError("Please enter a valid email address.");
-      return;
-    }
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters.");
-      return;
-    }
-
+    if (!name.trim()) { setError("Please enter a username."); return; }
+    if (name.trim().length < 2 || name.trim().length > 30) { setError("Username must be 2–30 characters."); return; }
+    if (!email.trim() || !email.includes("@")) { setError("Please enter a valid email address."); return; }
+    if (password.length < 6) { setError("Password must be at least 6 characters."); return; }
     setIsLoading(true);
-
     const res = await fetch("/api/auth/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name: name.trim(), email: email.trim(), password }),
     });
-
     const data = await res.json();
-
-    if (!res.ok) {
-      setError(data.error || "Something went wrong.");
-      setIsLoading(false);
-      return;
-    }
-
-    // Auto sign in after signup
-    const result = await signIn("credentials", {
-      email: email.trim().toLowerCase(),
-      password,
-      redirect: false,
-    });
-
-    if (result?.error) {
-      setError("Account created! Please sign in.");
-      setAuthMode("signin");
-      setIsLoading(false);
-      return;
-    }
-    // useEffect will redirect
+    if (!res.ok) { setError(data.error || "Something went wrong."); setIsLoading(false); return; }
+    const result = await signIn("credentials", { email: email.trim().toLowerCase(), password, redirect: false });
+    if (result?.error) { setError("Account created! Please sign in."); setAuthMode("signin"); setIsLoading(false); }
   };
 
-  const handleContinue = () => {
-    router.push("/dashboard");
+  const openModal = (mode: AuthMode = "signup") => {
+    setAuthMode(mode);
+    setError("");
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setError("");
   };
 
   return (
-    <div className="min-h-screen bg-dark-950 overflow-hidden">
-      {/* Background gradient orbs */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-brand-200/40 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-accent-200/40 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-brand-100/20 rounded-full blur-3xl" />
-      </div>
+    <div className="min-h-screen bg-surface text-on-surface">
 
-      <div className="relative z-10">
-        {/* Header */}
-        <nav className="border-b border-dark-700 bg-dark-950/80 backdrop-blur-sm px-6 py-4">
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <img src="/logo.svg" alt="LAA Logo" className="w-9 h-9 rounded-xl shadow-sm" />
-              <div>
-                <div className="font-bold text-dark-50 leading-tight">Learn Agent Architecture</div>
-                <div className="text-xs text-brand-600 font-medium">Community study resource · Unofficial</div>
-              </div>
-            </div>
-            <Link
-              href="/about"
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-50 border border-brand-200 text-brand-700 hover:bg-brand-100 transition-colors text-sm font-medium"
-            >
-              <Heart size={14} />
+      {/* ── Nav ── */}
+      <nav className="fixed top-0 w-full z-50 glass border-b border-outline-variant/20">
+        <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
+          <div className="flex items-center gap-3">
+            <img src="/logo.svg" alt="LAA Logo" className="w-8 h-8 rounded-lg" />
+            <span className="font-headline font-bold text-on-surface tracking-tight">Learn Agent Architecture</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <a href="#curriculum" onClick={(e) => { e.preventDefault(); document.getElementById("curriculum")?.scrollIntoView({ behavior: "smooth" }); }}
+              className="text-on-surface-variant hover:text-primary transition-colors text-sm font-label font-medium hidden md:block px-3 py-2">
+              Curriculum
+            </a>
+            <Link href="/about" className="text-on-surface-variant hover:text-primary transition-colors text-sm font-label font-medium hidden md:block px-3 py-2">
               About
             </Link>
+            {process.env.NODE_ENV === "development" && (
+              <button
+                onClick={() => {
+                  setUser({ name: "Dev User", email: "dev@local.test", startedAt: new Date().toISOString() });
+                  router.push("/dashboard");
+                }}
+                className="text-xs px-3 py-1.5 rounded border border-dashed border-outline-variant text-on-surface-variant hover:border-primary hover:text-primary transition-colors font-label">
+                Dev Login
+              </button>
+            )}
+            <button onClick={() => openModal("signin")}
+              className="bg-gradient-to-r from-primary to-primary-container text-on-primary px-5 py-2.5 rounded-md font-headline font-bold text-sm hover:opacity-90 transition-all active:scale-95">
+              Sign In
+            </button>
           </div>
-        </nav>
-
-        {/* Disclaimer banner */}
-        <div className="bg-dark-900 border-b border-dark-700 px-6 py-2.5 text-center">
-          <p className="text-dark-400 text-xs">
-            Independent community learning platform — not affiliated with or endorsed by Anthropic PBC. Built to prepare you for top AI certifications. More certification tracks coming soon.
-          </p>
         </div>
+      </nav>
 
-        {/* Hero */}
-        <div className="max-w-7xl mx-auto px-6 pt-20 pb-16">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            {/* Left: Content */}
-            <div className="space-y-8 animate-slide-up">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-50 border border-brand-200 text-brand-700 text-sm font-medium">
-                <Zap size={14} />
-                Community Driven Resources
-              </div>
+      <main className="pt-[73px]">
 
-              <h1 className="text-5xl lg:text-6xl font-bold leading-tight">
-                <span className="text-dark-50">Learn</span>{" "}
-                <span className="bg-gradient-to-r from-brand-600 to-accent-600 bg-clip-text text-transparent">
-                  Agent Architecture
-                </span>
+        {/* ── Hero — sell first, show a visual ── */}
+        <section className="relative overflow-hidden min-h-[92vh] flex items-center">
+          <div className="absolute inset-0 blueprint-grid pointer-events-none" />
+          <div className="absolute top-0 right-0 w-[700px] h-[700px] bg-primary-container/10 rounded-full blur-3xl pointer-events-none translate-x-1/3 -translate-y-1/4" />
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-tertiary-fixed-dim/20 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative z-10 max-w-7xl mx-auto px-6 py-20 w-full grid lg:grid-cols-2 gap-16 items-center">
+
+            {/* Left: copy */}
+            <div className="space-y-8">
+              <span className="inline-block text-xs tracking-[0.25em] uppercase text-primary font-headline font-bold bg-primary/8 px-3 py-1.5 rounded-full">
+                Anthropic Certification Prep
+              </span>
+
+              <h1 className="text-6xl lg:text-7xl font-headline font-black leading-[0.88] tracking-tighter text-on-surface">
+                Master<br /><span className="text-primary">Agent</span><br />Architecture.
               </h1>
 
-              <p className="text-dark-300 text-xl leading-relaxed">
-                Prepare for today&apos;s most sought-after AI certifications — starting with the <strong className="text-dark-100">Anthropic Architecture Certification</strong>, one of the most prestigious credentials in the field, built by the team behind Claude. Join our community forum, master every concept, and get ready for the next wave of top AI certifications we&apos;re adding.
+              <p className="text-lg text-on-surface-variant leading-relaxed max-w-lg">
+                The community study platform for the <strong className="text-on-surface font-semibold">Anthropic Architecture Certification</strong> — built by engineers, for engineers. AI-powered explanations, real practice questions, community forum.
               </p>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col gap-3">
                 {[
-                  { icon: BookOpen, label: "8 Sections", sub: "Full exam coverage" },
-                  { icon: Brain, label: "AI Q&A", sub: "AI-powered feedback" },
-                  { icon: Award, label: "Cert Prep", sub: "Anthropic & more coming" },
-                  { icon: CheckCircle, label: "Community", sub: "Forum & peer support" },
-                ].map(({ icon: Icon, label, sub }) => (
-                  <div key={label} className="flex items-center gap-3 p-4 rounded-xl bg-white border border-dark-700">
-                    <div className="w-10 h-10 rounded-lg bg-brand-50 flex items-center justify-center flex-shrink-0">
-                      <Icon size={18} className="text-brand-600" />
-                    </div>
-                    <div>
-                      <div className="font-semibold text-dark-50 text-sm">{label}</div>
-                      <div className="text-dark-400 text-xs">{sub}</div>
-                    </div>
+                  "58+ exam-style practice questions across 8 domains",
+                  "AI tutor for instant concept explanations",
+                  "Community forum with domain-specific discussions",
+                ].map((item) => (
+                  <div key={item} className="flex items-start gap-3">
+                    <CheckCircle size={16} className="text-primary mt-0.5 flex-shrink-0" />
+                    <span className="text-on-surface-variant text-sm">{item}</span>
                   </div>
                 ))}
               </div>
 
-              {/* Section Overview */}
-              <div className="space-y-2">
-                <p className="text-dark-400 text-sm font-medium uppercase tracking-wider">Course Sections</p>
-                <div className="flex flex-wrap gap-2">
-                  {domains.map((d) => (
-                    <span
-                      key={d.id}
-                      className="px-3 py-1 rounded-full text-xs bg-dark-800 border border-dark-700 text-dark-200"
-                    >
-                      S{d.id}: {d.title.split(" ").slice(0, 2).join(" ")} ({d.weight}%)
-                    </span>
-                  ))}
-                </div>
+              <div className="flex flex-wrap gap-4 pt-2">
+                <button onClick={() => openModal("signup")}
+                  className="inline-flex items-center gap-2 bg-gradient-to-r from-primary to-primary-container text-on-primary px-8 py-4 rounded-md font-headline font-bold text-lg shadow-lg shadow-primary/15 hover:scale-[1.02] transition-transform">
+                  Start Learning Free <ArrowRight size={20} />
+                </button>
+                <a href="#curriculum" onClick={(e) => { e.preventDefault(); document.getElementById("curriculum")?.scrollIntoView({ behavior: "smooth" }); }}
+                  className="inline-flex items-center gap-2 border-2 border-primary/25 text-primary px-8 py-4 rounded-md font-headline font-bold text-lg hover:border-primary/60 hover:bg-primary/5 transition-colors">
+                  View Curriculum
+                </a>
               </div>
             </div>
 
-            {/* Right: Auth Form */}
-            <div className="animate-fade-in">
-              {existingUser ? (
-                <div className="p-8 rounded-2xl bg-white border border-dark-700 shadow-sm space-y-6">
-                  <div className="text-center space-y-3">
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center mx-auto shadow-sm">
-                      <span className="text-2xl font-bold text-white">
-                        {existingUser[0].toUpperCase()}
-                      </span>
-                    </div>
-                    <h2 className="text-2xl font-bold text-dark-50">Welcome back, {existingUser}!</h2>
-                    <p className="text-dark-400">Continue where you left off.</p>
+            {/* Right: product preview mockup */}
+            <div className="hidden lg:block relative">
+              {/* Outer glow frame */}
+              <div className="absolute -inset-4 bg-gradient-to-br from-primary/10 to-primary-container/5 rounded-2xl blur-xl" />
+
+              {/* Mock dashboard card */}
+              <div className="relative bg-surface-container-lowest rounded-2xl shadow-2xl shadow-primary/10 overflow-hidden border border-outline-variant/20">
+                {/* Mock nav bar */}
+                <div className="bg-surface-container-low px-5 py-3 flex items-center justify-between border-b border-outline-variant/20">
+                  <div className="flex items-center gap-2">
+                    <img src="/logo.svg" alt="" className="w-5 h-5 rounded" />
+                    <span className="text-xs font-headline font-bold text-on-surface">Dashboard</span>
                   </div>
-
-                  <button
-                    onClick={handleContinue}
-                    className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-gradient-to-r from-brand-600 to-brand-700 hover:from-brand-500 hover:to-brand-600 text-white font-semibold transition-all shadow-sm"
-                  >
-                    Continue Learning
-                    <ArrowRight size={18} />
-                  </button>
-
-                  <button
-                    onClick={() => setExistingUser(null)}
-                    className="w-full py-3 text-dark-400 hover:text-dark-200 text-sm transition-colors"
-                  >
-                    Sign in with a different account
-                  </button>
-                </div>
-              ) : (
-                <div className="p-8 rounded-2xl bg-white border border-dark-700 shadow-sm space-y-6">
-                  <div className="space-y-2">
-                    <h2 className="text-2xl font-bold text-dark-50">
-                      {authMode === "signin" ? "Sign In" : "Create Account"}
-                    </h2>
-                    <p className="text-dark-400">
-                      {authMode === "signin"
-                        ? "Sign in to continue your certification journey."
-                        : "Create an account to start your certification journey."}
-                    </p>
-                  </div>
-
-                  {/* SSO Buttons */}
-                  <div className="space-y-3">
-                    <button
-                      onClick={() => handleSSO("google")}
-                      disabled={!!ssoLoading}
-                      className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl bg-white border border-dark-700 hover:bg-dark-950 text-dark-100 font-medium text-sm transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {ssoLoading === "google" ? (
-                        <div className="w-5 h-5 border-2 border-dark-400 border-t-brand-600 rounded-full animate-spin" />
-                      ) : (
-                        <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24">
-                          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                        </svg>
-                      )}
-                      Continue with Google
-                    </button>
-
-                    <button
-                      onClick={() => handleSSO("github")}
-                      disabled={!!ssoLoading}
-                      className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl bg-gray-900 hover:bg-gray-800 text-white font-medium text-sm transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {ssoLoading === "github" ? (
-                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      ) : (
-                        <svg className="w-5 h-5 flex-shrink-0 fill-white" viewBox="0 0 24 24">
-                          <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
-                        </svg>
-                      )}
-                      Continue with GitHub
-                    </button>
-
-                    <button
-                      onClick={() => handleSSO("linkedin")}
-                      disabled={!!ssoLoading}
-                      className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl bg-[#0077B5] hover:bg-[#006399] text-white font-medium text-sm transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {ssoLoading === "linkedin" ? (
-                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      ) : (
-                        <svg className="w-5 h-5 flex-shrink-0 fill-white" viewBox="0 0 24 24">
-                          <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-                        </svg>
-                      )}
-                      Continue with LinkedIn
-                    </button>
-                  </div>
-
-                  {/* Divider */}
-                  <div className="flex items-center gap-3">
-                    <div className="flex-1 h-px bg-dark-700" />
-                    <span className="text-dark-500 text-xs">or use email</span>
-                    <div className="flex-1 h-px bg-dark-700" />
-                  </div>
-
-                  {/* Email/Password Form */}
-                  <form onSubmit={authMode === "signin" ? handleSignIn : handleSignUp} className="space-y-4">
-                    {authMode === "signup" && (
-                      <div className="space-y-2">
-                        <label className="block text-sm font-medium text-dark-200">
-                          Username
-                        </label>
-                        <input
-                          type="text"
-                          value={name}
-                          onChange={(e) => setName(e.target.value)}
-                          placeholder="e.g. alex_johnson"
-                          maxLength={30}
-                          className="w-full px-4 py-3 rounded-xl bg-dark-950 border border-dark-700 text-dark-50 placeholder-dark-500 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-400 transition-colors"
-                        />
-                        <p className="text-dark-500 text-xs">Shown on forum posts. You can change this later.</p>
-                      </div>
-                    )}
-
-                    <div className="space-y-2">
-                      <label className="block text-sm font-medium text-dark-200">
-                        Email Address
-                      </label>
-                      <input
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="alex@company.com"
-                        className="w-full px-4 py-3 rounded-xl bg-dark-950 border border-dark-700 text-dark-50 placeholder-dark-500 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-400 transition-colors"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="block text-sm font-medium text-dark-200">
-                        Password
-                      </label>
-                      <div className="relative">
-                        <input
-                          type={showPassword ? "text" : "password"}
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          placeholder={authMode === "signup" ? "At least 6 characters" : "Your password"}
-                          className="w-full px-4 py-3 pr-11 rounded-xl bg-dark-950 border border-dark-700 text-dark-50 placeholder-dark-500 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-400 transition-colors"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-dark-500 hover:text-dark-300 transition-colors"
-                        >
-                          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                        </button>
-                      </div>
-                    </div>
-
-                    {error && (
-                      <div className="px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
-                        {error}
-                      </div>
-                    )}
-
-                    <button
-                      type="submit"
-                      disabled={isLoading}
-                      className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-brand-600 to-brand-700 hover:from-brand-500 hover:to-brand-600 text-white font-semibold transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {isLoading ? (
-                        <>
-                          <div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                          {authMode === "signin" ? "Signing in..." : "Creating account..."}
-                        </>
-                      ) : (
-                        <>
-                          {authMode === "signin" ? "Sign In" : "Create Account"}
-                          <ArrowRight size={18} />
-                        </>
-                      )}
-                    </button>
-                  </form>
-
-                  <p className="text-center text-dark-400 text-sm">
-                    {authMode === "signin" ? (
-                      <>
-                        Don&apos;t have an account?{" "}
-                        <button
-                          onClick={() => { setAuthMode("signup"); setError(""); }}
-                          className="text-brand-600 hover:text-brand-500 font-medium transition-colors"
-                        >
-                          Create one
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        Already have an account?{" "}
-                        <button
-                          onClick={() => { setAuthMode("signin"); setError(""); }}
-                          className="text-brand-600 hover:text-brand-500 font-medium transition-colors"
-                        >
-                          Sign in
-                        </button>
-                      </>
-                    )}
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Features section */}
-        <div className="border-t border-dark-700 bg-dark-900">
-          <div className="max-w-7xl mx-auto px-6 py-16">
-            <h2 className="text-center text-2xl font-bold text-dark-50 mb-3">
-              Everything You Need to Get Certified in Agentic AI
-            </h2>
-            <p className="text-center text-dark-400 mb-12 max-w-2xl mx-auto">
-              One platform to study, practice, connect, and earn credentials from the organizations defining the future of AI.
-            </p>
-            <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6">
-              {[
-                {
-                  icon: "🏆",
-                  title: "Anthropic Architecture Certification",
-                  description: "Start with one of the most prestigious AI certifications available — created by Anthropic, a leading AI safety company and the team behind Claude. Passing signals deep expertise in agentic AI to employers.",
-                },
-                {
-                  icon: "🤖",
-                  title: "AI-Powered Q&A",
-                  description: "Ask an AI tutor about any concept in the course. Get instant, detailed explanations tailored to your level — available anytime you need a deeper understanding.",
-                },
-                {
-                  icon: "📝",
-                  title: "Realistic Practice Exams",
-                  description: "58 multiple-choice questions across 8 sections. Each question includes detailed explanations of why answers are correct or incorrect, so you learn from every attempt.",
-                },
-                {
-                  icon: "💬",
-                  title: "Community Forum",
-                  description: "Connect with other learners in domain-specific discussions. Share tips, ask questions, get advice from people working through the same material — and introduce yourself in the General section.",
-                },
-              ].map(({ icon, title, description }) => (
-                <div key={title} className="p-6 rounded-2xl bg-white border border-dark-700 shadow-sm space-y-4">
-                  <div className="text-4xl">{icon}</div>
-                  <h3 className="text-lg font-bold text-dark-50">{title}</h3>
-                  <p className="text-dark-400 leading-relaxed text-sm">{description}</p>
-                </div>
-              ))}
-            </div>
-
-            {/* More certifications coming banner */}
-            <div className="mt-10 p-5 rounded-2xl bg-white border border-brand-300 flex items-center gap-4">
-              <div className="text-3xl flex-shrink-0">🚀</div>
-              <div>
-                <p className="text-dark-50 font-semibold text-sm">More AI Certification Tracks Coming Soon</p>
-                <p className="text-dark-400 text-sm mt-0.5">
-                  We&apos;re expanding beyond Anthropic to cover the next most sought-after AI certifications. Start learning now and be ready when new tracks drop.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Personal story section */}
-        <div className="border-t border-dark-700">
-          <div className="max-w-4xl mx-auto px-6 py-20">
-            <div className="relative">
-              <div className="absolute -top-4 -left-2 text-8xl text-brand-200 font-serif leading-none select-none">&ldquo;</div>
-
-              <div className="relative z-10 space-y-8 pl-6">
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-50 border border-brand-200 text-brand-700 text-sm font-medium">
-                  <Zap size={14} />
-                  Why this course matters
-                </div>
-
-                <h2 className="text-3xl lg:text-4xl font-bold text-dark-50 leading-snug">
-                  Agent Architecture is a{" "}
-                  <span className="bg-gradient-to-r from-brand-600 to-accent-600 bg-clip-text text-transparent">
-                    paradigm shift
+                  <span className="text-[10px] font-label font-bold text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-full">
+                    Sample Preview
                   </span>
-                  {" "}— and most people aren&apos;t ready.
-                </h2>
+                </div>
 
-                <div className="space-y-5 text-lg text-dark-300 leading-relaxed">
-                  <p>
-                    Here&apos;s why this matters — especially if you&apos;re a developer, engineer, or any professional who feels like the AI wave is moving too fast.
-                  </p>
-
-                  <div className="pl-5 border-l-2 border-brand-400 space-y-2">
-                    <p className="text-dark-100 font-medium">Agentic AI coding tools changed everything.</p>
-                    <p>Not an incremental upgrade. A fundamentally different way of building software.</p>
-                    <p className="text-dark-400 text-base">
-                      While this course is an independent community resource and is not affiliated with or endorsed by Anthropic PBC,
-                      it is built to prepare you for their certifications. We plan to expand to other leading AI certifications in this space.
-                    </p>
+                {/* Mock content */}
+                <div className="p-5 space-y-4">
+                  {/* Progress bar block */}
+                  <div className="bg-surface-container-low rounded-xl p-4">
+                    <div className="flex justify-between items-center mb-3">
+                      <span className="text-xs font-headline font-bold text-on-surface">Your Progress</span>
+                      <span className="text-xs font-label text-primary font-bold">3 / 8 Domains</span>
+                    </div>
+                    <div className="h-1.5 bg-surface-container rounded-full overflow-hidden">
+                      <div className="h-full w-[38%] bg-gradient-to-r from-primary to-primary-container rounded-full" />
+                    </div>
                   </div>
 
-                  <div className="grid sm:grid-cols-2 gap-3">
+                  {/* Domain cards */}
+                  <div className="grid grid-cols-2 gap-3">
                     {[
-                      { term: "Agentic architecture", desc: "Systems that act, not just respond" },
-                      { term: "Tool orchestration", desc: "Claude calling and coordinating tools" },
-                      { term: "MCP integration", desc: "Model Context Protocol at scale" },
-                      { term: "Context management", desc: "Reliability at a systems level" },
-                    ].map(({ term, desc }) => (
-                      <div key={term} className="flex items-start gap-3 p-4 rounded-xl bg-white border border-dark-700">
-                        <CheckCircle size={16} className="text-brand-500 mt-0.5 flex-shrink-0" />
-                        <div>
-                          <div className="text-dark-50 font-semibold text-sm">{term}</div>
-                          <div className="text-dark-400 text-xs mt-0.5">{desc}</div>
+                      { title: "Claude Fundamentals", pct: 85, done: true },
+                      { title: "Prompt Engineering", pct: 72, done: true },
+                      { title: "Agent SDK", pct: 40, done: false },
+                      { title: "Tool Design & MCP", pct: 0, done: false },
+                    ].map((d) => (
+                      <div key={d.title} className={`rounded-lg p-3 ${d.done ? "bg-primary/8" : "bg-surface-container-low"}`}>
+                        <div className="text-[10px] font-headline font-bold text-on-surface mb-2 leading-tight">{d.title}</div>
+                        <div className="h-1 bg-surface-container rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-gradient-to-r from-primary to-primary-container rounded-full transition-all"
+                            style={{ width: `${d.pct}%` }}
+                          />
                         </div>
+                        <div className="text-[9px] font-label text-on-surface-variant mt-1">{d.pct}% complete</div>
                       </div>
                     ))}
                   </div>
 
-                  <p className="text-dark-50 text-xl font-medium">
-                    It covers everything from agentic orchestration to prompt engineering to Claude Code workflows.
-                  </p>
-
-                  <p className="text-dark-400">
-                    You don&apos;t need to figure it out alone. This course walks you through every concept, tests your understanding with real exam-style questions, and gives you AI-powered feedback every step of the way.
-                  </p>
+                  {/* AI Q&A mock */}
+                  <div className="bg-surface-container-low rounded-xl p-4 space-y-3">
+                    <div className="text-xs font-headline font-bold text-on-surface">AI Study Assistant</div>
+                    <div className="bg-surface-container rounded-lg p-3">
+                      <p className="text-[10px] text-on-surface-variant leading-relaxed">
+                        &ldquo;What is the difference between ReAct and Chain-of-Thought prompting?&rdquo;
+                      </p>
+                    </div>
+                    <div className="bg-primary/8 rounded-lg p-3 border-l-2 border-primary">
+                      <p className="text-[10px] text-on-surface leading-relaxed">
+                        ReAct interleaves reasoning and acting — the model reasons, takes an action, observes the result, then reasons again. Chain-of-Thought is purely reasoning...
+                      </p>
+                    </div>
+                    <div className="flex justify-end">
+                      <div className="text-[9px] text-primary font-label font-bold">AI-powered explanations</div>
+                    </div>
+                  </div>
                 </div>
+              </div>
 
-                <div className="pt-4">
-                  <a
-                    href="#top"
-                    onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-brand-600 to-brand-700 hover:from-brand-500 hover:to-brand-600 text-white font-semibold transition-all shadow-sm"
-                  >
-                    Start Learning Now
-                    <ArrowRight size={16} />
-                  </a>
+              {/* Floating trust badge */}
+              <div className="absolute -bottom-4 -left-4 bg-surface-container-lowest rounded-xl shadow-lg shadow-primary/10 px-4 py-3 border border-outline-variant/20 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary-container flex items-center justify-center flex-shrink-0">
+                  <span className="text-on-primary text-xs font-headline font-black">✓</span>
+                </div>
+                <div>
+                  <div className="text-xs font-headline font-bold text-on-surface">Community Driven</div>
+                  <div className="text-[10px] text-on-surface-variant font-label">Free to start, always</div>
                 </div>
               </div>
             </div>
           </div>
+        </section>
+
+        {/* ── Social proof strip ── */}
+        <div className="bg-surface-container border-y border-outline-variant/20 py-6">
+          <div className="max-w-7xl mx-auto px-6 flex flex-wrap items-center justify-center gap-10 text-center">
+            {[
+              { stat: "8", label: "Exam Domains" },
+              { stat: "58+", label: "Practice Questions" },
+              { stat: "100%", label: "Free to Start" },
+              { stat: "AI", label: "Powered Explanations" },
+              { stat: "Forum", label: "Community Support" },
+            ].map(({ stat, label }) => (
+              <div key={label}>
+                <div className="text-xl font-headline font-black text-primary">{stat}</div>
+                <div className="text-xs text-on-surface-variant font-label uppercase tracking-wider mt-0.5">{label}</div>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+
+        {/* ── Features Bento ── */}
+        <section className="py-24 bg-surface-container-low">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="mb-16">
+              <span className="text-xs tracking-[0.2em] uppercase text-primary font-headline font-bold">What&apos;s Included</span>
+              <h2 className="text-4xl md:text-5xl font-headline font-black tracking-tight mt-3 mb-4 text-on-surface">
+                Everything you need<br />to get certified.
+              </h2>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-5">
+              {/* Certification — large */}
+              <div className="md:col-span-2 bg-surface rounded-xl overflow-hidden flex flex-col shadow-sm">
+                <div className="h-56 overflow-hidden">
+                  <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=900&q=80&auto=format&fit=crop"
+                    alt="Professional working toward AI certification" className="w-full h-full object-cover" />
+                </div>
+                <div className="p-8">
+                  <span className="text-xs font-label font-bold uppercase tracking-widest text-primary mb-3 block">Certification Prep</span>
+                  <h3 className="text-2xl font-headline font-bold mb-2 text-on-surface">Anthropic Architecture Certification</h3>
+                  <p className="text-on-surface-variant text-sm leading-relaxed">
+                    One of the most prestigious AI credentials — built by the team behind Claude. Covers every domain from agentic orchestration to Claude Code workflows.
+                  </p>
+                </div>
+              </div>
+
+              {/* AI Q&A */}
+              <div className="bg-primary rounded-xl overflow-hidden flex flex-col shadow-sm">
+                <div className="h-56 overflow-hidden relative">
+                  <img src="https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=600&q=80&auto=format&fit=crop"
+                    alt="AI visualization" className="w-full h-full object-cover opacity-40" />
+                  <div className="absolute inset-0 bg-gradient-to-b from-primary/30 to-primary" />
+                </div>
+                <div className="p-8 text-on-primary">
+                  <span className="text-xs font-label font-bold uppercase tracking-widest opacity-70 mb-3 block">Study Tool</span>
+                  <h3 className="text-2xl font-headline font-bold mb-2">AI-Powered Q&A</h3>
+                  <p className="opacity-75 text-sm leading-relaxed">Ask any concept question and get an instant, detailed explanation from an AI tutor. Available anytime you need it.</p>
+                </div>
+              </div>
+
+              {/* Practice Exams */}
+              <div className="bg-surface rounded-xl overflow-hidden flex flex-col shadow-sm">
+                <div className="h-56 overflow-hidden">
+                  <img src="https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=600&q=80&auto=format&fit=crop"
+                    alt="Person studying" className="w-full h-full object-cover" />
+                </div>
+                <div className="p-8">
+                  <span className="text-xs font-label font-bold uppercase tracking-widest text-primary mb-3 block">Practice</span>
+                  <h3 className="text-2xl font-headline font-bold mb-2 text-on-surface">Realistic Practice Exams</h3>
+                  <p className="text-on-surface-variant text-sm leading-relaxed">58 multiple-choice questions with detailed answer explanations. Learn from every attempt.</p>
+                </div>
+              </div>
+
+              {/* Community Forum — wide */}
+              <div className="md:col-span-2 bg-inverse-surface rounded-xl overflow-hidden flex flex-col shadow-sm">
+                <div className="h-56 overflow-hidden relative">
+                  <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=900&q=80&auto=format&fit=crop"
+                    alt="Team collaborating" className="w-full h-full object-cover opacity-30" />
+                  <div className="absolute inset-0 bg-gradient-to-b from-transparent to-inverse-surface/95" />
+                </div>
+                <div className="p-8 text-inverse-on-surface">
+                  <span className="text-xs font-label font-bold uppercase tracking-widest opacity-50 mb-3 block">Community</span>
+                  <h3 className="text-2xl font-headline font-bold mb-2">Community Forum</h3>
+                  <p className="opacity-60 text-sm leading-relaxed mb-5">Domain-specific discussions, peer support, and exam tips from engineers working through the same material.</p>
+                  <div className="flex gap-2 flex-wrap">
+                    {["8 Domains", "Open to All", "Free Forever"].map((tag) => (
+                      <span key={tag} className="bg-white/10 text-white/80 px-3 py-1 rounded-full text-xs font-headline font-bold">{tag}</span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Curriculum ── */}
+        <section id="curriculum" className="py-24 bg-surface">
+          <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-12 gap-16">
+            <div className="lg:col-span-4 lg:sticky lg:top-32 h-fit">
+              <span className="text-xs tracking-[0.2em] uppercase text-primary font-headline font-bold">The Syllabus</span>
+              <h2 className="text-4xl font-headline font-black tracking-tighter mt-3 mb-4 text-on-surface">
+                8 domains.<br />Every concept<br />covered.
+              </h2>
+              <p className="text-on-surface-variant text-sm leading-relaxed mb-8">
+                Each domain maps directly to the Anthropic Architecture Certification exam. Study at your own pace, track progress, and test with real exam-style questions.
+              </p>
+              <button onClick={() => openModal("signup")}
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-primary to-primary-container text-on-primary px-6 py-3 rounded-md font-headline font-bold text-sm hover:opacity-90 transition-all">
+                Start Studying Free <ArrowRight size={16} />
+              </button>
+            </div>
+
+            <div className="lg:col-span-8">
+              {domains.map((d, i) => (
+                <div key={d.id} className="group border-b border-outline-variant/25 last:border-0">
+                  <div className="flex items-center gap-6 py-5">
+                    <span className="text-3xl font-headline font-light text-outline-variant group-hover:text-primary transition-colors duration-300 w-10 flex-shrink-0 tabular-nums">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <h4 className="flex-1 text-lg font-headline font-bold text-on-surface group-hover:text-primary transition-colors duration-300">
+                      {d.title}
+                    </h4>
+                    <span className="text-xs font-label font-bold text-primary bg-primary/8 px-2.5 py-1 rounded-full flex-shrink-0 whitespace-nowrap">
+                      {d.weight}% of exam
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── Footer ── */}
+        <footer className="py-16 bg-inverse-surface">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="grid md:grid-cols-3 gap-12 mb-12">
+              <div>
+                <div className="flex items-center gap-3 mb-4">
+                  <img src="/logo.svg" alt="LAA Logo" className="w-8 h-8 rounded-lg" />
+                  <span className="font-headline font-bold text-inverse-on-surface">Learn Agent Architecture</span>
+                </div>
+                <p className="text-inverse-on-surface/60 text-sm leading-relaxed">
+                  The community study platform for the Anthropic Architecture Certification and future AI certifications.
+                </p>
+              </div>
+              <div>
+                <p className="font-headline font-bold text-inverse-on-surface/50 text-xs mb-4 uppercase tracking-wider">Platform</p>
+                <div className="space-y-3">
+                  <Link href="/dashboard" className="block text-inverse-on-surface/70 hover:text-inverse-on-surface transition-colors text-sm font-label">Study Dashboard</Link>
+                  <Link href="/forum" className="block text-inverse-on-surface/70 hover:text-inverse-on-surface transition-colors text-sm font-label">Community Forum</Link>
+                  <Link href="/about" className="block text-inverse-on-surface/70 hover:text-inverse-on-surface transition-colors text-sm font-label">About</Link>
+                </div>
+              </div>
+              <div>
+                <p className="font-headline font-bold text-inverse-on-surface/50 text-xs mb-4 uppercase tracking-wider">Disclaimer</p>
+                <p className="text-inverse-on-surface/50 text-xs leading-relaxed">
+                  Independent community learning platform. Not affiliated with or endorsed by Anthropic PBC. Built to prepare learners for top AI certifications.
+                </p>
+              </div>
+            </div>
+            <div className="border-t border-white/10 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+              <p className="text-inverse-on-surface/40 text-xs font-label">© {new Date().getFullYear()} Learn Agent Architecture</p>
+              <p className="text-inverse-on-surface/40 text-xs font-label">learnagentarchitecture.com</p>
+            </div>
+          </div>
+        </footer>
+      </main>
+
+      {/* ── Auth Modal ── */}
+      {showModal && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-on-surface/40 backdrop-blur-sm px-4"
+          onClick={closeModal}
+        >
+          <div
+            className="relative w-full max-w-md bg-surface rounded-2xl shadow-2xl shadow-primary/10 border border-outline-variant/20 overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close button */}
+            <button
+              onClick={closeModal}
+              className="absolute top-4 right-4 p-2 rounded-full hover:bg-surface-container text-on-surface-variant hover:text-on-surface transition-colors"
+            >
+              <X size={18} />
+            </button>
+
+            <div className="p-8 space-y-6">
+              {/* Header */}
+              <div className="space-y-1 pr-8">
+                <h2 className="text-2xl font-headline font-black text-on-surface tracking-tight">
+                  {existingUser
+                    ? `Welcome back, ${existingUser}!`
+                    : authMode === "signup"
+                    ? "Create your free account"
+                    : "Sign in to continue"}
+                </h2>
+                <p className="text-on-surface-variant text-sm font-label">
+                  {existingUser
+                    ? "Sign in to pick up where you left off."
+                    : authMode === "signup"
+                    ? "Start studying for the Anthropic Architecture Certification."
+                    : "Access your study dashboard and progress."}
+                </p>
+              </div>
+
+              {/* Tab switcher */}
+              {!existingUser && (
+                <div className="flex bg-surface-container rounded-lg p-1">
+                  {(["signup", "signin"] as AuthMode[]).map((m) => (
+                    <button
+                      key={m}
+                      onClick={() => { setAuthMode(m); setError(""); }}
+                      className={`flex-1 py-2 rounded-md text-sm font-headline font-bold transition-all ${
+                        authMode === m
+                          ? "bg-surface text-on-surface shadow-sm"
+                          : "text-on-surface-variant hover:text-on-surface"
+                      }`}
+                    >
+                      {m === "signup" ? "Create Account" : "Sign In"}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* SSO buttons */}
+              <div className="space-y-3">
+                {[
+                  { provider: "google", label: "Continue with Google", icon: "G" },
+                  { provider: "github", label: "Continue with GitHub", icon: "⌥" },
+                  { provider: "linkedin", label: "Continue with LinkedIn", icon: "in" },
+                ].map(({ provider, label, icon }) => (
+                  <button
+                    key={provider}
+                    onClick={() => handleSSO(provider)}
+                    disabled={!!ssoLoading}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg border border-outline-variant/40 hover:border-primary/30 hover:bg-surface-container-low transition-all text-sm font-label font-medium text-on-surface disabled:opacity-50"
+                  >
+                    <span className="w-6 h-6 rounded bg-surface-container flex items-center justify-center text-xs font-headline font-black text-primary flex-shrink-0">
+                      {ssoLoading === provider ? "…" : icon}
+                    </span>
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Divider */}
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-px bg-outline-variant/30" />
+                <span className="text-xs font-label text-on-surface-variant">or with email</span>
+                <div className="flex-1 h-px bg-outline-variant/30" />
+              </div>
+
+              {/* Email/password form */}
+              <form onSubmit={authMode === "signup" ? handleSignUp : handleSignIn} className="space-y-4">
+                {authMode === "signup" && !existingUser && (
+                  <div className="space-y-1">
+                    <label className="text-xs font-label font-medium text-on-surface-variant uppercase tracking-wider">Username</label>
+                    <input
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Your name"
+                      autoComplete="name"
+                      className="w-full px-4 py-3 rounded-lg border border-outline-variant/40 bg-surface-container-low focus:outline-none focus:border-primary/60 focus:bg-surface text-on-surface text-sm font-label transition-all placeholder:text-on-surface-variant/40"
+                    />
+                  </div>
+                )}
+
+                <div className="space-y-1">
+                  <label className="text-xs font-label font-medium text-on-surface-variant uppercase tracking-wider">Email</label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    autoComplete="email"
+                    className="w-full px-4 py-3 rounded-lg border border-outline-variant/40 bg-surface-container-low focus:outline-none focus:border-primary/60 focus:bg-surface text-on-surface text-sm font-label transition-all placeholder:text-on-surface-variant/40"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-label font-medium text-on-surface-variant uppercase tracking-wider">Password</label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder={authMode === "signup" ? "At least 6 characters" : "Your password"}
+                      autoComplete={authMode === "signup" ? "new-password" : "current-password"}
+                      className="w-full px-4 py-3 pr-12 rounded-lg border border-outline-variant/40 bg-surface-container-low focus:outline-none focus:border-primary/60 focus:bg-surface text-on-surface text-sm font-label transition-all placeholder:text-on-surface-variant/40"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((p) => !p)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-on-surface-variant hover:text-on-surface transition-colors"
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                </div>
+
+                {error && (
+                  <p className="text-error text-sm font-label bg-error-container/20 border border-error/20 rounded-lg px-3 py-2">
+                    {error}
+                  </p>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full py-3 rounded-lg bg-gradient-to-r from-primary to-primary-container text-on-primary font-headline font-bold text-sm hover:opacity-90 transition-all disabled:opacity-60 shadow-sm shadow-primary/20"
+                >
+                  {isLoading
+                    ? "Please wait…"
+                    : authMode === "signup"
+                    ? "Create Free Account"
+                    : "Sign In"}
+                </button>
+              </form>
+
+              {/* Switch mode link */}
+              {!existingUser && (
+                <p className="text-center text-xs font-label text-on-surface-variant">
+                  {authMode === "signup" ? "Already have an account? " : "Don't have an account? "}
+                  <button
+                    onClick={() => { setAuthMode(authMode === "signup" ? "signin" : "signup"); setError(""); }}
+                    className="text-primary font-bold hover:underline"
+                  >
+                    {authMode === "signup" ? "Sign in" : "Create one free"}
+                  </button>
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

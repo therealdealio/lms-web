@@ -12,7 +12,7 @@ export default function ProgressBar({
   value,
   color = "brand",
   size = "md",
-  animated = false,
+  animated: _animated = false,
   showLabel = false,
 }: ProgressBarProps) {
   const clampedValue = Math.min(100, Math.max(0, value));
@@ -24,7 +24,7 @@ export default function ProgressBar({
   };
 
   const gradients = {
-    brand: "from-brand-400 to-brand-600",
+    brand: "from-primary to-primary-container",
     green: "from-emerald-400 to-green-500",
     red: "from-red-400 to-rose-500",
     blue: "from-blue-400 to-indigo-500",
@@ -32,7 +32,7 @@ export default function ProgressBar({
   };
 
   const tracks = {
-    brand: "bg-brand-100",
+    brand: "bg-primary/15",
     green: "bg-emerald-100",
     red: "bg-red-100",
     blue: "bg-blue-100",
@@ -42,9 +42,9 @@ export default function ProgressBar({
   return (
     <div className="w-full space-y-1">
       {showLabel && (
-        <div className="flex justify-between text-xs text-dark-400">
+        <div className="flex justify-between text-xs text-on-surface-variant">
           <span>Progress</span>
-          <span className="font-medium text-dark-200">{clampedValue}%</span>
+          <span className="font-medium text-on-surface">{clampedValue}%</span>
         </div>
       )}
       <div className={`w-full ${heights[size]} rounded-full ${tracks[color]} overflow-hidden`}>

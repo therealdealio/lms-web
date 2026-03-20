@@ -8,11 +8,9 @@ import {
   Brain,
   Award,
   BookOpen,
-  BarChart3,
   LogOut,
   CheckCircle,
   ArrowRight,
-  Heart,
   Zap,
   Shield,
   MessageSquare,
@@ -24,7 +22,6 @@ import { saveMembership } from "@/lib/membership";
 import { loadMembership, getLimit } from "@/lib/membership";
 import { domains } from "@/lib/curriculum";
 import { AppProgress, Membership } from "@/lib/types";
-import ProgressBar from "@/components/ProgressBar";
 import DomainCard from "@/components/DomainCard";
 
 const ADMIN_EMAIL = "rrthai88@gmail.com";
@@ -39,12 +36,8 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const p = loadProgress();
-    if (!p.user) {
-      router.push("/");
-      return;
-    }
+    if (!p.user) { router.push("/"); return; }
 
-    // DB is source of truth; fall back to localStorage only if no DB record
     const localMembership = loadMembership(p.user!.email);
     fetch("/api/membership")
       .then((r) => r.ok ? r.json() : null)
@@ -52,7 +45,6 @@ export default function DashboardPage() {
         if (dbMembership?.tier !== undefined) {
           const m = { tier: dbMembership.tier, promptsUsed: dbMembership.promptsUsed, promptLimit: dbMembership.promptLimit };
           setMembership(m);
-          // Sync localStorage so AiChat reads the correct count too
           saveMembership(p.user!.email, m);
         } else {
           setMembership(localMembership);
@@ -60,18 +52,13 @@ export default function DashboardPage() {
       })
       .catch(() => setMembership(localMembership));
 
-    // Load avatar
     fetch("/api/profile")
       .then((r) => r.ok ? r.json() : null)
       .then((data) => {
-        if (data) {
-          setAvatarEmoji(data.avatarEmoji || null);
-          setAvatarImage(data.avatarImage || null);
-        }
+        if (data) { setAvatarEmoji(data.avatarEmoji || null); setAvatarImage(data.avatarImage || null); }
       })
       .catch(() => {});
 
-    // Load admin-set domain progress from DB and merge with localStorage
     fetch("/api/progress")
       .then((r) => r.ok ? r.json() : null)
       .then((dbDomains: { domainId: number; completed: boolean; examScore: number | null; examAttempts: number }[] | null) => {
@@ -101,258 +88,224 @@ export default function DashboardPage() {
 
   if (!progress || !progress.user) {
     return (
-      <div className="min-h-screen bg-dark-950 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-surface flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   const overallProgress = getOverallProgress(progress);
   const completedDomains = progress.domains.filter((d) => d.completed).length;
-  const startedDomains = progress.domains.filter((d) => d.started).length;
+  const promptsLeft = membership ? Math.max(0, getLimit(membership.tier, membership.promptLimit) - membership.promptsUsed) : null;
 
   return (
-    <div className="min-h-screen bg-dark-950">
-      {/* Background */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-100/30 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-accent-100/30 rounded-full blur-3xl" />
-      </div>
+    <div className="min-h-screen bg-surface text-on-surface">
 
       {/* Nav */}
-      <nav className="sticky top-0 z-50 border-b border-dark-700 bg-dark-950/90 backdrop-blur-sm px-6 py-4">
+      <nav className="sticky top-0 z-50 border-b border-outline-variant/20 glass px-6 py-3">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
-            <img src="/logo.svg" alt="LAA Logo" className="w-9 h-9 rounded-xl shadow-sm" />
-            <div className="hidden sm:block">
-              <div className="font-bold text-dark-50 leading-tight text-sm">Learn Agent Architecture</div>
-              <div className="text-xs text-brand-600 font-medium">Preparing you for AI certifications</div>
-            </div>
+            <img src="/logo.svg" alt="LAA Logo" className="w-8 h-8 rounded-lg" />
+            <span className="font-headline font-bold text-on-surface text-sm hidden sm:block">Learn Agent Architecture</span>
           </Link>
 
-          <div className="flex items-center gap-3">
-            <Link
-              href="/about"
-              className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-50 border border-brand-200 text-brand-700 hover:bg-brand-100 transition-colors text-sm font-medium"
-            >
-              <Heart size={14} />
+          <div className="flex items-center gap-1">
+            <Link href="/about" className="hidden md:block px-3 py-2 rounded-md text-on-surface-variant hover:text-primary hover:bg-primary/5 transition-colors text-sm font-label font-medium">
               About
             </Link>
-            <Link
-              href="/profile"
-              className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl bg-dark-800 border border-dark-700 text-dark-200 hover:bg-dark-700 transition-colors text-sm font-medium"
-            >
+            <Link href="/profile" className="hidden md:flex items-center gap-2 px-3 py-2 rounded-md text-on-surface-variant hover:text-primary hover:bg-primary/5 transition-colors text-sm font-label font-medium">
               <UserCircle size={14} />
               Profile
             </Link>
             {session?.user?.email === ADMIN_EMAIL && (
-              <Link
-                href="/admin"
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-50 border border-red-200 text-red-700 hover:bg-red-100 transition-colors text-sm font-medium"
-              >
+              <Link href="/admin" className="flex items-center gap-2 px-3 py-2 rounded-md bg-error-container/30 text-on-error-container text-sm font-label font-medium">
                 <Shield size={14} />
                 <span className="hidden sm:inline">Admin</span>
               </Link>
             )}
-            <div className="hidden md:flex items-center gap-2 text-sm text-dark-400">
-              <span>Welcome,</span>
-              {/* Avatar bubble */}
-              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center overflow-hidden flex-shrink-0">
+
+            {/* Avatar */}
+            <Link href="/profile" className="ml-1 flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-surface-container transition-colors">
+              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-primary-container flex items-center justify-center overflow-hidden flex-shrink-0">
                 {avatarImage ? (
                   <img src={avatarImage} alt="" className="w-full h-full object-cover" />
                 ) : avatarEmoji ? (
                   <span className="text-sm leading-none">{avatarEmoji}</span>
                 ) : (
-                  <span className="text-white text-xs font-bold">
+                  <span className="text-on-primary text-xs font-headline font-bold">
                     {(progress.user.name || "?").slice(0, 2).toUpperCase()}
                   </span>
                 )}
               </div>
-              <span className="text-dark-100 font-medium">{progress.user.name}</span>
-            </div>
+              <span className="text-on-surface font-label font-medium text-sm hidden md:block">{progress.user.name}</span>
+            </Link>
 
-            {progress.certificateEarned && (
-              <Link
-                href="/certificate"
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 text-sm hover:bg-amber-100 transition-colors"
-              >
-                <Award size={16} />
-                View Certificate
-              </Link>
-            )}
-
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-dark-400 hover:text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200 transition-colors text-sm"
-            >
-              <LogOut size={16} />
+            <button onClick={handleLogout}
+              className="ml-1 flex items-center gap-1.5 px-3 py-2 rounded-md text-on-surface-variant hover:text-error hover:bg-error-container/15 transition-colors text-sm font-label">
+              <LogOut size={15} />
               <span className="hidden sm:block">Log Out</span>
             </button>
           </div>
         </div>
       </nav>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6 py-8 space-y-8">
-        {/* Stats row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            {
-              icon: BarChart3,
-              label: "Overall Progress",
-              value: `${overallProgress}%`,
-              color: "text-brand-600",
-              bg: "bg-brand-50",
-            },
-            {
-              icon: BookOpen,
-              label: "Sections Started",
-              value: `${startedDomains}/8`,
-              color: "text-accent-600",
-              bg: "bg-accent-50",
-            },
-            {
-              icon: CheckCircle,
-              label: "Sections Passed",
-              value: `${completedDomains}/8`,
-              color: "text-emerald-600",
-              bg: "bg-emerald-50",
-            },
-            {
-              icon: Award,
-              label: "Certificate",
-              value: progress.certificateEarned ? "Earned!" : "In Progress",
-              color: progress.certificateEarned ? "text-amber-600" : "text-dark-400",
-              bg: progress.certificateEarned ? "bg-amber-50" : "bg-dark-800",
-            },
-          ].map(({ icon: Icon, label, value, color, bg }) => (
-            <div
-              key={label}
-              className="p-5 rounded-2xl bg-white border border-dark-700 shadow-sm space-y-3"
-            >
-              <div className={`w-10 h-10 rounded-lg ${bg} flex items-center justify-center`}>
-                <Icon size={20} className={color} />
+      <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
+
+        {/* ── Welcome hero strip ── */}
+        <div className="relative rounded-xl overflow-hidden bg-gradient-to-r from-primary to-primary-container p-8 text-on-primary">
+          <div className="absolute inset-0 blueprint-grid opacity-10 pointer-events-none" />
+          <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+            <div>
+              <p className="text-on-primary/70 text-sm font-label mb-1">Welcome back</p>
+              <h1 className="text-3xl font-headline font-black tracking-tight">{progress.user.name}</h1>
+              <p className="text-on-primary/80 text-sm font-label mt-1">
+                {completedDomains === 0
+                  ? "You haven't started any domains yet. Pick one below to begin."
+                  : completedDomains === 8
+                  ? "You've completed all 8 domains! Claim your certificate."
+                  : `${completedDomains} of 8 domains passed · Keep going!`}
+              </p>
+            </div>
+            <div className="flex flex-col gap-2 min-w-[200px]">
+              <div className="flex justify-between text-sm">
+                <span className="text-on-primary/70 font-label">Overall Progress</span>
+                <span className="font-headline font-bold">{overallProgress}%</span>
               </div>
-              <div>
-                <div className={`text-2xl font-bold ${color}`}>{value}</div>
-                <div className="text-dark-400 text-xs mt-1">{label}</div>
+              <div className="h-2 bg-on-primary/20 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-on-primary rounded-full transition-all duration-700"
+                  style={{ width: `${overallProgress}%` }}
+                />
+              </div>
+              <div className="flex justify-between text-xs text-on-primary/60 font-label">
+                <span>{completedDomains} passed</span>
+                <span>8 total</span>
               </div>
             </div>
-          ))}
+          </div>
         </div>
 
-        {/* Membership card */}
-        {membership && (
-          <div className={`p-5 rounded-2xl border shadow-sm flex items-center justify-between gap-4 ${
-            membership.tier === "pro"
-              ? "bg-gradient-to-r from-brand-50 to-orange-50 border-brand-300"
-              : "bg-white border-dark-700"
-          }`}>
-            <div className="flex items-center gap-4">
-              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                membership.tier === "pro" ? "bg-brand-100" : "bg-dark-800"
-              }`}>
-                <Zap size={20} className={membership.tier === "pro" ? "text-brand-600" : "text-dark-400"} />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold text-dark-50 text-sm">
-                    {membership.tier === "pro" ? "Pro Plan" : "Free Plan"}
-                  </span>
-                  {membership.tier === "pro" && (
-                    <span className="px-2 py-0.5 rounded-full bg-brand-600 text-white text-xs font-semibold">PRO</span>
-                  )}
-                </div>
-                <div className="text-dark-400 text-xs mt-0.5">
-                  {Math.max(0, getLimit(membership.tier, membership.promptLimit) - membership.promptsUsed)} AI prompts remaining
-                </div>
-              </div>
+        {/* ── Stats + Membership row ── */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="p-5 rounded-xl bg-surface-container-lowest border border-outline-variant/20 shadow-sm space-y-2">
+            <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center">
+              <CheckCircle size={18} className="text-emerald-600" />
             </div>
-            <Link
-              href="/upgrade"
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-semibold text-sm transition-colors whitespace-nowrap shadow-sm"
-            >
-              <Zap size={14} />
-              +500 Prompts — $5
+            <div className="text-2xl font-headline font-bold text-emerald-600">{completedDomains}/8</div>
+            <div className="text-on-surface-variant text-xs font-label">Domains Passed</div>
+          </div>
+
+          <div className="p-5 rounded-xl bg-surface-container-lowest border border-outline-variant/20 shadow-sm space-y-2">
+            <div className="w-9 h-9 rounded-lg bg-primary/8 flex items-center justify-center">
+              <BookOpen size={18} className="text-primary" />
+            </div>
+            <div className="text-2xl font-headline font-bold text-primary">
+              {progress.domains.filter((d) => d.started).length}/8
+            </div>
+            <div className="text-on-surface-variant text-xs font-label">Domains Started</div>
+          </div>
+
+          <div className="p-5 rounded-xl bg-surface-container-lowest border border-outline-variant/20 shadow-sm space-y-2">
+            <div className="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center">
+              <Zap size={18} className={membership?.tier === "pro" ? "text-primary" : "text-on-surface-variant"} />
+            </div>
+            <div className="text-2xl font-headline font-bold text-on-surface">
+              {promptsLeft !== null ? promptsLeft : <span className="text-base text-on-surface-variant">Loading…</span>}
+            </div>
+            <div className="text-on-surface-variant text-xs font-label">AI Prompts Left</div>
+          </div>
+
+          <div className="p-5 rounded-xl bg-surface-container-lowest border border-outline-variant/20 shadow-sm space-y-2">
+            <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${progress.certificateEarned ? "bg-amber-50" : "bg-surface-container"}`}>
+              <Award size={18} className={progress.certificateEarned ? "text-amber-600" : "text-on-surface-variant"} />
+            </div>
+            <div className={`text-2xl font-headline font-bold ${progress.certificateEarned ? "text-amber-600" : "text-on-surface-variant"}`}>
+              {progress.certificateEarned ? "Earned!" : "—"}
+            </div>
+            <div className="text-on-surface-variant text-xs font-label">Certificate</div>
+          </div>
+        </div>
+
+        {/* Upgrade nudge (only for free plan with low prompts) */}
+        {membership && membership.tier !== "pro" && promptsLeft !== null && promptsLeft < 5 && (
+          <div className="flex items-center justify-between p-4 rounded-xl bg-primary/5 border border-primary/15">
+            <div className="flex items-center gap-3">
+              <Zap size={18} className="text-primary flex-shrink-0" />
+              <p className="text-sm font-label text-on-surface">
+                Only <span className="font-bold text-primary">{promptsLeft} AI prompts</span> left — unlock 500 more for $5.
+              </p>
+            </div>
+            <Link href="/upgrade"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-md bg-gradient-to-r from-primary to-primary-container text-on-primary font-headline font-bold text-xs hover:opacity-90 whitespace-nowrap shadow-sm">
+              Upgrade <ArrowRight size={13} />
             </Link>
           </div>
         )}
-
-        {/* Overall progress bar */}
-        <div className="p-6 rounded-2xl bg-white border border-dark-700 shadow-sm space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="font-semibold text-dark-50">Overall Certification Progress</h2>
-            <span className="text-brand-600 font-bold">{overallProgress}%</span>
-          </div>
-          <ProgressBar value={overallProgress} color="brand" size="lg" animated />
-          <p className="text-dark-400 text-sm">
-            Pass all 8 section exams with ≥70% to earn your certificate
-          </p>
-        </div>
 
         {/* Certificate banner */}
         {progress.certificateEarned && (
-          <div className="p-6 rounded-2xl bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 flex items-center justify-between">
+          <div className="p-6 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className="text-4xl">🎓</div>
+              <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
+                <Award size={24} className="text-amber-600" />
+              </div>
               <div>
-                <h3 className="font-bold text-amber-800 text-lg">Certification Complete!</h3>
-                <p className="text-amber-600 text-sm">
-                  Congratulations, {progress.user.name}! You have passed all 8 sections.
-                </p>
+                <h3 className="font-headline font-bold text-amber-800">Certification Complete!</h3>
+                <p className="text-amber-600 text-sm font-label">Congratulations, {progress.user.name}! All 8 sections passed.</p>
               </div>
             </div>
-            <Link
-              href="/certificate"
-              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-white font-semibold transition-colors shadow-sm"
-            >
-              View Certificate
-              <ArrowRight size={16} />
+            <Link href="/certificate"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-md bg-amber-500 hover:bg-amber-400 text-white font-headline font-bold text-sm whitespace-nowrap shadow-sm">
+              View Certificate <ArrowRight size={15} />
             </Link>
           </div>
         )}
 
-        {/* Section cards + Forum tabs */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 border-b border-dark-700 pb-0">
-            <Link
-              href="/dashboard"
-              className="flex items-center gap-2 px-4 py-3 text-sm font-semibold text-brand-600 border-b-2 border-brand-600 -mb-px transition-colors"
-            >
-              <BookOpen size={15} />
-              Anthropic Architecture Certification Prep
+        {/* ── Domain cards + Forum tabs ── */}
+        <div className="space-y-5">
+          <div className="flex items-center gap-1 border-b border-outline-variant/25">
+            <Link href="/dashboard"
+              className="flex items-center gap-2 px-4 py-3 text-sm font-headline font-bold text-primary border-b-2 border-primary -mb-px">
+              <BookOpen size={14} />
+              Study Domains
             </Link>
-            <Link
-              href="/forum"
-              className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-dark-400 hover:text-dark-100 border-b-2 border-transparent hover:border-dark-500 -mb-px transition-colors"
-            >
-              <MessageSquare size={15} />
+            <Link href="/forum"
+              className="flex items-center gap-2 px-4 py-3 text-sm font-label font-medium text-on-surface-variant hover:text-on-surface border-b-2 border-transparent hover:border-outline-variant -mb-px transition-colors">
+              <MessageSquare size={14} />
               Community Forum
             </Link>
           </div>
-          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4 pt-2">
+
+          {/* First-time user hint */}
+          {progress.domains.every((d) => !d.started) && (
+            <div className="flex items-start gap-3 p-4 rounded-lg bg-primary/5 border border-primary/15">
+              <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center flex-shrink-0 mt-0.5">
+                <span className="text-on-primary text-xs font-headline font-black">1</span>
+              </div>
+              <div>
+                <p className="text-sm font-headline font-bold text-on-surface">Start with Domain 1</p>
+                <p className="text-xs text-on-surface-variant font-label mt-0.5">
+                  Work through the domains in order — each one builds on the last. Read the concepts first, then take the practice exam to pass.
+                </p>
+              </div>
+            </div>
+          )}
+
+          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
             {domains.map((domain, index) => {
-              const domainProgress = progress.domains.find(
-                (d) => d.domainId === domain.id
-              );
-              return (
-                <DomainCard
-                  key={domain.id}
-                  domain={domain}
-                  domainProgress={domainProgress || null}
-                  index={index}
-                />
-              );
+              const domainProgress = progress.domains.find((d) => d.domainId === domain.id);
+              return <DomainCard key={domain.id} domain={domain} domainProgress={domainProgress || null} index={index} />;
             })}
           </div>
         </div>
 
-        {/* Exam traps reminder */}
-        <div className="p-6 rounded-2xl bg-red-50 border border-red-200 space-y-3">
+        {/* ── Exam Traps ── */}
+        <div className="p-6 rounded-xl bg-error-container/15 border border-error/15 space-y-4">
           <div className="flex items-center gap-2">
-            <span className="text-2xl">⚠️</span>
-            <h3 className="font-bold text-red-800">Common Exam Traps — Remember These!</h3>
+            <Brain size={17} className="text-error" />
+            <h3 className="font-headline font-bold text-on-surface">Common Exam Traps</h3>
           </div>
-          <div className="grid md:grid-cols-2 gap-2">
+          <div className="grid sm:grid-cols-2 gap-x-8 gap-y-2">
             {[
               "Subagents share memory with coordinators → WRONG",
               "Loop termination by model text → WRONG",
@@ -363,8 +316,8 @@ export default function DashboardPage() {
               "Self-review same session is sufficient → WRONG",
             ].map((trap) => (
               <div key={trap} className="flex items-start gap-2 text-sm">
-                <span className="text-red-500 mt-0.5 flex-shrink-0">✗</span>
-                <span className="text-red-700">{trap}</span>
+                <span className="text-error mt-0.5 flex-shrink-0 font-headline font-bold">✗</span>
+                <span className="text-on-surface-variant font-label">{trap}</span>
               </div>
             ))}
           </div>

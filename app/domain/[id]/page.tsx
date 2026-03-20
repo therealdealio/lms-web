@@ -12,7 +12,6 @@ import {
   AlertTriangle,
   Code,
   CheckCircle,
-  Brain,
 } from "lucide-react";
 import { getDomain } from "@/lib/curriculum";
 import { loadProgress, markDomainStarted } from "@/lib/progress";
@@ -27,194 +26,156 @@ export default function DomainPage() {
 
   const [domain, setDomain] = useState<Domain | null>(null);
   const [expandedConcepts, setExpandedConcepts] = useState<Set<number>>(new Set([0]));
-  const [hasStarted, setHasStarted] = useState(false);
 
   useEffect(() => {
     const progress = loadProgress();
-    if (!progress.user) {
-      router.push("/");
-      return;
-    }
-
+    if (!progress.user) { router.push("/"); return; }
     const d = getDomain(domainId);
-    if (!d) {
-      router.push("/dashboard");
-      return;
-    }
-
+    if (!d) { router.push("/dashboard"); return; }
     setDomain(d);
     markDomainStarted(domainId);
-    setHasStarted(true);
   }, [domainId, router]);
 
   const toggleConcept = (index: number) => {
     setExpandedConcepts((prev) => {
       const next = new Set(prev);
-      if (next.has(index)) {
-        next.delete(index);
-      } else {
-        next.add(index);
-      }
+      if (next.has(index)) { next.delete(index); } else { next.add(index); }
       return next;
     });
   };
 
-  const expandAll = () => {
-    if (!domain) return;
-    setExpandedConcepts(new Set(domain.concepts.map((_, i) => i)));
-  };
-
-  const collapseAll = () => {
-    setExpandedConcepts(new Set());
-  };
+  const expandAll = () => { if (domain) setExpandedConcepts(new Set(domain.concepts.map((_, i) => i))); };
+  const collapseAll = () => setExpandedConcepts(new Set());
 
   if (!domain) {
     return (
-      <div className="min-h-screen bg-dark-950 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-surface flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
-  const domainColors = [
-    { bg: "from-brand-50 to-orange-50", border: "border-brand-200", badge: "bg-brand-50 text-brand-700 border-brand-200" },
-    { bg: "from-amber-50 to-yellow-50", border: "border-amber-200", badge: "bg-amber-50 text-amber-700 border-amber-200" },
-    { bg: "from-teal-50 to-emerald-50", border: "border-teal-200", badge: "bg-teal-50 text-teal-700 border-teal-200" },
-    { bg: "from-blue-50 to-indigo-50", border: "border-blue-200", badge: "bg-blue-50 text-blue-700 border-blue-200" },
-    { bg: "from-rose-50 to-pink-50", border: "border-rose-200", badge: "bg-rose-50 text-rose-700 border-rose-200" },
-  ];
-  const color = domainColors[(domain.id - 1) % domainColors.length];
-
   return (
-    <div className="min-h-screen bg-dark-950">
-      {/* Background */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-100/30 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-accent-100/20 rounded-full blur-3xl" />
-      </div>
+    <div className="min-h-screen bg-surface text-on-surface">
 
       {/* Nav */}
-      <nav className="sticky top-0 z-50 border-b border-dark-700 bg-dark-950/90 backdrop-blur-sm px-6 py-4">
+      <nav className="sticky top-0 z-50 glass border-b border-outline-variant/20 px-6 py-4">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <Link href="/dashboard" className="flex items-center gap-3">
-            <img src="/logo.svg" alt="LAA Logo" className="w-9 h-9 rounded-xl shadow-sm" />
-            <span className="hidden sm:flex items-center gap-2 text-dark-400 hover:text-dark-100 transition-colors text-sm">
-              <ArrowLeft size={14} />
-              Dashboard
-            </span>
+          <Link href="/dashboard" className="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors text-sm font-label font-medium">
+            <ArrowLeft size={15} />
+            Dashboard
           </Link>
-
           <div className="flex items-center gap-3">
-            <span className="text-sm text-dark-400 hidden sm:block">
-              Section {domain.id} of 8
+            <span className="text-xs text-on-surface-variant font-label hidden sm:block">
+              Domain {domain.id} of 8
             </span>
             <Link
               href={`/domain/${domain.id}/practice`}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-brand-600 to-brand-700 hover:from-brand-500 hover:to-brand-600 text-white text-sm font-medium transition-all shadow-sm"
+              className="flex items-center gap-2 px-4 py-2 rounded-md bg-gradient-to-r from-primary to-primary-container text-on-primary text-sm font-headline font-bold hover:opacity-90 transition-all shadow-sm"
             >
               <CheckCircle size={14} />
-              Take Practice Exam
+              Practice Exam
             </Link>
           </div>
         </div>
       </nav>
 
-      <div className="relative z-10 max-w-5xl mx-auto px-6 py-8 space-y-8">
+      <div className="max-w-5xl mx-auto px-6 py-10 space-y-8">
+
+        {/* Plain English intro */}
+        <div className="flex gap-4 p-5 rounded-xl bg-primary/5 border border-primary/15">
+          <span className="text-2xl flex-shrink-0">💡</span>
+          <div>
+            <p className="text-xs font-headline font-bold text-primary uppercase tracking-wider mb-1">In Plain English</p>
+            <p className="text-on-surface text-sm leading-relaxed">{domain.plainEnglish}</p>
+          </div>
+        </div>
+
         {/* Domain header */}
-        <div className={`p-8 rounded-2xl bg-gradient-to-br ${color.bg} border ${color.border} shadow-sm space-y-4`}>
+        <div className="space-y-5">
+          <div className="flex flex-wrap gap-2">
+            <span className="px-2.5 py-1 rounded-full text-xs font-headline font-bold bg-primary/8 text-primary">
+              Domain {domain.id}
+            </span>
+            <span className="px-2.5 py-1 rounded-full text-xs font-label bg-surface-container text-on-surface-variant">
+              {domain.weight}% of Exam
+            </span>
+            <span className="px-2.5 py-1 rounded-full text-xs font-label bg-surface-container text-on-surface-variant">
+              {domain.concepts.length} Concepts
+            </span>
+            <span className="px-2.5 py-1 rounded-full text-xs font-label bg-surface-container text-on-surface-variant">
+              {domain.questions.length} Practice Questions
+            </span>
+          </div>
+
           <div className="flex items-start gap-4">
-            <span className="text-5xl">{domain.icon}</span>
-            <div className="flex-1">
-              <div className="flex flex-wrap items-center gap-2 mb-2">
-                <span className={`px-3 py-1 rounded-full text-xs border ${color.badge}`}>
-                  Domain {domain.id}
-                </span>
-                <span className={`px-3 py-1 rounded-full text-xs border ${color.badge}`}>
-                  {domain.weight}% of Exam
-                </span>
-                <span className={`px-3 py-1 rounded-full text-xs border ${color.badge}`}>
-                  {domain.concepts.length} Concepts
-                </span>
-                <span className={`px-3 py-1 rounded-full text-xs border ${color.badge}`}>
-                  {domain.questions.length} Practice Questions
-                </span>
-              </div>
-              <h1 className="text-3xl font-bold text-dark-50">{domain.title}</h1>
-              <p className="text-dark-300 mt-2 leading-relaxed">{domain.description}</p>
+            <span className="text-5xl flex-shrink-0">{domain.icon}</span>
+            <div>
+              <h1 className="text-3xl font-headline font-black tracking-tight text-on-surface">{domain.title}</h1>
+              <p className="text-on-surface-variant mt-2 leading-relaxed">{domain.description}</p>
             </div>
           </div>
 
-          <div className="flex gap-3 pt-2">
-            <button
-              onClick={expandAll}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/60 hover:bg-white border border-dark-700 text-dark-400 hover:text-dark-100 text-xs transition-colors"
-            >
-              <ChevronDown size={14} />
-              Expand All
+          <div className="flex gap-2">
+            <button onClick={expandAll}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-surface-container hover:bg-surface-container-high text-on-surface-variant text-xs font-label transition-colors">
+              <ChevronDown size={13} /> Expand All
             </button>
-            <button
-              onClick={collapseAll}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/60 hover:bg-white border border-dark-700 text-dark-400 hover:text-dark-100 text-xs transition-colors"
-            >
-              <ChevronUp size={14} />
-              Collapse All
+            <button onClick={collapseAll}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-surface-container hover:bg-surface-container-high text-on-surface-variant text-xs font-label transition-colors">
+              <ChevronUp size={13} /> Collapse All
             </button>
           </div>
         </div>
 
         {/* Concepts */}
-        <div className="space-y-4">
+        <div className="space-y-3">
           {domain.concepts.map((concept, index) => (
-            <div
-              key={index}
-              className="rounded-2xl bg-white border border-dark-700 shadow-sm overflow-hidden"
-            >
+            <div key={index} className="rounded-xl bg-surface-container-lowest border border-outline-variant/20 overflow-hidden shadow-sm">
+
               {/* Concept header */}
               <button
                 onClick={() => toggleConcept(index)}
-                className="w-full flex items-center justify-between p-6 hover:bg-dark-950 transition-colors text-left"
+                className="w-full flex items-center justify-between p-5 hover:bg-surface-container-low transition-colors text-left"
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-8 h-8 rounded-lg bg-brand-50 border border-brand-200 flex items-center justify-center text-brand-700 font-bold text-sm flex-shrink-0">
+                  <div className="w-8 h-8 rounded-lg bg-primary/8 flex items-center justify-center text-primary font-headline font-bold text-sm flex-shrink-0">
                     {index + 1}
                   </div>
                   <div>
-                    <h3 className="font-bold text-dark-50">{concept.title}</h3>
+                    <h3 className="font-headline font-bold text-on-surface">{concept.title}</h3>
                     {!expandedConcepts.has(index) && (
-                      <p className="text-dark-400 text-sm mt-0.5 line-clamp-1">
-                        {concept.content.slice(0, 80)}...
+                      <p className="text-on-surface-variant text-sm mt-0.5 line-clamp-1">
+                        {concept.content.slice(0, 90)}...
                       </p>
                     )}
                   </div>
                 </div>
-                {expandedConcepts.has(index) ? (
-                  <ChevronUp size={18} className="text-dark-400 flex-shrink-0" />
-                ) : (
-                  <ChevronDown size={18} className="text-dark-400 flex-shrink-0" />
-                )}
+                {expandedConcepts.has(index)
+                  ? <ChevronUp size={17} className="text-on-surface-variant flex-shrink-0" />
+                  : <ChevronDown size={17} className="text-on-surface-variant flex-shrink-0" />}
               </button>
 
               {/* Concept content */}
               {expandedConcepts.has(index) && (
-                <div className="px-6 pb-6 space-y-6 border-t border-dark-700">
+                <div className="px-5 pb-6 space-y-6 border-t border-outline-variant/15">
+
                   {/* Main content */}
-                  <div className="pt-4">
-                    <p className="text-dark-300 leading-relaxed">{concept.content}</p>
-                  </div>
+                  <p className="pt-5 text-on-surface-variant leading-relaxed">{concept.content}</p>
 
                   {/* Key points */}
                   <div className="space-y-3">
                     <div className="flex items-center gap-2">
-                      <BookOpen size={16} className="text-brand-600" />
-                      <h4 className="font-semibold text-dark-50 text-sm">Key Points</h4>
+                      <BookOpen size={15} className="text-primary" />
+                      <h4 className="font-headline font-bold text-on-surface text-sm">Key Points</h4>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2 pl-1">
                       {concept.keyPoints.map((point, pi) => (
                         <div key={pi} className="flex items-start gap-3">
-                          <div className="w-5 h-5 rounded-full bg-brand-50 border border-brand-200 flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <div className="w-1.5 h-1.5 rounded-full bg-brand-500" />
+                          <div className="w-4 h-4 rounded-full bg-primary/8 border border-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <div className="w-1.5 h-1.5 rounded-full bg-primary" />
                           </div>
-                          <p className="text-dark-200 text-sm leading-relaxed">{point}</p>
+                          <p className="text-on-surface text-sm leading-relaxed">{point}</p>
                         </div>
                       ))}
                     </div>
@@ -222,12 +183,12 @@ export default function DomainPage() {
 
                   {/* Exam trap */}
                   {concept.examTrap && (
-                    <div className="p-4 rounded-xl bg-red-50 border border-red-200 space-y-2">
+                    <div className="p-4 rounded-lg bg-error-container/20 border border-error/20 space-y-1.5">
                       <div className="flex items-center gap-2">
-                        <AlertTriangle size={16} className="text-red-500" />
-                        <h4 className="font-semibold text-red-700 text-sm">Exam Trap</h4>
+                        <AlertTriangle size={15} className="text-error" />
+                        <h4 className="font-headline font-bold text-on-surface text-sm">Exam Trap</h4>
                       </div>
-                      <p className="text-red-700 text-sm leading-relaxed">{concept.examTrap}</p>
+                      <p className="text-on-surface-variant text-sm leading-relaxed">{concept.examTrap}</p>
                     </div>
                   )}
 
@@ -235,16 +196,16 @@ export default function DomainPage() {
                   {concept.codeExample && (
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
-                        <Code size={16} className="text-brand-600" />
-                        <h4 className="font-semibold text-dark-100 text-sm">Code Example</h4>
+                        <Code size={15} className="text-primary" />
+                        <h4 className="font-headline font-bold text-on-surface text-sm">Code Example</h4>
                       </div>
-                      <pre className="p-4 rounded-xl bg-gray-900 border border-gray-700 text-sm text-gray-100 leading-relaxed overflow-x-auto">
+                      <pre className="p-4 rounded-lg bg-inverse-surface text-inverse-on-surface text-xs leading-relaxed overflow-x-auto">
                         <code>{concept.codeExample}</code>
                       </pre>
                     </div>
                   )}
 
-                  {/* Free-text knowledge check */}
+                  {/* AI Quiz */}
                   <ConceptQuiz
                     conceptTitle={concept.title}
                     conceptContent={concept.content}
@@ -257,20 +218,20 @@ export default function DomainPage() {
           ))}
         </div>
 
-        {/* Practice button */}
-        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between p-6 rounded-2xl bg-brand-50 border border-brand-200 shadow-sm">
+        {/* Practice Exam CTA */}
+        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between p-6 rounded-xl bg-primary/5 border border-primary/15">
           <div>
-            <h3 className="font-bold text-dark-50">Ready to test your knowledge?</h3>
-            <p className="text-dark-400 text-sm mt-1">
-              Take the practice exam with {domain.questions.length} questions. Need ≥70% to pass.
+            <h3 className="font-headline font-bold text-on-surface">Ready to test your knowledge?</h3>
+            <p className="text-on-surface-variant text-sm mt-1 font-label">
+              {domain.questions.length} practice questions · Need ≥70% to pass
             </p>
           </div>
           <Link
             href={`/domain/${domain.id}/practice`}
-            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-brand-600 to-brand-700 hover:from-brand-500 hover:to-brand-600 text-white font-semibold transition-all whitespace-nowrap shadow-sm"
+            className="flex items-center gap-2 px-6 py-3 rounded-md bg-gradient-to-r from-primary to-primary-container text-on-primary font-headline font-bold text-sm hover:opacity-90 transition-all whitespace-nowrap shadow-sm"
           >
             Start Practice Exam
-            <ArrowRight size={18} />
+            <ArrowRight size={16} />
           </Link>
         </div>
 
@@ -281,35 +242,27 @@ export default function DomainPage() {
           context={`Domain ${domain.id}: ${domain.title}. Key concepts: ${domain.concepts.map((c) => c.title).join(", ")}.`}
         />
 
-        {/* Navigation */}
-        <div className="flex justify-between items-center pt-4 border-t border-dark-700">
+        {/* Prev / Next navigation */}
+        <div className="flex justify-between items-center pt-4 border-t border-outline-variant/20">
           {domain.id > 1 ? (
-            <Link
-              href={`/domain/${domain.id - 1}`}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white border border-dark-700 hover:bg-dark-950 text-dark-300 hover:text-dark-100 text-sm transition-colors shadow-sm"
-            >
-              <ArrowLeft size={16} />
-              Section {domain.id - 1}
+            <Link href={`/domain/${domain.id - 1}`}
+              className="flex items-center gap-2 px-4 py-2 rounded-md bg-surface-container-lowest border border-outline-variant/20 hover:border-primary/30 text-on-surface-variant hover:text-primary text-sm font-label transition-colors shadow-sm">
+              <ArrowLeft size={15} />
+              Domain {domain.id - 1}
             </Link>
-          ) : (
-            <div />
-          )}
+          ) : <div />}
 
           {domain.id < 8 ? (
-            <Link
-              href={`/domain/${domain.id + 1}`}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white border border-dark-700 hover:bg-dark-950 text-dark-300 hover:text-dark-100 text-sm transition-colors shadow-sm"
-            >
-              Section {domain.id + 1}
-              <ArrowRight size={16} />
+            <Link href={`/domain/${domain.id + 1}`}
+              className="flex items-center gap-2 px-4 py-2 rounded-md bg-surface-container-lowest border border-outline-variant/20 hover:border-primary/30 text-on-surface-variant hover:text-primary text-sm font-label transition-colors shadow-sm">
+              Domain {domain.id + 1}
+              <ArrowRight size={15} />
             </Link>
           ) : (
-            <Link
-              href="/dashboard"
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white border border-dark-700 hover:bg-dark-950 text-dark-300 hover:text-dark-100 text-sm transition-colors shadow-sm"
-            >
+            <Link href="/dashboard"
+              className="flex items-center gap-2 px-4 py-2 rounded-md bg-gradient-to-r from-primary to-primary-container text-on-primary text-sm font-headline font-bold hover:opacity-90 transition-all shadow-sm">
               Back to Dashboard
-              <ArrowRight size={16} />
+              <ArrowRight size={15} />
             </Link>
           )}
         </div>

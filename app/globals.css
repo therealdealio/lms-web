@@ -2,10 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Google Fonts — Space Grotesk + Inter */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;900&family=Inter:wght@300;400;500;600;700&display=swap');
+
 :root {
-  --foreground-rgb: 61, 21, 9;
-  --background-start-rgb: 255, 250, 248;
-  --background-end-rgb: 250, 244, 241;
+  --foreground-rgb: 28, 27, 26;
+  --background-rgb: 253, 248, 245;
 }
 
 * {
@@ -21,43 +23,41 @@ body {
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-    to bottom,
-    rgb(var(--background-start-rgb)),
-    rgb(var(--background-end-rgb))
-  );
+  font-family: 'Inter', sans-serif;
+  color: #1c1b1a;
+  background: #fdf8f5;
   min-height: 100vh;
 }
 
-/* Scrollbar styles */
-::-webkit-scrollbar {
-  width: 6px;
+/* Blueprint dot grid — used in hero sections */
+.blueprint-grid {
+  background-image: radial-gradient(circle, #dcc1b5 1px, transparent 1px);
+  background-size: 40px 40px;
+  opacity: 0.15;
 }
 
-::-webkit-scrollbar-track {
-  background: #F5ECE8;
+/* Glassmorphism utility */
+.glass {
+  background: rgba(253, 248, 245, 0.80);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 
-::-webkit-scrollbar-thumb {
-  background: #D8BAB5;
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #B07868;
-}
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #f8f3f0; }
+::-webkit-scrollbar-thumb { background: #dcc1b5; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #897268; }
 
 /* Selection */
 ::selection {
-  background-color: rgba(216, 90, 48, 0.25);
-  color: #3D1509;
+  background-color: rgba(155, 69, 16, 0.2);
+  color: #1c1b1a;
 }
 
 /* Code blocks */
 pre {
-  background: #FEF0EC;
-  border: 1px solid #E8D5D0;
+  background: #f8f3f0;
   border-radius: 8px;
   padding: 1rem;
   overflow-x: auto;
@@ -70,12 +70,7 @@ code {
   font-size: 0.875em;
 }
 
-/* Smooth transitions */
-.transition-all {
-  transition: all 0.2s ease-in-out;
-}
-
-/* Chat message streaming cursor */
+/* Chat streaming cursor */
 @keyframes blink {
   0%, 100% { opacity: 1; }
   50% { opacity: 0; }
@@ -84,10 +79,10 @@ code {
 .streaming-cursor::after {
   content: '▋';
   animation: blink 1s step-start infinite;
-  color: #D85A30;
+  color: #9b4510;
 }
 
-/* Progress bar animation */
+/* Progress bar */
 @keyframes progressFill {
   from { width: 0%; }
   to { width: var(--progress-width); }
@@ -97,32 +92,14 @@ code {
   animation: progressFill 1s ease-out forwards;
 }
 
-/* Card hover glow */
+/* Ambient card hover */
 .card-glow:hover {
-  box-shadow: 0 0 30px rgba(216, 90, 48, 0.12);
+  box-shadow: 0 0 40px rgba(155, 69, 16, 0.08);
 }
 
-/* Glass morphism */
-.glass {
-  background: rgba(255, 250, 248, 0.7);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(232, 213, 208, 0.6);
-}
-
-/* Certificate print styles */
+/* Certificate print */
 @media print {
-  body {
-    background: white !important;
-    color: black !important;
-  }
-
-  .no-print {
-    display: none !important;
-  }
-
-  .certificate-print {
-    box-shadow: none !important;
-    border: 2px solid #D85A30 !important;
-  }
+  body { background: white !important; color: black !important; }
+  .no-print { display: none !important; }
+  .certificate-print { box-shadow: none !important; border: 2px solid #9b4510 !important; }
 }

@@ -7,6 +7,9 @@ export const domains: Domain[] = [
     weight: 27,
     description:
       "Master the principles of agentic loop design, multi-agent coordination, subagent isolation, and workflow enforcement patterns that ensure reliable autonomous systems.",
+    tagline: "Build AI assistants that work through complex tasks on their own.",
+    plainEnglish:
+      "Imagine hiring a very capable assistant and giving them a project to complete — not just one question, but a whole workflow. They research, make decisions, use tools, and keep going until the job is done. That's what an AI agent does. This domain teaches you how to build and manage these kinds of AI assistants: how they know when to stop, how multiple AI assistants can work together without stepping on each other, and how to make sure they don't do anything dangerous without checking with you first.",
     icon: "🤖",
     color: "from-purple-600 to-indigo-600",
     concepts: [
@@ -305,6 +308,9 @@ const subagentResult = await invokeSubagent({
     weight: 18,
     description:
       "Design effective tools for Claude with clear descriptions, proper error handling, optimal distribution, and integrate Model Context Protocol for external system connectivity.",
+    tagline: "Give Claude the right capabilities and connect it to real-world systems.",
+    plainEnglish:
+      "Think of Claude like a smart employee who can only do what's in their job description. \"Tools\" are the specific things you give Claude permission to do — like searching the web, reading a file, or sending an email. This domain is about how to write those job descriptions clearly (so Claude picks the right tool for the job), how to handle it when something goes wrong, and how to connect Claude to outside services like databases or your company's software using a system called MCP.",
     icon: "🔧",
     color: "from-blue-600 to-cyan-600",
     concepts: [
@@ -551,6 +557,9 @@ return {
     weight: 20,
     description:
       "Configure Claude Code effectively using CLAUDE.md hierarchy, commands and skills, path-specific rules, and understand execution modes for optimal development workflows.",
+    tagline: "Set up Claude to understand your project like a senior developer would.",
+    plainEnglish:
+      "Claude Code is a version of Claude that lives inside your code editor and helps you write software. But out of the box, it doesn't know anything specific about your project — your rules, your style, your preferences. This domain is about how to set up Claude Code so it understands your project the same way a senior developer on your team would. You'll learn how to write a simple instructions file, create shortcuts for common tasks, and choose how much freedom to give Claude when it's working on your code.",
     icon: "⚙️",
     color: "from-green-600 to-teal-600",
     concepts: [
@@ -797,6 +806,9 @@ Review the pull request at $ARGUMENTS.
     weight: 20,
     description:
       "Master prompt design techniques including explicit instructions, few-shot examples, structured output via tool_use and JSON schema, validation-retry loops, and optimal use of Batch API.",
+    tagline: "Write instructions that get the exact response you need, every time.",
+    plainEnglish:
+      "The way you ask Claude a question matters enormously — the same question worded differently can produce a completely different result. This domain is the art and science of talking to AI well. You'll learn how to write instructions that are clear and unambiguous, how to show Claude examples of what you want, and how to get Claude to reply in a specific format (like a table or a structured list) every single time — not just sometimes. Think of it as learning how to communicate with a brilliant colleague who takes everything very literally.",
     icon: "✍️",
     color: "from-orange-600 to-amber-600",
     concepts: [
@@ -1081,7 +1093,10 @@ throw new Error("Max retries exceeded");`,
     weight: 15,
     description:
       "Manage context windows effectively, ensure error propagation and recovery, calibrate human-in-the-loop triggers, and maintain context durability and provenance for reliable AI systems.",
-    icon: "🧠",
+    tagline: "Keep AI systems reliable, even when things get long, complex, or break.",
+    plainEnglish:
+      "Claude can only hold so much information in its head at once — like working memory for a human. If a conversation gets too long, Claude starts forgetting the beginning. This domain teaches you how to manage that limitation, how to make AI systems that recover gracefully when something breaks (instead of silently giving a wrong answer), and how to decide when Claude should pause and ask a human for help versus just figuring it out on its own. Think of it as the reliability engineering side of working with AI.",
+    icon: "💾",
     color: "from-red-600 to-pink-600",
     concepts: [
       {
@@ -1284,6 +1299,9 @@ You are a support engineer helping resolve this case.
     weight: 15,
     description:
       "Understand Claude's model family, API structure, token economics, and core capabilities. Know when to use Opus vs Sonnet vs Haiku and how to reason about cost and latency.",
+    tagline: "Understand how Claude works and which version to use for what.",
+    plainEnglish:
+      "Before you can build anything with Claude, you need to understand what it actually is and how it works under the hood. Claude isn't one single AI — it's a family of models at different price and power levels, like choosing between economy, business, and first class. You'll also learn what \"tokens\" are (the currency of AI conversations), how the API works (the technical bridge between your app and Claude), and what Claude is genuinely great at versus where it still has limitations. This is the foundation everything else builds on.",
     icon: "🧠",
     color: "from-sky-600 to-cyan-600",
     concepts: [
@@ -1498,6 +1516,9 @@ console.log(response.content[0].text);    // Claude's response`,
     weight: 10,
     description:
       "Understand Constitutional AI, content policies, responsible deployment patterns, and how to build safe agentic systems. Know when and how Claude refuses, escalates, and defers to human oversight.",
+    tagline: "Build AI products that are trustworthy, ethical, and safe to deploy.",
+    plainEnglish:
+      "AI is powerful, and with that power comes real responsibility. This domain covers how Claude is designed to behave ethically — why it sometimes says no, what its built-in values are, and how Anthropic trains it to be helpful without being harmful. You'll also learn how to build AI products responsibly: when to keep a human in the loop, how to avoid accidentally building something that can be misused, and the kinds of content policies you'll need to think about. Even if you're not a developer, this domain matters — it's about being a trustworthy builder of AI.",
     icon: "🛡️",
     color: "from-rose-600 to-pink-600",
     concepts: [
@@ -1680,6 +1701,9 @@ async function executeAction(action: Action): Promise<void> {
     weight: 10,
     description:
       "Learn how to send images, PDFs, and mixed-media inputs to Claude. Understand supported formats, size limits, input methods, and how to structure multimodal prompts effectively.",
+    tagline: "Send images, screenshots, and documents to Claude and ask questions about them.",
+    plainEnglish:
+      "Claude isn't just a text-based AI — it can also look at images and documents. You can show it a photo, a screenshot, a chart, or a PDF and ask it questions about what it sees. This domain covers how that works: what kinds of files you can send, how large they can be, and how to combine images and text in the same conversation. Real-world uses include reading receipts, analysing diagrams, reviewing design mockups, or extracting information from scanned documents. It's simpler than it sounds — by the end you'll know exactly how to do it.",
     icon: "👁️",
     color: "from-emerald-600 to-teal-600",
     concepts: [

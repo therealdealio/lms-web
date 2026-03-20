@@ -51,6 +51,8 @@ export interface Domain {
   title: string;
   weight: number;
   description: string;
+  tagline: string;
+  plainEnglish: string;
   icon: string;
   color: string;
   concepts: Concept[];
