@@ -1,5 +1,8 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { LMS_MODEL } from "@/lib/env";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -28,6 +31,13 @@ That's completely fine! Explain the concept clearly from scratch in plain langua
 Always be conversational and supportive. This is practice, not an exam.`;
 
 export async function POST(request: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401, headers: { "Content-Type": "application/json" },
+    });
+  }
+
   try {
     const body = await request.json();
     const { conceptTitle, conceptContent, keyPoints, userAnswer, domainName, question, previousHint, isFollowUp } = body;
@@ -69,7 +79,7 @@ Student's response: "${userAnswer}"
 Please respond appropriately based on whether this is a hint request, "I don't know", or a genuine attempt. When evaluating, consider the specific question that was asked.`;
 
     const stream = client.messages.stream({
-      model: "claude-haiku-4-5",
+      model: LMS_MODEL,
       max_tokens: 400,
       system: SYSTEM_PROMPT,
       messages: [{ role: "user", content: userContent }],

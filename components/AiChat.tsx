@@ -308,7 +308,7 @@ export default function AiChat({
                         prose-ul:my-1 prose-ul:pl-4 prose-li:my-0.5 prose-li:text-dark-200
                         prose-ol:my-1 prose-ol:pl-4
                         prose-blockquote:border-brand-400 prose-blockquote:text-dark-300">
-                        <ReactMarkdown>{msg.content}</ReactMarkdown>
+                        <ReactMarkdown allowedElements={["p","strong","em","code","pre","ul","ol","li","h1","h2","h3","blockquote"]} unwrapDisallowed>{msg.content}</ReactMarkdown>
                       </div>
                     )}
                   </div>
@@ -329,7 +329,7 @@ export default function AiChat({
                       prose-code:text-brand-700 prose-code:bg-brand-50 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-xs prose-code:before:content-none prose-code:after:content-none
                       prose-ul:my-1 prose-ul:pl-4 prose-li:my-0.5 prose-li:text-dark-200
                       prose-ol:my-1 prose-ol:pl-4">
-                      <ReactMarkdown>{streamingContent}</ReactMarkdown>
+                      <ReactMarkdown allowedElements={["p","strong","em","code","pre","ul","ol","li","h1","h2","h3","blockquote"]} unwrapDisallowed>{streamingContent}</ReactMarkdown>
                       <span className="inline-block w-2 h-4 bg-brand-500 ml-1 animate-pulse" />
                     </div>
                   </div>

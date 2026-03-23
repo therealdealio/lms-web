@@ -1,18 +1,15 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { authOptions, assertAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-
-const ADMIN_EMAIL = "rrthai88@gmail.com";
 
 export async function GET() {
   const session = await getServerSession(authOptions);
-  if (session?.user?.email !== ADMIN_EMAIL) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const denied = assertAdmin(session);
+  if (denied) return denied;
 
   const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 29);
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   const startDate = thirtyDaysAgo.toISOString().slice(0, 10);
 
   // Generate all 30 date strings for filling gaps

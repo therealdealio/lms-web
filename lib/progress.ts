@@ -1,5 +1,5 @@
 import { AppProgress, DomainProgress, User } from "./types";
-import { PASSING_SCORE } from "./curriculum";
+import { PASSING_SCORE, domains } from "./curriculum";
 
 const STORAGE_KEY = "anthropic_lms_progress";
 
@@ -93,7 +93,7 @@ export const saveDomainExamScore = (
 
 export const getOverallProgress = (progress: AppProgress): number => {
   const completed = progress.domains.filter((d) => d.completed).length;
-  return Math.round((completed / 8) * 100);
+  return Math.round((completed / domains.length) * 100);
 };
 
 export const getDomainProgress = (

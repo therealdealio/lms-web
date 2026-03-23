@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest } from "next/server";
+import { LMS_MODEL } from "@/lib/env";
 
 const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -37,7 +38,7 @@ Student's Answer: ${userAnswer}
 Please evaluate whether the student's answer demonstrates correct understanding of this concept. Be specific and educational.`;
 
     const stream = client.messages.stream({
-      model: "claude-haiku-4-5",
+      model: LMS_MODEL,
       max_tokens: 600,
       system: SYSTEM_PROMPT,
       messages: [{ role: "user", content: userContent }],
