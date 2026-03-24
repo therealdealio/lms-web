@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { Send, Lightbulb, HelpCircle, RotateCcw, Shuffle, MessageCircle, Zap } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -180,19 +180,20 @@ export default function ConceptQuiz({
 
   const shortTitle = conceptTitle.replace(/^\d+\.\d+\s+/, "");
 
-  const questions = [
+  const questions = useMemo(() => [
     `In your own words, explain **${shortTitle}**. Why does it matter?`,
     `What would go wrong if a developer ignored **${shortTitle}**? Give a concrete example.`,
     `How would you explain **${shortTitle}** to a junior developer who has never heard of it?`,
     `What is the most common mistake people make with **${shortTitle}**, and how do you avoid it?`,
     `Finish this sentence in as much detail as you can: "${shortTitle} matters because..."`,
-  ];
+  ], [shortTitle]);
 
   const currentQuestion = questions[questionIndex];
 
   // Show follow-up section after a hint or "I don't know" response finishes
+  const submittedLower = submittedText.trim().toLowerCase();
   const isHintOrDontKnow =
-    submittedText === "Give me a hint" || submittedText === "I don't know";
+    submittedLower === "give me a hint" || submittedLower === "i don't know";
   const showFollowUp = isHintOrDontKnow && !!feedback && !isStreaming;
 
   return (
@@ -233,7 +234,7 @@ export default function ConceptQuiz({
           <>
         {/* Prompt */}
         <div className="text-dark-200 text-sm leading-relaxed prose prose-sm max-w-none prose-strong:text-dark-50 prose-p:my-0">
-          <ReactMarkdown>{currentQuestion}</ReactMarkdown>
+          <ReactMarkdown allowedElements={["p","strong","em","code","pre","ul","ol","li","h1","h2","h3","blockquote"]} unwrapDisallowed>{currentQuestion}</ReactMarkdown>
         </div>
 
         {/* Input area */}
@@ -304,7 +305,7 @@ export default function ConceptQuiz({
                   prose-p:my-1 prose-p:leading-relaxed prose-p:text-dark-200
                   prose-strong:text-dark-50
                   prose-ul:my-1 prose-ul:pl-4 prose-li:my-0.5 prose-li:text-dark-200">
-                  <ReactMarkdown>{feedback}</ReactMarkdown>
+                  <ReactMarkdown allowedElements={["p","strong","em","code","pre","ul","ol","li","h1","h2","h3","blockquote"]} unwrapDisallowed>{feedback}</ReactMarkdown>
                   {isStreaming && (
                     <span className="inline-block w-1.5 h-4 bg-brand-500 ml-0.5 animate-pulse align-middle" />
                   )}
@@ -367,7 +368,7 @@ export default function ConceptQuiz({
                           prose-p:my-1 prose-p:leading-relaxed prose-p:text-dark-200
                           prose-strong:text-dark-50
                           prose-ul:my-1 prose-ul:pl-4 prose-li:my-0.5 prose-li:text-dark-200">
-                          <ReactMarkdown>{followUpFeedback}</ReactMarkdown>
+                          <ReactMarkdown allowedElements={["p","strong","em","code","pre","ul","ol","li","h1","h2","h3","blockquote"]} unwrapDisallowed>{followUpFeedback}</ReactMarkdown>
                           {isFollowUpStreaming && (
                             <span className="inline-block w-1.5 h-4 bg-brand-500 ml-0.5 animate-pulse align-middle" />
                           )}

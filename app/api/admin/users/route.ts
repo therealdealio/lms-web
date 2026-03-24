@@ -1,23 +1,26 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { authOptions, assertAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-const ADMIN_EMAIL = "rrthai88@gmail.com";
-
-export async function GET() {
+export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
-  if (session?.user?.email !== ADMIN_EMAIL) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const denied = assertAdmin(session);
+  if (denied) return denied;
 
-  const users = await prisma.user.findMany({
-    include: {
-      membership: true,
-      domainProgress: true,
-    },
-    orderBy: { createdAt: "desc" },
-  });
+  const page = Math.max(1, parseInt(req.nextUrl.searchParams.get("page") ?? "1"));
+  const take = 50;
+  const skip = (page - 1) * take;
 
-  return NextResponse.json(users);
+  const [users, total] = await Promise.all([
+    prisma.user.findMany({
+      include: { membership: true, domainProgress: true },
+      orderBy: { createdAt: "desc" },
+      skip,
+      take,
+    }),
+    prisma.user.count(),
+  ]);
+
+  return NextResponse.json({ users, total, page, pageSize: take });
 }

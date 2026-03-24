@@ -1,5 +1,8 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { LMS_MODEL } from "@/lib/env";
 
 const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -16,6 +19,13 @@ When explaining concepts:
 Be thorough but scannable — use bullet points and short paragraphs.`;
 
 export async function POST(request: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401, headers: { "Content-Type": "application/json" },
+    });
+  }
+
   try {
     const body = await request.json();
     const { concept, domain, userQuestion, context } = body;
@@ -35,7 +45,7 @@ User's Question: ${userQuestion}
 Please explain this concept clearly for someone preparing for the Anthropic Architecture Certification.`;
 
     const stream = client.messages.stream({
-      model: "claude-haiku-4-5",
+      model: LMS_MODEL,
       max_tokens: 800,
       system: SYSTEM_PROMPT,
       messages: [{ role: "user", content: userContent }],
