@@ -2,9 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Google Fonts — Space Grotesk + Inter */
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;900&family=Inter:wght@300;400;500;600;700&display=swap');
-
 :root {
   --foreground-rgb: 28, 27, 26;
   --background-rgb: 253, 248, 245;
@@ -23,7 +20,7 @@ body {
 }
 
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter), 'Inter', sans-serif;
   color: #1c1b1a;
   background: #fdf8f5;
   min-height: 100vh;

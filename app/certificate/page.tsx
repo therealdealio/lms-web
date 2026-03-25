@@ -5,10 +5,14 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Printer, Award, Lock, CheckCircle, Copy, Check, ImageDown } from "lucide-react";
 import { loadProgress, saveProgress } from "@/lib/progress";
+import dynamic from "next/dynamic";
 import { AppProgress } from "@/lib/types";
 import { domains, PASSING_SCORE } from "@/lib/curriculum";
-import Certificate from "@/components/Certificate";
 import ProgressBar from "@/components/ProgressBar";
+
+const Certificate = dynamic(() => import("@/components/Certificate"), {
+  loading: () => <div className="h-96 rounded-3xl bg-surface-container animate-pulse" />,
+});
 
 const SITE_URL = "https://learnagentarchitecture.com";
 
