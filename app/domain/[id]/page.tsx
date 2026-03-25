@@ -13,11 +13,18 @@ import {
   Code,
   CheckCircle,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import { getDomain } from "@/lib/curriculum";
 import { loadProgress, markDomainStarted } from "@/lib/progress";
 import { Domain } from "@/lib/types";
-import AiChat from "@/components/AiChat";
-import ConceptQuiz from "@/components/ConceptQuiz";
+
+const AiChat = dynamic(() => import("@/components/AiChat"), {
+  loading: () => <div className="h-24 rounded-2xl bg-surface-container animate-pulse" />,
+});
+
+const ConceptQuiz = dynamic(() => import("@/components/ConceptQuiz"), {
+  loading: () => <div className="h-16 rounded-xl bg-surface-container animate-pulse" />,
+});
 
 export default function DomainPage() {
   const params = useParams();

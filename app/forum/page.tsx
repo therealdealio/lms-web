@@ -85,29 +85,10 @@ export default function ForumPage() {
       return;
     }
 
-    const fetchStats = async () => {
-      const results: CategoryStats = {};
-      await Promise.all(
-        CATEGORIES.map(async (cat) => {
-          try {
-            const res = await fetch(`/api/forum/posts?category=${cat.id}`);
-            if (res.ok) {
-              const posts = await res.json();
-              results[cat.id] = {
-                postCount: posts.length,
-                latestAt: posts[0]?.createdAt ?? null,
-              };
-            }
-          } catch {
-            results[cat.id] = { postCount: 0, latestAt: null };
-          }
-        })
-      );
-      setStats(results);
-      setLoading(false);
-    };
-
-    fetchStats();
+    fetch("/api/forum/stats")
+      .then((r) => r.ok ? r.json() : {})
+      .then((data: CategoryStats) => { setStats(data); setLoading(false); })
+      .catch(() => setLoading(false));
   }, [router]);
 
   const totalPosts = Object.values(stats).reduce((sum, s) => sum + s.postCount, 0);

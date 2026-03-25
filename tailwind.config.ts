@@ -98,9 +98,9 @@ const config: Config = {
         },
       },
       fontFamily: {
-        headline: ["Space Grotesk", "sans-serif"],
-        body:     ["Inter", "sans-serif"],
-        label:    ["Space Grotesk", "sans-serif"],
+        headline: ["var(--font-space-grotesk)", "Space Grotesk", "sans-serif"],
+        body:     ["var(--font-inter)", "Inter", "sans-serif"],
+        label:    ["var(--font-space-grotesk)", "Space Grotesk", "sans-serif"],
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",

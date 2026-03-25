@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { signIn, useSession } from "next-auth/react";
 import { ArrowRight, Eye, EyeOff, CheckCircle, X } from "lucide-react";
 import { loadProgress, setUser } from "@/lib/progress";
@@ -284,9 +285,9 @@ export default function LandingPage() {
             <div className="grid md:grid-cols-3 gap-5">
               {/* Certification — large */}
               <div className="md:col-span-2 bg-surface rounded-xl overflow-hidden flex flex-col shadow-sm">
-                <div className="h-56 overflow-hidden">
-                  <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=900&q=80&auto=format&fit=crop"
-                    alt="Professional working toward AI certification" className="w-full h-full object-cover" />
+                <div className="h-56 overflow-hidden relative">
+                  <Image src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=900&q=80&auto=format&fit=crop"
+                    alt="Professional working toward AI certification" fill className="object-cover" sizes="(max-width: 768px) 100vw, 66vw" priority />
                 </div>
                 <div className="p-8">
                   <span className="text-xs font-label font-bold uppercase tracking-widest text-primary mb-3 block">Certification Prep</span>
@@ -300,8 +301,8 @@ export default function LandingPage() {
               {/* AI Q&A */}
               <div className="bg-primary rounded-xl overflow-hidden flex flex-col shadow-sm">
                 <div className="h-56 overflow-hidden relative">
-                  <img src="https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=600&q=80&auto=format&fit=crop"
-                    alt="AI visualization" className="w-full h-full object-cover opacity-40" />
+                  <Image src="https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=600&q=80&auto=format&fit=crop"
+                    alt="AI visualization" fill className="object-cover opacity-40" sizes="(max-width: 768px) 100vw, 33vw" />
                   <div className="absolute inset-0 bg-gradient-to-b from-primary/30 to-primary" />
                 </div>
                 <div className="p-8 text-on-primary">
@@ -313,9 +314,9 @@ export default function LandingPage() {
 
               {/* Practice Exams */}
               <div className="bg-surface rounded-xl overflow-hidden flex flex-col shadow-sm">
-                <div className="h-56 overflow-hidden">
-                  <img src="https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=600&q=80&auto=format&fit=crop"
-                    alt="Person studying" className="w-full h-full object-cover" />
+                <div className="h-56 overflow-hidden relative">
+                  <Image src="https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=600&q=80&auto=format&fit=crop"
+                    alt="Person studying" fill className="object-cover" sizes="(max-width: 768px) 100vw, 33vw" />
                 </div>
                 <div className="p-8">
                   <span className="text-xs font-label font-bold uppercase tracking-widest text-primary mb-3 block">Practice</span>
@@ -327,8 +328,8 @@ export default function LandingPage() {
               {/* Community Forum — wide */}
               <div className="md:col-span-2 bg-inverse-surface rounded-xl overflow-hidden flex flex-col shadow-sm">
                 <div className="h-56 overflow-hidden relative">
-                  <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=900&q=80&auto=format&fit=crop"
-                    alt="Team collaborating" className="w-full h-full object-cover opacity-30" />
+                  <Image src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=900&q=80&auto=format&fit=crop"
+                    alt="Team collaborating" fill className="object-cover opacity-30" sizes="(max-width: 768px) 100vw, 66vw" />
                   <div className="absolute inset-0 bg-gradient-to-b from-transparent to-inverse-surface/95" />
                 </div>
                 <div className="p-8 text-inverse-on-surface">
