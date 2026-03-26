@@ -24,7 +24,7 @@ import { domains } from "@/lib/curriculum";
 import { AppProgress, Membership } from "@/lib/types";
 import DomainCard from "@/components/DomainCard";
 
-const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? "";
+const ADMIN_EMAIL = "rrthai88@gmail.com";
 
 export default function DashboardPage() {
   const router = useRouter();
