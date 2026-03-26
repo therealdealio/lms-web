@@ -101,7 +101,10 @@ export default function AdminPage() {
       fetch("/api/admin/users"),
       fetch("/api/admin/analytics"),
     ]);
-    if (usersRes.ok) setUsers(await usersRes.json());
+    if (usersRes.ok) {
+      const data = await usersRes.json();
+      setUsers(Array.isArray(data) ? data : data.users ?? []);
+    }
     if (analyticsRes.ok) {
       const data = await analyticsRes.json();
       console.log("analytics data:", data);
