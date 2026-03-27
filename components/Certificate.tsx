@@ -1,18 +1,19 @@
 "use client";
 
 import { Award, CheckCircle, Star } from "lucide-react";
-import { AppProgress } from "@/lib/types";
-import { domains } from "@/lib/curriculum";
+import { AppProgress, CourseProgress, Course } from "@/lib/types";
 
 interface CertificateProps {
   progress: AppProgress;
+  courseProgress: CourseProgress;
+  course: Course;
 }
 
-export default function Certificate({ progress }: CertificateProps) {
+export default function Certificate({ progress, courseProgress, course }: CertificateProps) {
   if (!progress.user) return null;
 
-  const completionDate = progress.certificateEarnedAt
-    ? new Date(progress.certificateEarnedAt).toLocaleDateString("en-US", {
+  const completionDate = courseProgress.certificateEarnedAt
+    ? new Date(courseProgress.certificateEarnedAt).toLocaleDateString("en-US", {
         year: "numeric",
         month: "long",
         day: "numeric",
@@ -23,7 +24,7 @@ export default function Certificate({ progress }: CertificateProps) {
         day: "numeric",
       });
 
-  const passedDomains = progress.domains.filter((d) => d.completed);
+  const passedDomains = courseProgress.domains.filter((d) => d.completed);
   const avgScore =
     passedDomains.length > 0
       ? Math.round(
@@ -73,11 +74,10 @@ export default function Certificate({ progress }: CertificateProps) {
         <div className="space-y-2.5">
           <p className="text-gray-600 text-base">has successfully completed all modules of the</p>
           <h2 className="text-3xl font-bold text-gray-900">
-            Agentic AI Architecture — Practitioner
+            {course.title} — {course.subtitle}
           </h2>
           <p className="text-gray-600 leading-relaxed max-w-lg mx-auto text-sm">
-            demonstrating working knowledge of agentic system design, tool orchestration,
-            prompt engineering, context management, multi-agent coordination, and production deployment
+            {course.description}
           </p>
         </div>
 
@@ -89,7 +89,7 @@ export default function Certificate({ progress }: CertificateProps) {
           </div>
           <div className="w-px h-12 bg-gray-200" />
           <div className="text-center">
-            <div className="text-3xl font-bold text-emerald-600">8/8</div>
+            <div className="text-3xl font-bold text-emerald-600">{passedDomains.length}/{course.domains.length}</div>
             <div className="text-gray-500 text-xs mt-0.5">Sections Passed</div>
           </div>
           <div className="w-px h-12 bg-gray-200" />
@@ -105,9 +105,10 @@ export default function Certificate({ progress }: CertificateProps) {
             Section Results
           </p>
           <div className="grid grid-cols-2 gap-2">
-            {domains.map((domain) => {
-              const dp = progress.domains.find((d) => d.domainId === domain.id);
+            {course.domains.map((domain) => {
+              const dp = courseProgress.domains.find((d) => d.domainId === domain.id);
               const score = dp?.examScore ?? 0;
+              const domainNum = domain.id.split("-").pop();
               return (
                 <div
                   key={domain.id}
@@ -116,7 +117,7 @@ export default function Certificate({ progress }: CertificateProps) {
                   <span className="text-lg flex-shrink-0">{domain.icon}</span>
                   <div className="flex-1 min-w-0">
                     <div className="text-gray-800 text-xs font-semibold truncate">{domain.title}</div>
-                    <div className="text-gray-400 text-xs">Section {domain.id}</div>
+                    <div className="text-gray-400 text-xs">Section {domainNum}</div>
                   </div>
                   <div className="flex items-center gap-1.5 flex-shrink-0">
                     <span className="text-emerald-600 font-bold text-sm">{score}%</span>

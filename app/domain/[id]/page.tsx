@@ -14,7 +14,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import dynamic from "next/dynamic";
-import { getDomain } from "@/lib/curriculum";
+import { getDomain, getCourseForDomain, getDomainNumber } from "@/lib/curriculum";
 import { loadProgress, markDomainStarted } from "@/lib/progress";
 import { Domain } from "@/lib/types";
 
@@ -29,7 +29,7 @@ const ConceptQuiz = dynamic(() => import("@/components/ConceptQuiz"), {
 export default function DomainPage() {
   const params = useParams();
   const router = useRouter();
-  const domainId = parseInt(params.id as string);
+  const domainId = params.id as string;
 
   const [domain, setDomain] = useState<Domain | null>(null);
   const [expandedConcepts, setExpandedConcepts] = useState<Set<number>>(new Set([0]));
@@ -62,6 +62,13 @@ export default function DomainPage() {
     );
   }
 
+  const course = getCourseForDomain(domain.id);
+  const domainNum = getDomainNumber(domain.id);
+  const domainsInCourse = course?.domains ?? [];
+  const domainIndex = domainsInCourse.findIndex((d) => d.id === domain.id);
+  const prevDomain = domainIndex > 0 ? domainsInCourse[domainIndex - 1] : null;
+  const nextDomain = domainIndex < domainsInCourse.length - 1 ? domainsInCourse[domainIndex + 1] : null;
+
   return (
     <div className="min-h-screen bg-surface text-on-surface">
 
@@ -74,7 +81,7 @@ export default function DomainPage() {
           </Link>
           <div className="flex items-center gap-3">
             <span className="text-xs text-on-surface-variant font-label hidden sm:block">
-              Domain {domain.id} of 8
+              Domain {domainNum} of {domainsInCourse.length}
             </span>
             <Link
               href={`/domain/${domain.id}/practice`}
@@ -102,7 +109,7 @@ export default function DomainPage() {
         <div className="space-y-5">
           <div className="flex flex-wrap gap-2">
             <span className="px-2.5 py-1 rounded-full text-xs font-headline font-bold bg-primary/8 text-primary">
-              Domain {domain.id}
+              Domain {domainNum}
             </span>
             <span className="px-2.5 py-1 rounded-full text-xs font-label bg-surface-container text-on-surface-variant">
               {domain.weight}% of Exam
@@ -246,23 +253,23 @@ export default function DomainPage() {
         <AiChat
           domainName={domain.title}
           domainId={domain.id}
-          context={`Domain ${domain.id}: ${domain.title}. Key concepts: ${domain.concepts.map((c) => c.title).join(", ")}.`}
+          context={`Domain ${domainNum}: ${domain.title}. Key concepts: ${domain.concepts.map((c) => c.title).join(", ")}.`}
         />
 
         {/* Prev / Next navigation */}
         <div className="flex justify-between items-center pt-4 border-t border-outline-variant/20">
-          {domain.id > 1 ? (
-            <Link href={`/domain/${domain.id - 1}`}
+          {prevDomain ? (
+            <Link href={`/domain/${prevDomain.id}`}
               className="flex items-center gap-2 px-4 py-2 rounded-md bg-surface-container-lowest border border-outline-variant/20 hover:border-primary/30 text-on-surface-variant hover:text-primary text-sm font-label transition-colors shadow-sm">
               <ArrowLeft size={15} />
-              Domain {domain.id - 1}
+              Domain {getDomainNumber(prevDomain.id)}
             </Link>
           ) : <div />}
 
-          {domain.id < 8 ? (
-            <Link href={`/domain/${domain.id + 1}`}
+          {nextDomain ? (
+            <Link href={`/domain/${nextDomain.id}`}
               className="flex items-center gap-2 px-4 py-2 rounded-md bg-surface-container-lowest border border-outline-variant/20 hover:border-primary/30 text-on-surface-variant hover:text-primary text-sm font-label transition-colors shadow-sm">
-              Domain {domain.id + 1}
+              Domain {getDomainNumber(nextDomain.id)}
               <ArrowRight size={15} />
             </Link>
           ) : (

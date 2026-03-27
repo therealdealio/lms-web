@@ -5,12 +5,19 @@ export interface User {
 }
 
 export interface DomainProgress {
-  domainId: number;
+  domainId: string;
   started: boolean;
   completed: boolean;
   examScore: number | null;
   examAttempts: number;
   lastAttemptAt: string | null;
+}
+
+export interface CourseProgress {
+  courseId: string;
+  domains: DomainProgress[];
+  certificateEarned: boolean;
+  certificateEarnedAt: string | null;
 }
 
 export interface Membership {
@@ -23,9 +30,7 @@ export interface Membership {
 
 export interface AppProgress {
   user: User | null;
-  domains: DomainProgress[];
-  certificateEarned: boolean;
-  certificateEarnedAt: string | null;
+  courses: Record<string, CourseProgress>;
 }
 
 export interface Concept {
@@ -42,12 +47,13 @@ export interface Question {
   options: string[];
   correctIndex: number;
   explanation: string;
-  domain: number;
+  domain: string;
   topic: string;
 }
 
 export interface Domain {
-  id: number;
+  id: string;
+  courseId: string;
   title: string;
   weight: number;
   description: string;
@@ -57,6 +63,18 @@ export interface Domain {
   color: string;
   concepts: Concept[];
   questions: Question[];
+}
+
+export interface Course {
+  id: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  icon: string;
+  color: string;
+  domains: Domain[];
+  passingScore: number;
+  examTraps: string[];
 }
 
 export interface ChatMessage {

@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Printer, Award, Lock, CheckCircle, Copy, Check, ImageDown } from "lucide-react";
-import { loadProgress, saveProgress } from "@/lib/progress";
+import { loadProgress, saveProgress, getCourseProgress } from "@/lib/progress";
 import dynamic from "next/dynamic";
-import { AppProgress } from "@/lib/types";
-import { domains, PASSING_SCORE } from "@/lib/curriculum";
+import { AppProgress, CourseProgress } from "@/lib/types";
+import { getCourse, PASSING_SCORE, getDomainNumber } from "@/lib/curriculum";
 import ProgressBar from "@/components/ProgressBar";
 
 const Certificate = dynamic(() => import("@/components/Certificate"), {
@@ -16,26 +16,30 @@ const Certificate = dynamic(() => import("@/components/Certificate"), {
 
 const SITE_URL = "https://learnagentarchitecture.com";
 
-const SHARE_MESSAGES = {
+const getShareMessages = (courseTitle: string, courseSubtitle: string) => ({
   linkedin: (name: string) =>
-    `Excited to share that I just completed the Agentic AI Architecture — Practitioner course! 🎓\n\nOver 8 sections I deepened my understanding of:\n• Agentic system design\n• Tool orchestration & integration\n• Prompt engineering\n• Multi-agent coordination\n• Context & memory management\n• Production deployment\n\nThis community study course is a great way to level up on modern AI development.\n👉 ${SITE_URL}\n\n#AgenticAI #AIArchitecture #MachineLearning #ArtificialIntelligence`,
+    `Excited to share that I just completed the ${courseTitle} — ${courseSubtitle} course! 🎓\n\nThis community study course is a great way to level up on modern AI development.\n👉 ${SITE_URL}\n\n#AI #MachineLearning #PromptEngineering #AgenticAI`,
 
   twitter: (name: string) =>
-    `Just completed the Agentic AI Architecture — Practitioner course! 🎓\n\nCovered agentic systems, tool design, prompt engineering, multi-agent coordination & production deployment.\n\n👉 ${SITE_URL}\n\n#AgenticAI #AIArchitecture #MachineLearning`,
+    `Just completed the ${courseTitle} — ${courseSubtitle} course! 🎓\n\n👉 ${SITE_URL}\n\n#AI #MachineLearning #PromptEngineering`,
 
   facebook: (name: string) =>
-    `I just earned my Agentic AI Architecture — Practitioner recognition! 🎓\n\nThis community course covers everything from agentic system design to multi-agent coordination and production deployment.\n\nHighly recommend if you're building or working with AI systems!\n👉 ${SITE_URL}`,
+    `I just earned my ${courseTitle} — ${courseSubtitle} recognition! 🎓\n\nHighly recommend if you're building or working with AI systems!\n👉 ${SITE_URL}`,
 
   copy: (name: string) =>
-    `I just completed the Agentic AI Architecture — Practitioner course! 🎓 Mastered agentic system design, tool orchestration, prompt engineering, multi-agent coordination, and production deployment. ${SITE_URL} #AgenticAI #AIArchitecture`,
-};
+    `I just completed the ${courseTitle} — ${courseSubtitle} course! 🎓 ${SITE_URL} #AI #MachineLearning`,
+});
 
 export default function CertificatePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const courseId = searchParams.get("course") || "aai";
   const [progress, setProgress] = useState<AppProgress | null>(null);
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const certificateRef = useRef<HTMLDivElement>(null);
+
+  const course = getCourse(courseId);
 
   useEffect(() => {
     const p = loadProgress();
@@ -46,18 +50,20 @@ export default function CertificatePage() {
 
     fetch("/api/progress")
       .then((r) => r.ok ? r.json() : null)
-      .then((dbDomains: { domainId: number; completed: boolean; examScore: number | null; examAttempts: number }[] | null) => {
+      .then((dbDomains: { courseId?: string; domainId: string; completed: boolean; examScore: number | null; examAttempts: number }[] | null) => {
         if (dbDomains && dbDomains.length > 0) {
-          const merged = { ...p };
-          merged.domains = p.domains.map((d) => {
-            const db = dbDomains.find((x) => x.domainId === d.domainId);
-            if (db && db.completed && !d.completed) {
-              return { ...d, completed: true, examScore: db.examScore ?? 100, examAttempts: Math.max(d.examAttempts, db.examAttempts) };
-            }
-            return d;
-          });
-          const allPassed = merged.domains.every((d) => d.completed);
-          if (allPassed) merged.certificateEarned = true;
+          const merged = { ...p, courses: { ...p.courses } };
+          for (const ck of Object.keys(merged.courses)) {
+            merged.courses[ck] = { ...merged.courses[ck], domains: merged.courses[ck].domains.map((d) => {
+              const db = dbDomains.find((x) => x.domainId === d.domainId);
+              if (db && db.completed && !d.completed) {
+                return { ...d, completed: true, examScore: db.examScore ?? 100, examAttempts: Math.max(d.examAttempts, db.examAttempts) };
+              }
+              return d;
+            })};
+            const allPassed = merged.courses[ck].domains.every((d) => d.completed);
+            if (allPassed) merged.courses[ck].certificateEarned = true;
+          }
           saveProgress(merged);
           setProgress(merged);
         } else {
@@ -79,7 +85,6 @@ export default function CertificatePage() {
         quality: 1,
         pixelRatio: 2,
         backgroundColor: "#ffffff",
-        // Capture full element dimensions regardless of viewport
         width: el.scrollWidth,
         height: el.scrollHeight,
         style: {
@@ -87,13 +92,23 @@ export default function CertificatePage() {
         },
       });
       const link = document.createElement("a");
-      link.download = `certificate-${progress?.user?.name?.replace(/\s+/g, "-").toLowerCase() ?? "agentic-ai"}.png`;
+      link.download = `certificate-${course?.title?.replace(/\s+/g, "-").toLowerCase() ?? "cert"}-${progress?.user?.name?.replace(/\s+/g, "-").toLowerCase() ?? "user"}.png`;
       link.href = dataUrl;
       link.click();
     } finally {
       setDownloading(false);
     }
   };
+
+  if (!course) {
+    return (
+      <div className="min-h-screen bg-dark-950 flex items-center justify-center">
+        <p className="text-dark-400">Course not found</p>
+      </div>
+    );
+  }
+
+  const SHARE_MESSAGES = getShareMessages(course.title, course.subtitle);
 
   const shareOn = (platform: "twitter" | "linkedin" | "facebook") => {
     const name = progress?.user?.name ?? "I";
@@ -103,7 +118,7 @@ export default function CertificatePage() {
 
     const urls = {
       twitter: `https://x.com/intent/tweet?text=${encoded}`,
-      linkedin: `https://www.linkedin.com/shareArticle?mini=true&url=${encodedUrl}&title=${encodeURIComponent("Agentic AI Architecture — Practitioner")}&summary=${encoded}`,
+      linkedin: `https://www.linkedin.com/shareArticle?mini=true&url=${encodedUrl}&title=${encodeURIComponent(`${course.title} — ${course.subtitle}`)}&summary=${encoded}`,
       facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}&quote=${encoded}`,
     };
 
@@ -125,10 +140,12 @@ export default function CertificatePage() {
     );
   }
 
-  const isEligible = progress.certificateEarned;
-  const completedDomains = progress.domains.filter(
+  const courseProgress = getCourseProgress(progress, courseId);
+  const isEligible = courseProgress?.certificateEarned ?? false;
+  const completedDomains = courseProgress?.domains.filter(
     (d) => d.examScore !== null && d.examScore >= PASSING_SCORE
-  ).length;
+  ).length ?? 0;
+  const totalDomains = course.domains.length;
 
   if (!isEligible) {
     return (
@@ -149,28 +166,29 @@ export default function CertificatePage() {
             </div>
             <h1 className="text-3xl font-bold text-dark-50">Recognition Not Yet Earned</h1>
             <p className="text-dark-400 text-lg">
-              You need to pass all 8 section exams with ≥{PASSING_SCORE}% to earn your recognition.
+              You need to pass all {totalDomains} section exams with ≥{PASSING_SCORE}% to earn your {course.title} recognition.
             </p>
           </div>
 
           <div className="p-6 rounded-2xl bg-white border border-dark-700 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="font-semibold text-dark-50">Progress: {completedDomains}/8 sections passed</h2>
-              <span className="text-brand-600 font-bold">{Math.round((completedDomains / 8) * 100)}%</span>
+              <h2 className="font-semibold text-dark-50">Progress: {completedDomains}/{totalDomains} sections passed</h2>
+              <span className="text-brand-600 font-bold">{Math.round((completedDomains / totalDomains) * 100)}%</span>
             </div>
-            <ProgressBar value={Math.round((completedDomains / 8) * 100)} color="brand" size="lg" animated />
+            <ProgressBar value={Math.round((completedDomains / totalDomains) * 100)} color="brand" size="lg" animated />
             <div className="space-y-3 pt-2">
-              {domains.map((domain) => {
-                const dp = progress.domains.find((d) => d.domainId === domain.id);
+              {course.domains.map((domain) => {
+                const dp = courseProgress?.domains.find((d) => d.domainId === domain.id);
                 const score = dp?.examScore;
                 const passed = score !== null && score !== undefined && score >= PASSING_SCORE;
+                const domainNum = getDomainNumber(domain.id);
                 return (
                   <div key={domain.id} className="flex items-center justify-between p-4 rounded-xl bg-dark-950 border border-dark-700">
                     <div className="flex items-center gap-3">
                       <span className="text-xl">{domain.icon}</span>
                       <div>
                         <div className="font-medium text-dark-100 text-sm">{domain.title}</div>
-                        <div className="text-dark-400 text-xs">Section {domain.id} · {domain.weight}%</div>
+                        <div className="text-dark-400 text-xs">Section {domainNum} · {domain.weight}%</div>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
@@ -223,12 +241,12 @@ export default function CertificatePage() {
         <div className="no-print p-6 rounded-2xl bg-amber-50 border border-amber-200 text-center space-y-2 shadow-sm">
           <div className="text-4xl">🎓</div>
           <h1 className="text-2xl font-bold text-amber-800">Congratulations, {progress.user.name}!</h1>
-          <p className="text-amber-700">You&apos;ve completed the Agentic AI Architecture — Practitioner course.</p>
+          <p className="text-amber-700">You&apos;ve completed the {course.title} — {course.subtitle} course.</p>
         </div>
 
         {/* Certificate (wrapped in ref for image capture) */}
         <div ref={certificateRef}>
-          <Certificate progress={progress} />
+          <Certificate progress={progress} courseProgress={courseProgress!} course={course} />
         </div>
 
         {/* Share card */}

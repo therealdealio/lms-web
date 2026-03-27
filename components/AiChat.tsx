@@ -16,7 +16,7 @@ import ReactMarkdown from "react-markdown";
 
 interface AiChatProps {
   domainName: string;
-  domainId: number;
+  domainId: string;
   context?: string;
   initialPrompt?: string;
   compact?: boolean;

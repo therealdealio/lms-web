@@ -1,19 +1,18 @@
 import { MetadataRoute } from "next";
+import { domains } from "@/lib/curriculum";
 
 const BASE_URL = "https://www.learnagentarchitecture.com";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const domainIds = [1, 2, 3, 4, 5, 6, 7, 8];
-
-  const domainPages = domainIds.map((id) => ({
-    url: `${BASE_URL}/domain/${id}`,
+  const domainPages = domains.map((d) => ({
+    url: `${BASE_URL}/domain/${d.id}`,
     lastModified: new Date(),
     changeFrequency: "monthly" as const,
     priority: 0.8,
   }));
 
-  const practicePages = domainIds.map((id) => ({
-    url: `${BASE_URL}/domain/${id}/practice`,
+  const practicePages = domains.map((d) => ({
+    url: `${BASE_URL}/domain/${d.id}/practice`,
     lastModified: new Date(),
     changeFrequency: "monthly" as const,
     priority: 0.7,

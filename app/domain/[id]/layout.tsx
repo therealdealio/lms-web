@@ -1,21 +1,21 @@
 import type { Metadata } from "next";
-import { getDomain } from "@/lib/curriculum";
+import { getDomain, getDomainNumber } from "@/lib/curriculum";
 
 interface Props {
   params: { id: string };
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const id = parseInt(params.id, 10);
-  const domain = getDomain(id);
+  const domain = getDomain(params.id);
 
   if (!domain) {
     return { title: "Domain Not Found" };
   }
 
-  const title = `Domain ${id}: ${domain.title}`;
-  const description = `${domain.description} Covers ${domain.concepts.length} concepts (${domain.weight}% of the Anthropic Architecture Certification exam).`;
-  const url = `https://www.learnagentarchitecture.com/domain/${id}`;
+  const num = getDomainNumber(domain.id);
+  const title = `Domain ${num}: ${domain.title}`;
+  const description = `${domain.description} Covers ${domain.concepts.length} concepts (${domain.weight}% of the exam).`;
+  const url = `https://www.learnagentarchitecture.com/domain/${domain.id}`;
 
   return {
     title,
@@ -30,7 +30,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export async function generateStaticParams() {
-  return [1, 2, 3, 4, 5, 6, 7, 8].map((id) => ({ id: String(id) }));
+  // Import all courses to generate params for all domains
+  const { domains } = await import("@/lib/curriculum");
+  return domains.map((d) => ({ id: d.id }));
 }
 
 export default function DomainLayout({ children }: { children: React.ReactNode }) {

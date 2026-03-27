@@ -13,7 +13,7 @@ import {
   BookOpen,
   ArrowRight,
 } from "lucide-react";
-import { getDomain, PASSING_SCORE } from "@/lib/curriculum";
+import { getDomain, getCourseForDomain, getDomainNumber, PASSING_SCORE } from "@/lib/curriculum";
 import { loadProgress, saveDomainExamScore } from "@/lib/progress";
 import { Domain } from "@/lib/types";
 import QuestionCard from "@/components/QuestionCard";
@@ -29,7 +29,7 @@ interface Answer {
 export default function PracticePage() {
   const params = useParams();
   const router = useRouter();
-  const domainId = parseInt(params.id as string);
+  const domainId = params.id as string;
 
   const [domain, setDomain] = useState<Domain | null>(null);
   const [answers, setAnswers] = useState<Map<string, Answer>>(new Map());
@@ -101,6 +101,12 @@ export default function PracticePage() {
     );
   }
 
+  const course = getCourseForDomain(domain.id);
+  const domainNum = getDomainNumber(domain.id);
+  const domainsInCourse = course?.domains ?? [];
+  const domainIndex = domainsInCourse.findIndex((d) => d.id === domain.id);
+  const nextDomain = domainIndex < domainsInCourse.length - 1 ? domainsInCourse[domainIndex + 1] : null;
+  const isLastDomain = domainIndex === domainsInCourse.length - 1;
 
   const totalQuestions = domain.questions.length;
   const answeredCount = answers.size;
@@ -123,7 +129,7 @@ export default function PracticePage() {
             className="flex items-center gap-2 text-dark-400 hover:text-dark-100 transition-colors text-sm"
           >
             <ArrowLeft size={16} />
-            Domain {domain.id}
+            Domain {domainNum}
           </Link>
 
           <div className="flex items-center gap-3">
@@ -219,9 +225,9 @@ export default function PracticePage() {
                 Retake Exam
               </button>
 
-              {hasPassed && domain.id < 5 && (
+              {hasPassed && nextDomain && (
                 <Link
-                  href={`/domain/${domain.id + 1}`}
+                  href={`/domain/${nextDomain.id}`}
                   className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-brand-600 to-brand-700 hover:from-brand-500 hover:to-brand-600 text-white text-sm font-medium transition-all shadow-sm"
                 >
                   Next Domain
@@ -229,9 +235,9 @@ export default function PracticePage() {
                 </Link>
               )}
 
-              {hasPassed && domain.id === 5 && (
+              {hasPassed && isLastDomain && (
                 <Link
-                  href="/certificate"
+                  href={`/certificate?course=${domain.courseId}`}
                   className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white text-sm font-medium transition-all shadow-sm"
                 >
                   <Trophy size={14} />
@@ -254,7 +260,7 @@ export default function PracticePage() {
         <div className="space-y-6">
           {!submitted && (
             <h2 className="text-lg font-bold text-dark-50">
-              Questions — Domain {domain.id}: {domain.title}
+              Questions — Domain {domainNum}: {domain.title}
             </h2>
           )}
           {submitted && (
@@ -296,7 +302,7 @@ export default function PracticePage() {
           <AiChat
             domainName={domain.title}
             domainId={domain.id}
-            context={`Practice exam for Domain ${domain.id}: ${domain.title}. Topics: ${domain.questions.map((q) => q.topic).join(", ")}.`}
+            context={`Practice exam for Domain ${domainNum}: ${domain.title}. Topics: ${domain.questions.map((q) => q.topic).join(", ")}.`}
             initialPrompt={aiQuestion}
           />
         </div>

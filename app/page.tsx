@@ -7,7 +7,9 @@ import Image from "next/image";
 import { signIn, useSession } from "next-auth/react";
 import { ArrowRight, Eye, EyeOff, CheckCircle, X } from "lucide-react";
 import { loadProgress, setUser } from "@/lib/progress";
-import { domains } from "@/lib/curriculum";
+import { getDomainsForCourse } from "@/lib/curriculum";
+
+const domains = getDomainsForCourse("aai");
 
 type AuthMode = "signin" | "signup";
 

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { CheckCircle, Play, RotateCcw, ArrowRight, Trophy } from "lucide-react";
 import { Domain, DomainProgress } from "@/lib/types";
-import { PASSING_SCORE } from "@/lib/curriculum";
+import { PASSING_SCORE, getDomainNumber } from "@/lib/curriculum";
 import ProgressBar from "./ProgressBar";
 
 interface DomainCardProps {
@@ -17,6 +17,7 @@ export default function DomainCard({ domain, domainProgress, index }: DomainCard
   const isStarted = domainProgress?.started || false;
   const examScore = domainProgress?.examScore;
   const hasPassed = examScore !== null && examScore !== undefined && examScore >= PASSING_SCORE;
+  const domainNum = getDomainNumber(domain.id);
 
   return (
     <div
@@ -37,7 +38,7 @@ export default function DomainCard({ domain, domainProgress, index }: DomainCard
           <span className="text-3xl">{domain.icon}</span>
           <div className="flex-1 min-w-0">
             <span className="px-2 py-0.5 rounded-full text-xs bg-primary/8 text-primary border border-primary/15 font-label font-bold">
-              Domain {domain.id} · {domain.weight}% of exam
+              Domain {domainNum} · {domain.weight}% of exam
             </span>
             <h3 className="font-headline font-bold text-on-surface text-base leading-snug mt-1">{domain.title}</h3>
           </div>

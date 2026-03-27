@@ -1,8 +1,26 @@
-import { Domain } from "./types";
+import { Course } from "../types";
 
-export const domains: Domain[] = [
+export const aaiCourse: Course = {
+  id: "aai",
+  title: "Agentic AI Architecture",
+  subtitle: "Practitioner Certification",
+  description: "Master the principles of agentic loop design, multi-agent coordination, tool integration, prompt engineering, and production deployment of AI systems.",
+  icon: "🤖",
+  color: "from-purple-600 to-indigo-600",
+  passingScore: 70,
+  examTraps: [
+    "Subagents share memory with coordinators → WRONG",
+    "Loop termination by model text → WRONG",
+    "High-stakes with prompt only → WRONG",
+    "Ambiguous tools: first fix is a classifier → WRONG",
+    "~/.claude/CLAUDE.md for team rules → WRONG",
+    "Batch API for pre-merge block checks → WRONG",
+    "Self-review same session is sufficient → WRONG",
+  ],
+  domains: [
   {
-    id: 1,
+    id: "aai-1",
+    courseId: "aai",
     title: "Agentic Architecture & Orchestration",
     weight: 27,
     description:
@@ -154,7 +172,7 @@ const subagentResult = await invokeSubagent({
         correctIndex: 2,
         explanation:
           "The correct approach is to inspect the `stop_reason` field. When `stop_reason === 'end_turn'`, the model has finished. `stop_reason === 'tool_use'` means continue the loop by executing tools. Checking response text (option A) and arbitrary iteration caps (option B) are explicit anti-patterns. Response length (option D) is meaningless as a termination signal.",
-        domain: 1,
+        domain: "aai-1",
         topic: "Agentic Loops",
       },
       {
@@ -170,7 +188,7 @@ const subagentResult = await invokeSubagent({
         correctIndex: 2,
         explanation:
           "Using arbitrary iteration caps (e.g., 'stop after 10 loops') as the primary termination logic is an anti-pattern because it can terminate a legitimately running task prematurely or allow over-iteration. Caps may exist as emergency fallbacks, but stop_reason inspection must be the primary mechanism. Options A, B, and D are all correct patterns.",
-        domain: 1,
+        domain: "aai-1",
         topic: "Agentic Loops",
       },
       {
@@ -185,7 +203,7 @@ const subagentResult = await invokeSubagent({
         correctIndex: 1,
         explanation:
           "Subagent isolation means that subagents do not implicitly share memory with the orchestrator or other agents. Each agent has its own context window. Any information a subagent needs must be explicitly passed at invocation time. This is a critical safety and reliability property — never assume a subagent 'knows' what happened in the orchestrator's session.",
-        domain: 1,
+        domain: "aai-1",
         topic: "Multi-Agent Orchestration",
       },
       {
@@ -201,7 +219,7 @@ const subagentResult = await invokeSubagent({
         correctIndex: 2,
         explanation:
           "Subagents do not have access to the orchestrator's history. All relevant context must be explicitly included in the invocation. Option A is wrong (no implicit sharing). Option B could work but introduces unnecessary complexity and a dependency. Option D violates isolation principles and is not reliable in distributed systems.",
-        domain: 1,
+        domain: "aai-1",
         topic: "Subagent Invocation & Context Passing",
       },
       {
@@ -217,7 +235,7 @@ const subagentResult = await invokeSubagent({
         correctIndex: 1,
         explanation:
           "High-stakes operations like infrastructure deployment REQUIRE programmatic gates — not prompt instructions. Prompts can be ignored, misinterpreted, or bypassed through prompt injection. A programmatic gate (e.g., requiring a human-provided confirmation token, or an external approval webhook) is mandatory. Logging (option D) is good practice but does not prevent harmful actions.",
-        domain: 1,
+        domain: "aai-1",
         topic: "Workflow Enforcement",
       },
       {
@@ -233,7 +251,7 @@ const subagentResult = await invokeSubagent({
         correctIndex: 2,
         explanation:
           "Pre-tool hooks run before tool execution, making them the correct place for validation of arguments, rate limiting checks, and authorization. Post-tool hooks run after execution. Error hooks handle failures that have already occurred. Validation before execution can prevent dangerous operations from ever running.",
-        domain: 1,
+        domain: "aai-1",
         topic: "Agent SDK Hooks",
       },
       {
@@ -249,7 +267,7 @@ const subagentResult = await invokeSubagent({
         correctIndex: 1,
         explanation:
           "Idempotent subtasks can be retried safely without causing duplicate effects or inconsistent state. For example, 'create file if not exists' is idempotent; 'append to file' is not. Idempotency is a critical property for resilient agentic systems where network failures or partial executions may require retries.",
-        domain: 1,
+        domain: "aai-1",
         topic: "Task Decomposition",
       },
       {
@@ -265,7 +283,7 @@ const subagentResult = await invokeSubagent({
         correctIndex: 1,
         explanation:
           "Reliable agentic systems persist state at checkpoints (workflow step, message history, accumulated results). On failure, the system restores from the last checkpoint and continues. Restarting from scratch (option A) wastes work and may repeat side effects. Asking Claude to 'continue' (option C) is unreliable since the new session has no context. Increasing timeout (option D) doesn't address already-failed work.",
-        domain: 1,
+        domain: "aai-1",
         topic: "Session State & Resumption",
       },
       {
@@ -281,7 +299,7 @@ const subagentResult = await invokeSubagent({
         correctIndex: 1,
         explanation:
           "`stop_reason === 'tool_use'` means Claude wants to use a tool. The correct response is: extract the tool_use blocks from the response, execute each tool, collect results, append them to the messages array as a 'user' turn with tool_result content blocks, then send the next request. This continues the loop until stop_reason is 'end_turn'.",
-        domain: 1,
+        domain: "aai-1",
         topic: "Agentic Loops",
       },
       {
@@ -297,13 +315,14 @@ const subagentResult = await invokeSubagent({
         correctIndex: 1,
         explanation:
           "When Agent B depends on Agent A's output, they must be executed sequentially. Parallel execution (option A) is appropriate only for independent tasks. The key principle: identify dependency graphs before choosing execution strategy. Agent A runs first, its output is serialized and explicitly passed to Agent B's context.",
-        domain: 1,
+        domain: "aai-1",
         topic: "Task Decomposition",
       },
     ],
   },
   {
-    id: 2,
+    id: "aai-2",
+    courseId: "aai",
     title: "Tool Design & MCP Integration",
     weight: 18,
     description:
@@ -451,7 +470,7 @@ return {
         correctIndex: 1,
         explanation:
           "Tool descriptions are the primary mechanism for tool selection. Claude reads descriptions to understand what each tool does, when to use it, and how it differs from similar tools. Tool names alone are insufficient. This means investing time in writing precise, detailed descriptions pays off directly in selection accuracy.",
-        domain: 2,
+        domain: "aai-2",
         topic: "Tool Description Primacy",
       },
       {
@@ -467,7 +486,7 @@ return {
         correctIndex: 2,
         explanation:
           "The first fix for tool selection problems is always improving descriptions. Descriptions are the primary signal Claude uses for selection. Adding a classifier (option A) adds unnecessary complexity. A meta-tool (option B) adds indirection. Combining tools (option D) may work but loses specificity. Improved descriptions should be the first attempt.",
-        domain: 2,
+        domain: "aai-2",
         topic: "Tool Description Primacy",
       },
       {
@@ -483,7 +502,7 @@ return {
         correctIndex: 2,
         explanation:
           "Permission errors (401/403) are not transient — they indicate the agent lacks authorization for the action. Retrying won't help and may trigger security alerts or account lockouts. The correct response is to escalate to a human operator or stop execution. Only transient errors (timeouts, rate limits) should be retried.",
-        domain: 2,
+        domain: "aai-2",
         topic: "Error Categories",
       },
       {
@@ -499,7 +518,7 @@ return {
         correctIndex: 1,
         explanation:
           "4-5 tools per agent is the recommended range. Too few tools (1-2) limits what the agent can accomplish. Too many tools (10+) degrades selection accuracy because descriptions become harder to differentiate and cognitive load increases. For more complex workflows, split into specialized subagents each with 4-5 focused tools.",
-        domain: 2,
+        domain: "aai-2",
         topic: "Tool Distribution",
       },
       {
@@ -515,7 +534,7 @@ return {
         correctIndex: 1,
         explanation:
           "`{ type: 'any' }` forces Claude to use at least one available tool, ensuring structured tool_use output. This is useful when you need guaranteed structured responses. `auto` lets Claude decide (may result in text-only response). `none` disables tool use entirely. There is no `required` type — specific tools are forced with `{ type: 'tool', name: 'tool_name' }`.",
-        domain: 2,
+        domain: "aai-2",
         topic: "tool_choice Options",
       },
       {
@@ -530,7 +549,7 @@ return {
         correctIndex: 1,
         explanation:
           "MCP configuration belongs in `.mcp.json` at the project root. This is the standard MCP configuration file location that Claude Code reads when starting in a project directory. User-level configuration would be in `~/.claude/` but that's for personal settings, not project-specific MCP servers that should be shared with the team via the repository.",
-        domain: 2,
+        domain: "aai-2",
         topic: "MCP Configuration",
       },
       {
@@ -546,13 +565,14 @@ return {
         correctIndex: 2,
         explanation:
           "Validation errors mean the tool received invalid input (wrong format, missing required fields, out-of-range values). Retrying with the same arguments (option A) will produce the same error. The correct response is to understand the validation error, fix the arguments, and then retry. This may require reformatting data, filling missing fields, or adjusting values to meet constraints.",
-        domain: 2,
+        domain: "aai-2",
         topic: "Error Categories",
       },
     ],
   },
   {
-    id: 3,
+    id: "aai-3",
+    courseId: "aai",
     title: "Claude Code Configuration & Workflows",
     weight: 20,
     description:
@@ -683,7 +703,7 @@ Review the pull request at $ARGUMENTS.
         correctIndex: 1,
         explanation:
           "Team-wide rules belong in the project-level CLAUDE.md at the repository root. This file is committed to the repo and shared with all team members. ~/.claude/CLAUDE.md is for personal preferences only — it is NOT shared and should not contain team conventions. Directory-level files are for path-specific rules, not global standards.",
-        domain: 3,
+        domain: "aai-3",
         topic: "CLAUDE.md Hierarchy",
       },
       {
@@ -699,7 +719,7 @@ Review the pull request at $ARGUMENTS.
         correctIndex: 2,
         explanation:
           "~/.claude/CLAUDE.md is a user-level file stored on the individual developer's machine. It is NOT committed to the repository and is NOT shared with teammates. Team standards placed here will only apply to that one developer. Team-wide rules must be in the project-level CLAUDE.md in the repo root, which is version-controlled and shared.",
-        domain: 3,
+        domain: "aai-3",
         topic: "CLAUDE.md Hierarchy",
       },
       {
@@ -715,7 +735,7 @@ Review the pull request at $ARGUMENTS.
         correctIndex: 1,
         explanation:
           "Project-level commands are stored in `<project>/.claude/commands/` as Markdown files. These are committed to the repository and available to all team members. Personal commands go in `~/.claude/commands/`. Commands in the project directory are invocable as slash commands by anyone working in that project with Claude Code.",
-        domain: 3,
+        domain: "aai-3",
         topic: "Command & Skill Structure",
       },
       {
@@ -731,7 +751,7 @@ Review the pull request at $ARGUMENTS.
         correctIndex: 2,
         explanation:
           "Plan Mode generates a step-by-step plan before making any changes, enabling review and approval. It is appropriate for complex refactors, multi-file changes, and destructive operations. Direct Execution is fine for simple, straightforward single-file edits. Using Plan Mode for everything would be unnecessarily slow; the key is using it when irreversibility risk is high.",
-        domain: 3,
+        domain: "aai-3",
         topic: "Plan Mode vs Direct Execution",
       },
       {
@@ -747,7 +767,7 @@ Review the pull request at $ARGUMENTS.
         correctIndex: 2,
         explanation:
           "Batch API is NOT suitable for pre-merge blocking checks because it is asynchronous — responses may take up to 24 hours. A PR check that blocks merging requires a synchronous, real-time response. Use the standard synchronous Claude API for any check that must complete before allowing a merge. Batch API is appropriate for latency-tolerant tasks like nightly analysis.",
-        domain: 3,
+        domain: "aai-3",
         topic: "CI/CD Integration",
       },
       {
@@ -763,7 +783,7 @@ Review the pull request at $ARGUMENTS.
         correctIndex: 1,
         explanation:
           "Directory-level CLAUDE.md files are the correct mechanism for path-specific rules. Place a CLAUDE.md in `src/frontend/` describing frontend testing conventions and another in `src/backend/` for backend conventions. These layer on top of the root CLAUDE.md. This is cleaner than one large conditional file and correctly uses the CLAUDE.md hierarchy as designed.",
-        domain: 3,
+        domain: "aai-3",
         topic: "Path-Specific Rules",
       },
       {
@@ -779,7 +799,7 @@ Review the pull request at $ARGUMENTS.
         correctIndex: 1,
         explanation:
           "Custom command files (Markdown) support the `$ARGUMENTS` placeholder, which is replaced with whatever the user passes after the slash command. For example, `/review-pr https://github.com/...` would replace `$ARGUMENTS` in the command template with the URL. This enables parameterized commands that can operate on different inputs.",
-        domain: 3,
+        domain: "aai-3",
         topic: "Command & Skill Structure",
       },
       {
@@ -795,13 +815,14 @@ Review the pull request at $ARGUMENTS.
         correctIndex: 2,
         explanation:
           "Nightly documentation generation is a latency-tolerant task — it runs overnight and doesn't block developers. This is exactly what Batch API is designed for: high-volume, non-urgent workloads at lower cost with up to 24-hour latency. Real-time completion (A), blocking security checks (B), and interactive debugging (D) all require synchronous responses.",
-        domain: 3,
+        domain: "aai-3",
         topic: "CI/CD Integration",
       },
     ],
   },
   {
-    id: 4,
+    id: "aai-4",
+    courseId: "aai",
     title: "Prompt Engineering & Structured Output",
     weight: 20,
     description:
@@ -970,7 +991,7 @@ throw new Error("Max retries exceeded");`,
         correctIndex: 2,
         explanation:
           "Using tool_use with a JSON schema is the most reliable method. The tool_use input is machine-parsed against the schema — not extracted from free text. This gives type guarantees that text extraction cannot. Asking Claude to 'respond with JSON' (A) is unreliable. Post-processing text (B) and regex (D) are fragile and can fail on edge cases.",
-        domain: 4,
+        domain: "aai-4",
         topic: "Structured Output",
       },
       {
@@ -986,7 +1007,7 @@ throw new Error("Max retries exceeded");`,
         correctIndex: 1,
         explanation:
           "The most direct fix is explicit instructions combined with a restrictive JSON schema. Add 'return ONLY these fields' to the prompt AND set `additionalProperties: false` in the JSON schema. Explicit > implicit. Few-shot examples (A) help but adding explicit constraints is more direct. Filtering (D) works but doesn't fix the underlying issue.",
-        domain: 4,
+        domain: "aai-4",
         topic: "Explicit Instructions",
       },
       {
@@ -1002,7 +1023,7 @@ throw new Error("Max retries exceeded");`,
         correctIndex: 1,
         explanation:
           "Few-shot examples are highly effective for classification tasks. They show Claude exactly what output you expect for specific inputs. For inconsistent classification, adding 2-5 representative examples (including edge cases) dramatically improves consistency. Temperature reduction (C) helps reduce variability but doesn't fix semantic understanding. Fine-tuning (D) is expensive and not the first step.",
-        domain: 4,
+        domain: "aai-4",
         topic: "Few-Shot Examples",
       },
       {
@@ -1018,7 +1039,7 @@ throw new Error("Max retries exceeded");`,
         correctIndex: 1,
         explanation:
           "An unlimited retry loop can create infinite loops if Claude consistently fails validation — caused by an impossible constraint, a bug in validation logic, or a model reasoning issue. This results in runaway API costs and hangs. Always implement a maximum retry limit (2-3 attempts) with a clear failure mode (raise exception, return error, alert human) when the limit is exceeded.",
-        domain: 4,
+        domain: "aai-4",
         topic: "Validation-Retry Loops",
       },
       {
@@ -1034,7 +1055,7 @@ throw new Error("Max retries exceeded");`,
         correctIndex: 2,
         explanation:
           "Nightly processing of 5,000 tickets is latency-tolerant (runs overnight, results needed next morning) and high-volume — exactly the Batch API's sweet spot. Real-time chat (A) requires immediate responses. Pre-merge checks (B) must complete synchronously before allowing a merge — Batch API's 24-hour latency makes this impossible. Interactive debugging (D) requires immediate responses.",
-        domain: 4,
+        domain: "aai-4",
         topic: "Batch API",
       },
       {
@@ -1050,7 +1071,7 @@ throw new Error("Max retries exceeded");`,
         correctIndex: 2,
         explanation:
           "Self-review in the same session is insufficient for high-stakes review because the instance shares the same reasoning context as the generation — it has the same blind spots and is biased toward its own output. Meaningful review requires an independent Claude instance with no context from the generation session. This is the multi-instance review pattern.",
-        domain: 4,
+        domain: "aai-4",
         topic: "Multi-Instance Review",
       },
       {
@@ -1066,7 +1087,7 @@ throw new Error("Max retries exceeded");`,
         correctIndex: 1,
         explanation:
           "Setting `tool_choice: { type: 'tool', name: 'extract_info' }` forces Claude to call exactly that specific tool. This guarantees structured output from that tool's schema. It's the most constrained setting — useful when you know exactly what action Claude should take and need guaranteed structured output matching that tool's schema.",
-        domain: 4,
+        domain: "aai-4",
         topic: "Structured Output",
       },
       {
@@ -1082,13 +1103,14 @@ throw new Error("Max retries exceeded");`,
         correctIndex: 1,
         explanation:
           "Effective correction feedback must include: (1) the original output so Claude knows what it produced, (2) the specific validation error explaining exactly what is wrong, and (3) a clear request to fix and resubmit. Vague feedback like 'try again' (A) gives Claude no information to correct on. Providing the answer (D) defeats the purpose of having Claude generate it.",
-        domain: 4,
+        domain: "aai-4",
         topic: "Validation-Retry Loops",
       },
     ],
   },
   {
-    id: 5,
+    id: "aai-5",
+    courseId: "aai",
     title: "Context Management & Reliability",
     weight: 15,
     description:
@@ -1207,7 +1229,7 @@ You are a support engineer helping resolve this case.
         correctIndex: 2,
         explanation:
           "A persistent case facts block is a structured summary of critical information that appears at the start of the system prompt (or every message). As conversations grow long, important details can drift out of active attention or even out of the context window. The facts block re-anchors Claude to the key constraints, decisions, and context for every response.",
-        domain: 5,
+        domain: "aai-5",
         topic: "Persistent Case Facts",
       },
       {
@@ -1223,7 +1245,7 @@ You are a support engineer helping resolve this case.
         correctIndex: 1,
         explanation:
           "The 'lost in the middle' problem shows that LLMs pay more attention to the beginning and end of contexts. Critical instructions, constraints, and key facts belong at the start of the system prompt (guaranteed attention) or at the end of the user message (recency effect). Placing critical information only in the middle risks it being underattended.",
-        domain: 5,
+        domain: "aai-5",
         topic: "Lost-in-the-Middle",
       },
       {
@@ -1239,7 +1261,7 @@ You are a support engineer helping resolve this case.
         correctIndex: 1,
         explanation:
           "Silently swallowing errors is one of the most dangerous anti-patterns in agentic systems. The agent continues operating on potentially incorrect or incomplete information, producing corrupted outputs. Worse, the failure is invisible until the final output is wrong, making debugging extremely difficult. Always surface errors explicitly so the agent can apply the correct error handling strategy.",
-        domain: 5,
+        domain: "aai-5",
         topic: "Error Propagation",
       },
       {
@@ -1255,7 +1277,7 @@ You are a support engineer helping resolve this case.
         correctIndex: 2,
         explanation:
           "Human-in-the-loop triggers should be defined proactively based on: action risk level (low/medium/high stakes), agent confidence level (uncertain vs confident), and specific escalation conditions (permission errors, repeated failures). Triggering on every action (A) destroys utility. Waiting for Claude to ask (B) is unreliable. Never triggering (D) is unsafe for high-stakes systems.",
-        domain: 5,
+        domain: "aai-5",
         topic: "Human-in-the-Loop",
       },
       {
@@ -1271,7 +1293,7 @@ You are a support engineer helping resolve this case.
         correctIndex: 1,
         explanation:
           "Provenance tracking records where each piece of information came from (source, timestamp, confidence). This enables: tracing errors back to their source, producing compliance audit trails, and correcting specific incorrect facts without re-running the entire pipeline. Without provenance, debugging a multi-step failure requires examining every step from scratch.",
-        domain: 5,
+        domain: "aai-5",
         topic: "Provenance Tracking",
       },
       {
@@ -1287,14 +1309,15 @@ You are a support engineer helping resolve this case.
         correctIndex: 2,
         explanation:
           "When approaching context limits, the correct approach is to summarize older history, extract and persist critical facts to durable storage, and continue with the compressed context. Starting from scratch (A) loses all progress. Random deletion (B) may remove critical information. max_tokens controls output length, not context window size (D). Systematic summarization preserves what matters.",
-        domain: 5,
+        domain: "aai-5",
         topic: "Context Durability",
       },
     ],
   },
   // ─── Section 6: Claude Fundamentals ────────────────────────────────────────
   {
-    id: 6,
+    id: "aai-6",
+    courseId: "aai",
     title: "Claude Fundamentals",
     weight: 15,
     description:
@@ -1408,7 +1431,7 @@ console.log(response.content[0].text);    // Claude's response`,
         correctIndex: 2,
         explanation:
           "Simple 3-class classification is a low-complexity task well within Haiku's capabilities. At 50,000 tickets/day, cost is the dominant constraint. Haiku at $1/$5 per million tokens is 5x cheaper than Sonnet and 25x cheaper than Opus. Match model tier to task complexity — Opus is overkill for classification.",
-        domain: 6,
+        domain: "aai-6",
         topic: "Model Selection",
       },
       {
@@ -1424,7 +1447,7 @@ console.log(response.content[0].text);    // Claude's response`,
         correctIndex: 2,
         explanation:
           "max_tokens controls only the output length — how many tokens Claude can generate in its response. It does NOT affect how much input Claude can read. Context window size is a fixed model property. Misunderstanding this is a common integration mistake.",
-        domain: 6,
+        domain: "aai-6",
         topic: "API Structure",
       },
       {
@@ -1440,7 +1463,7 @@ console.log(response.content[0].text);    // Claude's response`,
         correctIndex: 1,
         explanation:
           "Prompt caching is designed exactly for this pattern. By marking the document with cache_control: ephemeral, the first request writes the cache (slight premium) and all subsequent requests read from cache at ~90% cost reduction. Compression (A) doesn't work — the API counts tokens, not bytes. Splitting (D) breaks coherence.",
-        domain: 6,
+        domain: "aai-6",
         topic: "Token Economics",
       },
       {
@@ -1456,7 +1479,7 @@ console.log(response.content[0].text);    // Claude's response`,
         correctIndex: 2,
         explanation:
           "429 is a rate limit error. The correct approach is to wait at least the retry-after header value, then retry with exponential backoff. Retrying immediately (A) will hit the same limit again. 429 is not a malformed request (B) — that's a 400. Switching models (D) doesn't bypass rate limits, which apply at the organisation level.",
-        domain: 6,
+        domain: "aai-6",
         topic: "Rate Limits",
       },
       {
@@ -1472,7 +1495,7 @@ console.log(response.content[0].text);    // Claude's response`,
         correctIndex: 2,
         explanation:
           "Match model capability to task complexity. The orchestrator performs complex reasoning and task decomposition — Opus is appropriate here. The subagents do simple, well-defined JSON extraction — Haiku is sufficient and dramatically cheaper. This layered approach is a standard cost-optimisation pattern for multi-agent systems.",
-        domain: 6,
+        domain: "aai-6",
         topic: "Model Selection",
       },
       {
@@ -1488,7 +1511,7 @@ console.log(response.content[0].text);    // Claude's response`,
         correctIndex: 2,
         explanation:
           "stop_reason: 'tool_use' means Claude has decided to call one or more tools and is pausing its response to wait for results. Your application must extract the tool_use blocks, execute the tools, and append the tool_result blocks before making another API call. end_turn means Claude finished naturally. max_tokens means the output was truncated.",
-        domain: 6,
+        domain: "aai-6",
         topic: "API Structure",
       },
       {
@@ -1504,14 +1527,15 @@ console.log(response.content[0].text);    // Claude's response`,
         correctIndex: 2,
         explanation:
           "The Batch API offers 50% cost reduction for workloads that don't require immediate responses. With a 24-hour window, this is the ideal use case. Streaming (A) doesn't reduce cost. Prompt caching (B) helps with repeated context but doesn't give a 50% blanket discount. Parallel calls (D) increase cost by removing the batch discount and adding rate limit risk.",
-        domain: 6,
+        domain: "aai-6",
         topic: "Token Economics",
       },
     ],
   },
   // ─── Section 7: Safety & Responsible Use ───────────────────────────────────
   {
-    id: 7,
+    id: "aai-7",
+    courseId: "aai",
     title: "Safety & Responsible Use",
     weight: 10,
     description:
@@ -1609,7 +1633,7 @@ async function executeAction(action: Action): Promise<void> {
         correctIndex: 1,
         explanation:
           "Constitutional AI is an alignment technique where Claude is trained to evaluate its own outputs against a set of principles (a 'constitution') and revise them to be more helpful, harmless, and honest. This produces consistent, principled behaviour — not a keyword blocklist or external filter.",
-        domain: 7,
+        domain: "aai-7",
         topic: "Constitutional AI",
       },
       {
@@ -1625,7 +1649,7 @@ async function executeAction(action: Action): Promise<void> {
         correctIndex: 1,
         explanation:
           "Operators can expand Claude's default behaviours within Anthropic's permitted bounds. Enabling adult content for age-verified platforms is a documented example of an operator-expandable default. Users cannot enable this themselves — it requires operator-level configuration. Some behaviours (CSAM, weapons of mass destruction) are hardcoded and cannot be unlocked by anyone.",
-        domain: 7,
+        domain: "aai-7",
         topic: "Content Policy",
       },
       {
@@ -1641,7 +1665,7 @@ async function executeAction(action: Action): Promise<void> {
         correctIndex: 1,
         explanation:
           "Permanent deletion is irreversible. The minimal footprint and prefer-reversible-actions principles require a human confirmation gate before any irreversible high-stakes action. Claude's confidence is not a sufficient safety gate — confidence is not certainty. Logging after the fact (D) does not prevent the harm. General authorisation for 'data cleanup' does not imply blanket authorisation for permanent deletion.",
-        domain: 7,
+        domain: "aai-7",
         topic: "Safe Agentic Design",
       },
       {
@@ -1657,7 +1681,7 @@ async function executeAction(action: Action): Promise<void> {
         correctIndex: 2,
         explanation:
           "Minimal footprint is a safety principle for agentic systems: only acquire the permissions and resources genuinely needed for the task, don't persist sensitive data longer than required, and default to reversible actions. This limits the blast radius if something goes wrong and aligns with responsible deployment.",
-        domain: 7,
+        domain: "aai-7",
         topic: "Safe Agentic Design",
       },
       {
@@ -1673,7 +1697,7 @@ async function executeAction(action: Action): Promise<void> {
         correctIndex: 2,
         explanation:
           "The permission chain is Anthropic → Operator → User. Users operate within the scope that operators define. An operator's system prompt is operator-level configuration, and users cannot override it. This is a common prompt injection / jailbreak pattern — Claude is trained to recognise and resist it.",
-        domain: 7,
+        domain: "aai-7",
         topic: "Content Policy",
       },
       {
@@ -1689,14 +1713,15 @@ async function executeAction(action: Action): Promise<void> {
         correctIndex: 1,
         explanation:
           "Red-teaming is adversarial testing: deliberately crafting inputs designed to elicit harmful, biased, or policy-violating outputs. It is a pre-deployment requirement for responsible AI systems, especially those with agentic capabilities. It differs from regular testing by being explicitly adversarial, not just functional.",
-        domain: 7,
+        domain: "aai-7",
         topic: "Red-Teaming",
       },
     ],
   },
   // ─── Section 8: Vision & Multimodal Capabilities ───────────────────────────
   {
-    id: 8,
+    id: "aai-8",
+    courseId: "aai",
     title: "Vision & Multimodal Capabilities",
     weight: 10,
     description:
@@ -1889,7 +1914,7 @@ const response = await client.beta.messages.create({
         correctIndex: 0,
         explanation:
           "Claude supports JPEG, PNG, GIF, and WebP. SVG, BMP, TIFF, HEIC, and other formats are not supported and must be converted before sending. Claude does not auto-convert unsupported formats.",
-        domain: 8,
+        domain: "aai-8",
         topic: "Image Inputs",
       },
       {
@@ -1905,7 +1930,7 @@ const response = await client.beta.messages.create({
         correctIndex: 2,
         explanation:
           "Claude cannot access private URLs or filesystem paths. For private documents you must either base64-encode the file and include it in the request, or upload it to the Files API and reference the file_id. Converting to images (D) works technically but is unnecessarily complex and loses document structure.",
-        domain: 8,
+        domain: "aai-8",
         topic: "PDF Processing",
       },
       {
@@ -1921,7 +1946,7 @@ const response = await client.beta.messages.create({
         correctIndex: 1,
         explanation:
           "For best results, place the image or document content block before the text instruction. This mirrors natural reading order and gives Claude the visual context before it processes the question. While Claude can handle either order, image-then-text is the recommended and documented pattern.",
-        domain: 8,
+        domain: "aai-8",
         topic: "Multimodal Prompt Design",
       },
       {
@@ -1937,7 +1962,7 @@ const response = await client.beta.messages.create({
         correctIndex: 2,
         explanation:
           "The Files API is designed for exactly this pattern. Upload once with client.beta.files.upload(), get a file_id, then reference that ID in all subsequent requests. This avoids re-transmitting the full file 50+ times, reduces request payload size, and lowers latency. Resending base64 (A, D) wastes bandwidth on every request.",
-        domain: 8,
+        domain: "aai-8",
         topic: "Files API",
       },
       {
@@ -1953,7 +1978,7 @@ const response = await client.beta.messages.create({
         correctIndex: 1,
         explanation:
           "Claude can analyse and describe images but cannot generate, edit, or modify them. It has no image generation capability. When asked to edit an image, Claude will typically explain how to do it in an appropriate tool, or describe the change, but it will not produce a modified image. This is a common misconception.",
-        domain: 8,
+        domain: "aai-8",
         topic: "Image Capabilities",
       },
       {
@@ -1969,17 +1994,13 @@ const response = await client.beta.messages.create({
         correctIndex: 1,
         explanation:
           "A 1024×1024 image costs approximately 1,600 input tokens. This is important for cost estimation and context window management. Multiple large images can quickly consume a significant portion of the context window. Always account for image token cost when designing multimodal applications.",
-        domain: 8,
+        domain: "aai-8",
         topic: "Image Inputs",
       },
     ],
   },
-];
+],
+};
 
-export const getDomain = (id: number): Domain | undefined =>
-  domains.find((d) => d.id === id);
 
-export const getTotalQuestions = (): number =>
-  domains.reduce((sum, d) => sum + d.questions.length, 0);
 
-export const PASSING_SCORE = 70;

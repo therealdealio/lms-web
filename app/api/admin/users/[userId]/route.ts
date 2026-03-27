@@ -63,15 +63,19 @@ export async function PUT(
 
   // Update domain progress
   if (body.domain !== undefined) {
-    const { domainId, completed, examScore } = body.domain;
+    const { courseId, domainId, completed, examScore } = body.domain;
+    const cId = courseId || "aai";
     await prisma.userDomainProgress.upsert({
-      where: { userId_domainId: { userId, domainId } },
+      where: {
+        userId_courseId_domainId: { userId, courseId: cId, domainId },
+      },
       update: {
         completed,
         ...(examScore !== undefined && { examScore }),
       },
       create: {
         userId,
+        courseId: cId,
         domainId,
         completed,
         examScore: examScore ?? null,

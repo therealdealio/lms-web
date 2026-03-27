@@ -23,19 +23,10 @@ import {
 
 const ADMIN_EMAIL = "rrthai88@gmail.com";
 
-const DOMAIN_NAMES: Record<number, string> = {
-  1: "Foundations of Agentic AI",
-  2: "Tool Use & Integration",
-  3: "Claude Code & Dev Tools",
-  4: "Prompt Engineering",
-  5: "Context & Memory",
-  6: "Multi-Agent Systems",
-  7: "Safety & Reliability",
-  8: "Production & Deployment",
-};
+import { domains, getDomainNumber } from "@/lib/curriculum";
 
 interface DomainProgress {
-  domainId: number;
+  domainId: string;
   completed: boolean;
   examScore: number | null;
   examAttempts: number;
@@ -150,11 +141,13 @@ export default function AdminPage() {
     });
   };
 
-  const toggleDomain = (user: User, domainId: number) => {
+  const toggleDomain = (user: User, domainId: string) => {
     const existing = user.domainProgress.find((d) => d.domainId === domainId);
     const isCompleted = existing?.completed ?? false;
+    const courseId = domainId.substring(0, domainId.lastIndexOf("-"));
     updateUser(user.id, {
       domain: {
+        courseId,
         domainId,
         completed: !isCompleted,
         examScore: !isCompleted ? 100 : null,
@@ -463,15 +456,16 @@ export default function AdminPage() {
                             </div>
                           </div>
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                            {[1, 2, 3, 4, 5, 6, 7, 8].map((domainId) => {
+                            {domains.map((domain) => {
                               const dp = user.domainProgress.find(
-                                (d) => d.domainId === domainId
+                                (d) => d.domainId === domain.id
                               );
                               const done = dp?.completed ?? false;
+                              const num = getDomainNumber(domain.id);
                               return (
                                 <button
-                                  key={domainId}
-                                  onClick={() => toggleDomain(user, domainId)}
+                                  key={domain.id}
+                                  onClick={() => toggleDomain(user, domain.id)}
                                   disabled={isSaving}
                                   className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-medium transition-all disabled:opacity-50 ${
                                     done
@@ -484,7 +478,7 @@ export default function AdminPage() {
                                   ) : (
                                     <XCircle size={13} className="text-dark-600 flex-shrink-0" />
                                   )}
-                                  <span className="truncate">S{domainId}: {DOMAIN_NAMES[domainId].split(" ").slice(0, 2).join(" ")}</span>
+                                  <span className="truncate">{domain.courseId.toUpperCase()}-{num}: {domain.title.split(" ").slice(0, 2).join(" ")}</span>
                                 </button>
                               );
                             })}

@@ -15,12 +15,13 @@ import {
   Shield,
   MessageSquare,
   UserCircle,
+  Sparkles,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { loadProgress, clearProgress, getOverallProgress } from "@/lib/progress";
+import { loadProgress, clearProgress, getOverallProgress, getCourseProgress, saveProgress } from "@/lib/progress";
 import { saveMembership } from "@/lib/membership";
 import { loadMembership, getLimit } from "@/lib/membership";
-import { domains } from "@/lib/curriculum";
+import { courses, getDomainsForCourse, getDomainNumber, PASSING_SCORE } from "@/lib/curriculum";
 import { AppProgress, Membership } from "@/lib/types";
 import DomainCard from "@/components/DomainCard";
 
@@ -33,6 +34,7 @@ export default function DashboardPage() {
   const [membership, setMembership] = useState<Membership | null>(null);
   const [avatarEmoji, setAvatarEmoji] = useState<string | null>(null);
   const [avatarImage, setAvatarImage] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<string>("aai");
 
   useEffect(() => {
     const p = loadProgress();
@@ -61,18 +63,20 @@ export default function DashboardPage() {
 
     fetch("/api/progress")
       .then((r) => r.ok ? r.json() : null)
-      .then((dbDomains: { domainId: number; completed: boolean; examScore: number | null; examAttempts: number }[] | null) => {
+      .then((dbDomains: { courseId?: string; domainId: string; completed: boolean; examScore: number | null; examAttempts: number }[] | null) => {
         if (dbDomains && dbDomains.length > 0) {
-          const merged = { ...p };
-          merged.domains = p.domains.map((d) => {
-            const db = dbDomains.find((x) => x.domainId === d.domainId);
-            if (db && db.completed && !d.completed) {
-              return { ...d, completed: true, examScore: db.examScore ?? 100, examAttempts: Math.max(d.examAttempts, db.examAttempts) };
-            }
-            return d;
-          });
-          const allPassed = merged.domains.every((d) => d.completed);
-          if (allPassed) merged.certificateEarned = true;
+          const merged = { ...p, courses: { ...p.courses } };
+          for (const courseKey of Object.keys(merged.courses)) {
+            merged.courses[courseKey] = { ...merged.courses[courseKey], domains: merged.courses[courseKey].domains.map((d) => {
+              const db = dbDomains.find((x) => x.domainId === d.domainId);
+              if (db && db.completed && !d.completed) {
+                return { ...d, completed: true, examScore: db.examScore ?? 100, examAttempts: Math.max(d.examAttempts, db.examAttempts) };
+              }
+              return d;
+            })};
+            const allPassed = merged.courses[courseKey].domains.every((d) => d.completed);
+            if (allPassed) merged.courses[courseKey].certificateEarned = true;
+          }
           setProgress(merged);
         } else {
           setProgress(p);
@@ -94,8 +98,12 @@ export default function DashboardPage() {
     );
   }
 
-  const overallProgress = getOverallProgress(progress);
-  const completedDomains = progress.domains.filter((d) => d.completed).length;
+  const activeCourse = courses.find((c) => c.id === activeTab);
+  const activeDomains = getDomainsForCourse(activeTab);
+  const activeCourseProgress = getCourseProgress(progress, activeTab);
+  const overallProgress = getOverallProgress(progress, activeTab);
+  const completedDomains = activeCourseProgress?.domains.filter((d) => d.completed).length ?? 0;
+  const totalDomains = activeDomains.length;
   const promptsLeft = membership ? Math.max(0, getLimit(membership.tier, membership.promptLimit) - membership.promptsUsed) : null;
 
   return (
@@ -160,10 +168,10 @@ export default function DashboardPage() {
               <h1 className="text-3xl font-headline font-black tracking-tight">{progress.user.name}</h1>
               <p className="text-on-primary/80 text-sm font-label mt-1">
                 {completedDomains === 0
-                  ? "You haven't started any domains yet. Pick one below to begin."
-                  : completedDomains === 8
-                  ? "You've completed all 8 domains! Claim your certificate."
-                  : `${completedDomains} of 8 domains passed · Keep going!`}
+                  ? `You haven't started any ${activeCourse?.title ?? "course"} domains yet. Pick one below to begin.`
+                  : completedDomains === totalDomains
+                  ? `You've completed all ${totalDomains} domains in ${activeCourse?.title ?? "this course"}! Claim your certificate.`
+                  : `${completedDomains} of ${totalDomains} domains passed in ${activeCourse?.title ?? "this course"} · Keep going!`}
               </p>
             </div>
             <div className="flex flex-col gap-2 min-w-[200px]">
@@ -179,7 +187,7 @@ export default function DashboardPage() {
               </div>
               <div className="flex justify-between text-xs text-on-primary/60 font-label">
                 <span>{completedDomains} passed</span>
-                <span>8 total</span>
+                <span>{totalDomains} total</span>
               </div>
             </div>
           </div>
@@ -191,7 +199,7 @@ export default function DashboardPage() {
             <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center">
               <CheckCircle size={18} className="text-emerald-600" />
             </div>
-            <div className="text-2xl font-headline font-bold text-emerald-600">{completedDomains}/8</div>
+            <div className="text-2xl font-headline font-bold text-emerald-600">{completedDomains}/{totalDomains}</div>
             <div className="text-on-surface-variant text-xs font-label">Domains Passed</div>
           </div>
 
@@ -200,7 +208,7 @@ export default function DashboardPage() {
               <BookOpen size={18} className="text-primary" />
             </div>
             <div className="text-2xl font-headline font-bold text-primary">
-              {progress.domains.filter((d) => d.started).length}/8
+              {activeCourseProgress?.domains.filter((d) => d.started).length ?? 0}/{totalDomains}
             </div>
             <div className="text-on-surface-variant text-xs font-label">Domains Started</div>
           </div>
@@ -216,11 +224,11 @@ export default function DashboardPage() {
           </div>
 
           <div className="p-5 rounded-xl bg-surface-container-lowest border border-outline-variant/20 shadow-sm space-y-2">
-            <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${progress.certificateEarned ? "bg-amber-50" : "bg-surface-container"}`}>
-              <Award size={18} className={progress.certificateEarned ? "text-amber-600" : "text-on-surface-variant"} />
+            <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${activeCourseProgress?.certificateEarned ? "bg-amber-50" : "bg-surface-container"}`}>
+              <Award size={18} className={activeCourseProgress?.certificateEarned ? "text-amber-600" : "text-on-surface-variant"} />
             </div>
-            <div className={`text-2xl font-headline font-bold ${progress.certificateEarned ? "text-amber-600" : "text-on-surface-variant"}`}>
-              {progress.certificateEarned ? "Earned!" : "—"}
+            <div className={`text-2xl font-headline font-bold ${activeCourseProgress?.certificateEarned ? "text-amber-600" : "text-on-surface-variant"}`}>
+              {activeCourseProgress?.certificateEarned ? "Earned!" : "—"}
             </div>
             <div className="text-on-surface-variant text-xs font-label">Certificate</div>
           </div>
@@ -243,32 +251,41 @@ export default function DashboardPage() {
         )}
 
         {/* Certificate banner */}
-        {progress.certificateEarned && (
+        {activeCourseProgress?.certificateEarned && (
           <div className="p-6 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
                 <Award size={24} className="text-amber-600" />
               </div>
               <div>
-                <h3 className="font-headline font-bold text-amber-800">Certification Complete!</h3>
-                <p className="text-amber-600 text-sm font-label">Congratulations, {progress.user.name}! All 8 sections passed.</p>
+                <h3 className="font-headline font-bold text-amber-800">{activeCourse?.title} — Certification Complete!</h3>
+                <p className="text-amber-600 text-sm font-label">Congratulations, {progress.user.name}! All {totalDomains} sections passed.</p>
               </div>
             </div>
-            <Link href="/certificate"
+            <Link href={`/certificate?course=${activeTab}`}
               className="flex items-center gap-2 px-5 py-2.5 rounded-md bg-amber-500 hover:bg-amber-400 text-white font-headline font-bold text-sm whitespace-nowrap shadow-sm">
               View Certificate <ArrowRight size={15} />
             </Link>
           </div>
         )}
 
-        {/* ── Domain cards + Forum tabs ── */}
+        {/* ── Course tabs + Forum ── */}
         <div className="space-y-5">
           <div className="flex items-center gap-1 border-b border-outline-variant/25">
-            <Link href="/dashboard"
-              className="flex items-center gap-2 px-4 py-3 text-sm font-headline font-bold text-primary border-b-2 border-primary -mb-px">
-              <BookOpen size={14} />
-              Study Domains
-            </Link>
+            {courses.map((course) => (
+              <button
+                key={course.id}
+                onClick={() => setActiveTab(course.id)}
+                className={`flex items-center gap-2 px-4 py-3 text-sm font-headline font-bold border-b-2 -mb-px transition-colors ${
+                  activeTab === course.id
+                    ? "text-primary border-primary"
+                    : "text-on-surface-variant hover:text-on-surface border-transparent hover:border-outline-variant"
+                }`}
+              >
+                {course.id === "aai" ? <Brain size={14} /> : <Sparkles size={14} />}
+                {course.title}
+              </button>
+            ))}
             <Link href="/forum"
               className="flex items-center gap-2 px-4 py-3 text-sm font-label font-medium text-on-surface-variant hover:text-on-surface border-b-2 border-transparent hover:border-outline-variant -mb-px transition-colors">
               <MessageSquare size={14} />
@@ -277,7 +294,7 @@ export default function DashboardPage() {
           </div>
 
           {/* First-time user hint */}
-          {progress.domains.every((d) => !d.started) && (
+          {activeCourseProgress?.domains.every((d) => !d.started) && (
             <div className="flex items-start gap-3 p-4 rounded-lg bg-primary/5 border border-primary/15">
               <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center flex-shrink-0 mt-0.5">
                 <span className="text-on-primary text-xs font-headline font-black">1</span>
@@ -292,36 +309,30 @@ export default function DashboardPage() {
           )}
 
           <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {domains.map((domain, index) => {
-              const domainProgress = progress.domains.find((d) => d.domainId === domain.id);
+            {activeDomains.map((domain, index) => {
+              const domainProgress = activeCourseProgress?.domains.find((d) => d.domainId === domain.id);
               return <DomainCard key={domain.id} domain={domain} domainProgress={domainProgress || null} index={index} />;
             })}
           </div>
         </div>
 
         {/* ── Exam Traps ── */}
-        <div className="p-6 rounded-xl bg-error-container/15 border border-error/15 space-y-4">
-          <div className="flex items-center gap-2">
-            <Brain size={17} className="text-error" />
-            <h3 className="font-headline font-bold text-on-surface">Common Exam Traps</h3>
+        {activeCourse?.examTraps && activeCourse.examTraps.length > 0 && (
+          <div className="p-6 rounded-xl bg-error-container/15 border border-error/15 space-y-4">
+            <div className="flex items-center gap-2">
+              <Brain size={17} className="text-error" />
+              <h3 className="font-headline font-bold text-on-surface">Common Exam Traps</h3>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-x-8 gap-y-2">
+              {activeCourse.examTraps.map((trap) => (
+                <div key={trap} className="flex items-start gap-2 text-sm">
+                  <span className="text-error mt-0.5 flex-shrink-0 font-headline font-bold">✗</span>
+                  <span className="text-on-surface-variant font-label">{trap}</span>
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="grid sm:grid-cols-2 gap-x-8 gap-y-2">
-            {[
-              "Subagents share memory with coordinators → WRONG",
-              "Loop termination by model text → WRONG",
-              "High-stakes with prompt only → WRONG",
-              "Ambiguous tools: first fix is a classifier → WRONG",
-              "~/.claude/CLAUDE.md for team rules → WRONG",
-              "Batch API for pre-merge block checks → WRONG",
-              "Self-review same session is sufficient → WRONG",
-            ].map((trap) => (
-              <div key={trap} className="flex items-start gap-2 text-sm">
-                <span className="text-error mt-0.5 flex-shrink-0 font-headline font-bold">✗</span>
-                <span className="text-on-surface-variant font-label">{trap}</span>
-              </div>
-            ))}
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

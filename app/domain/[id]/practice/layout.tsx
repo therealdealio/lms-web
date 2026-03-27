@@ -1,21 +1,21 @@
 import type { Metadata } from "next";
-import { getDomain } from "@/lib/curriculum";
+import { getDomain, getDomainNumber } from "@/lib/curriculum";
 
 interface Props {
   params: { id: string };
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const id = parseInt(params.id, 10);
-  const domain = getDomain(id);
+  const domain = getDomain(params.id);
 
   if (!domain) {
     return { title: "Practice Exam" };
   }
 
-  const title = `Practice Exam — Domain ${id}: ${domain.title}`;
-  const description = `Test your knowledge of ${domain.title} with ${domain.questions?.length ?? "multiple"} practice exam questions. Covers ${domain.weight}% of the Anthropic Architecture Certification.`;
-  const url = `https://www.learnagentarchitecture.com/domain/${id}/practice`;
+  const num = getDomainNumber(domain.id);
+  const title = `Practice Exam — Domain ${num}: ${domain.title}`;
+  const description = `Test your knowledge of ${domain.title} with ${domain.questions?.length ?? "multiple"} practice exam questions. Covers ${domain.weight}% of the exam.`;
+  const url = `https://www.learnagentarchitecture.com/domain/${domain.id}/practice`;
 
   return {
     title,
