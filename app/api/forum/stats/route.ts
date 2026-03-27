@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 // GET /api/forum/stats — returns post counts per category in a single query
 export async function GET() {
   const counts = await prisma.forumPost.groupBy({

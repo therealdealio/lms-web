@@ -4,7 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { LMS_MODEL } from "@/lib/env";
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const getClient = () => new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
 
 const SYSTEM_PROMPT = `You are a supportive but rigorous mentor for the Anthropic Architecture Certification. Your job is to help learners test and deepen their understanding of concepts through free-text explanation.
 
@@ -78,7 +78,7 @@ Student's response: "${userAnswer}"
 
 Please respond appropriately based on whether this is a hint request, "I don't know", or a genuine attempt. When evaluating, consider the specific question that was asked.`;
 
-    const stream = client.messages.stream({
+    const stream = getClient().messages.stream({
       model: LMS_MODEL,
       max_tokens: 400,
       system: SYSTEM_PROMPT,

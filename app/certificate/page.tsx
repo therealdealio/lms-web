@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { Suspense, useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Printer, Award, Lock, CheckCircle, Copy, Check, ImageDown } from "lucide-react";
@@ -9,6 +9,14 @@ import dynamic from "next/dynamic";
 import { AppProgress, CourseProgress } from "@/lib/types";
 import { getCourse, PASSING_SCORE, getDomainNumber } from "@/lib/curriculum";
 import ProgressBar from "@/components/ProgressBar";
+
+export default function CertificatePageWrapper() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-dark-950 flex items-center justify-center"><div className="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" /></div>}>
+      <CertificatePageInner />
+    </Suspense>
+  );
+}
 
 const Certificate = dynamic(() => import("@/components/Certificate"), {
   loading: () => <div className="h-96 rounded-3xl bg-surface-container animate-pulse" />,
@@ -30,7 +38,7 @@ const getShareMessages = (courseTitle: string, courseSubtitle: string) => ({
     `I just completed the ${courseTitle} — ${courseSubtitle} course! 🎓 ${SITE_URL} #AI #MachineLearning`,
 });
 
-export default function CertificatePage() {
+function CertificatePageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const courseId = searchParams.get("course") || "aai";

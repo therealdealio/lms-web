@@ -2,8 +2,8 @@ import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest } from "next/server";
 import { LMS_MODEL } from "@/lib/env";
 
-const client = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
+const getClient = () => new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY!,
 });
 
 const SYSTEM_PROMPT = `You are an expert mentor for the Anthropic Architecture Certification. Your role is to help engineers understand Claude Code, Claude Agent SDK, Claude API, and MCP. Be encouraging but precise. When evaluating answers, be specific about what's correct and what needs improvement. Use concrete code examples from the Anthropic ecosystem when helpful.
@@ -37,7 +37,7 @@ Student's Answer: ${userAnswer}
 
 Please evaluate whether the student's answer demonstrates correct understanding of this concept. Be specific and educational.`;
 
-    const stream = client.messages.stream({
+    const stream = getClient().messages.stream({
       model: LMS_MODEL,
       max_tokens: 600,
       system: SYSTEM_PROMPT,

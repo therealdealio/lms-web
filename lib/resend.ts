@@ -1,6 +1,6 @@
 import { Resend } from "resend";
 
-export const resend = new Resend(process.env.RESEND_API_KEY);
+const getResend = () => new Resend(process.env.RESEND_API_KEY);
 
 export async function sendWelcomeEmail({
   email,
@@ -12,7 +12,7 @@ export async function sendWelcomeEmail({
   const firstName = name?.split(" ")[0] || null;
   const greeting = firstName ? `Hi ${firstName},` : "Hi there,";
 
-  await resend.emails.send({
+  await getResend().emails.send({
     from: "Richard at Learn Agent Architecture <support@learnagentarchitecture.com>",
     to: email,
     replyTo: "support@learnagentarchitecture.com",
