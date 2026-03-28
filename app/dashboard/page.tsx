@@ -16,6 +16,7 @@ import {
   MessageSquare,
   UserCircle,
   Sparkles,
+  Bell,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { loadProgress, clearProgress, getOverallProgress, getCourseProgress, saveProgress } from "@/lib/progress";
@@ -118,6 +119,10 @@ export default function DashboardPage() {
           </Link>
 
           <div className="flex items-center gap-1">
+            <Link href="/updates" className="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-md text-on-surface-variant hover:text-primary hover:bg-primary/5 transition-colors text-sm font-label font-medium">
+              <Bell size={14} />
+              What&apos;s New
+            </Link>
             <Link href="/about" className="hidden md:block px-3 py-2 rounded-md text-on-surface-variant hover:text-primary hover:bg-primary/5 transition-colors text-sm font-label font-medium">
               About
             </Link>
