@@ -7,9 +7,7 @@ import Image from "next/image";
 import { signIn, useSession } from "next-auth/react";
 import { ArrowRight, Eye, EyeOff, CheckCircle, X } from "lucide-react";
 import { loadProgress, setUser } from "@/lib/progress";
-import { getDomainsForCourse } from "@/lib/curriculum";
-
-const domains = getDomainsForCourse("aai");
+import { courses, getDomainsForCourse } from "@/lib/curriculum";
 
 type AuthMode = "signin" | "signup";
 
@@ -26,6 +24,7 @@ export default function LandingPage() {
   const [ssoLoading, setSsoLoading] = useState<string | null>(null);
   const [existingUser, setExistingUser] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [activeCourseTab, setActiveCourseTab] = useState("aai");
 
   useEffect(() => {
     if (status === "authenticated" && session?.user) {
@@ -134,7 +133,7 @@ export default function LandingPage() {
             {/* Left: copy */}
             <div className="space-y-8">
               <span className="inline-block text-xs tracking-[0.25em] uppercase text-primary font-headline font-bold bg-primary/8 px-3 py-1.5 rounded-full">
-                Anthropic Certification Prep
+                2 Certification Courses
               </span>
 
               <h1 className="text-6xl lg:text-7xl font-headline font-black leading-[0.88] tracking-tighter text-on-surface">
@@ -142,14 +141,14 @@ export default function LandingPage() {
               </h1>
 
               <p className="text-lg text-on-surface-variant leading-relaxed max-w-lg">
-                The community study platform for the <strong className="text-on-surface font-semibold">Anthropic Architecture Certification</strong> — built by engineers, for engineers. AI-powered explanations, real practice questions, community forum.
+                The community study platform for <strong className="text-on-surface font-semibold">Anthropic Certifications</strong> — covering Agent Architecture and Prompt Engineering. AI-powered explanations, real practice questions, community forum.
               </p>
 
               <div className="flex flex-col gap-3">
                 {[
-                  "58+ exam-style practice questions across 8 domains",
-                  "AI tutor for instant concept explanations",
-                  "Community forum with domain-specific discussions",
+                  "138+ exam-style practice questions across 16 domains",
+                  "2 courses: Agent Architecture + Prompt Engineering",
+                  "AI tutor & community forum for every domain",
                 ].map((item) => (
                   <div key={item} className="flex items-start gap-3">
                     <CheckCircle size={16} className="text-primary mt-0.5 flex-shrink-0" />
@@ -194,7 +193,7 @@ export default function LandingPage() {
                   <div className="bg-surface-container-low rounded-xl p-4">
                     <div className="flex justify-between items-center mb-3">
                       <span className="text-xs font-headline font-bold text-on-surface">Your Progress</span>
-                      <span className="text-xs font-label text-primary font-bold">3 / 8 Domains</span>
+                      <span className="text-xs font-label text-primary font-bold">2 Courses · 5 / 16 Domains</span>
                     </div>
                     <div className="h-1.5 bg-surface-container rounded-full overflow-hidden">
                       <div className="h-full w-[38%] bg-gradient-to-r from-primary to-primary-container rounded-full" />
@@ -205,9 +204,9 @@ export default function LandingPage() {
                   <div className="grid grid-cols-2 gap-3">
                     {[
                       { title: "Claude Fundamentals", pct: 85, done: true },
-                      { title: "Prompt Engineering", pct: 72, done: true },
+                      { title: "Prompt Foundations", pct: 72, done: true },
                       { title: "Agent SDK", pct: 40, done: false },
-                      { title: "Tool Design & MCP", pct: 0, done: false },
+                      { title: "Clarity & Roles", pct: 20, done: false },
                     ].map((d) => (
                       <div key={d.title} className={`rounded-lg p-3 ${d.done ? "bg-primary/8" : "bg-surface-container-low"}`}>
                         <div className="text-[10px] font-headline font-bold text-on-surface mb-2 leading-tight">{d.title}</div>
@@ -260,11 +259,11 @@ export default function LandingPage() {
         <div className="bg-surface-container border-y border-outline-variant/20 py-6">
           <div className="max-w-7xl mx-auto px-6 flex flex-wrap items-center justify-center gap-10 text-center">
             {[
-              { stat: "8", label: "Exam Domains" },
-              { stat: "58+", label: "Practice Questions" },
-              { stat: "100%", label: "Free to Start" },
+              { stat: "2", label: "Certification Courses" },
+              { stat: "16", label: "Exam Domains" },
+              { stat: "138+", label: "Practice Questions" },
               { stat: "AI", label: "Powered Explanations" },
-              { stat: "Forum", label: "Community Support" },
+              { stat: "Free", label: "To Start" },
             ].map(({ stat, label }) => (
               <div key={label}>
                 <div className="text-xl font-headline font-black text-primary">{stat}</div>
@@ -293,9 +292,9 @@ export default function LandingPage() {
                 </div>
                 <div className="p-8">
                   <span className="text-xs font-label font-bold uppercase tracking-widest text-primary mb-3 block">Certification Prep</span>
-                  <h3 className="text-2xl font-headline font-bold mb-2 text-on-surface">Anthropic Architecture Certification</h3>
+                  <h3 className="text-2xl font-headline font-bold mb-2 text-on-surface">Two Anthropic Certifications</h3>
                   <p className="text-on-surface-variant text-sm leading-relaxed">
-                    One of the most prestigious AI credentials — built by the team behind Claude. Covers every domain from agentic orchestration to Claude Code workflows.
+                    Prepare for the Agent Architecture and Prompt Engineering certifications — covering everything from agentic orchestration to advanced prompting techniques.
                   </p>
                 </div>
               </div>
@@ -323,7 +322,7 @@ export default function LandingPage() {
                 <div className="p-8">
                   <span className="text-xs font-label font-bold uppercase tracking-widest text-primary mb-3 block">Practice</span>
                   <h3 className="text-2xl font-headline font-bold mb-2 text-on-surface">Realistic Practice Exams</h3>
-                  <p className="text-on-surface-variant text-sm leading-relaxed">58 multiple-choice questions with detailed answer explanations. Learn from every attempt.</p>
+                  <p className="text-on-surface-variant text-sm leading-relaxed">138+ multiple-choice questions across both courses with detailed answer explanations. Learn from every attempt.</p>
                 </div>
               </div>
 
@@ -339,7 +338,7 @@ export default function LandingPage() {
                   <h3 className="text-2xl font-headline font-bold mb-2">Community Forum</h3>
                   <p className="opacity-60 text-sm leading-relaxed mb-5">Domain-specific discussions, peer support, and exam tips from engineers working through the same material.</p>
                   <div className="flex gap-2 flex-wrap">
-                    {["8 Domains", "Open to All", "Free Forever"].map((tag) => (
+                    {["16 Domains", "2 Courses", "Free Forever"].map((tag) => (
                       <span key={tag} className="bg-white/10 text-white/80 px-3 py-1 rounded-full text-xs font-headline font-bold">{tag}</span>
                     ))}
                   </div>
@@ -355,10 +354,10 @@ export default function LandingPage() {
             <div className="lg:col-span-4 lg:sticky lg:top-32 h-fit">
               <span className="text-xs tracking-[0.2em] uppercase text-primary font-headline font-bold">The Syllabus</span>
               <h2 className="text-4xl font-headline font-black tracking-tighter mt-3 mb-4 text-on-surface">
-                8 domains.<br />Every concept<br />covered.
+                16 domains.<br />2 courses.<br />Every concept.
               </h2>
               <p className="text-on-surface-variant text-sm leading-relaxed mb-8">
-                Each domain maps directly to the Anthropic Architecture Certification exam. Study at your own pace, track progress, and test with real exam-style questions.
+                Each domain maps directly to an Anthropic certification exam. Study at your own pace, track progress, and test with real exam-style questions.
               </p>
               <button onClick={() => openModal("signup")}
                 className="inline-flex items-center gap-2 bg-gradient-to-r from-primary to-primary-container text-on-primary px-6 py-3 rounded-md font-headline font-bold text-sm hover:opacity-90 transition-all">
@@ -367,7 +366,33 @@ export default function LandingPage() {
             </div>
 
             <div className="lg:col-span-8">
-              {domains.map((d, i) => (
+              {/* Course tabs */}
+              <div className="flex gap-1 mb-6 border-b border-outline-variant/25">
+                {courses.map((course) => (
+                  <button
+                    key={course.id}
+                    onClick={() => setActiveCourseTab(course.id)}
+                    className={`flex items-center gap-2 px-4 py-3 text-sm font-headline font-bold border-b-2 -mb-px transition-colors ${
+                      activeCourseTab === course.id
+                        ? "text-primary border-primary"
+                        : "text-on-surface-variant hover:text-on-surface border-transparent hover:border-outline-variant"
+                    }`}
+                  >
+                    <span>{course.icon}</span>
+                    {course.title}
+                  </button>
+                ))}
+              </div>
+
+              {/* Active course description */}
+              {(() => {
+                const activeCourse = courses.find((c) => c.id === activeCourseTab);
+                return activeCourse ? (
+                  <p className="text-on-surface-variant text-sm leading-relaxed mb-6">{activeCourse.description}</p>
+                ) : null;
+              })()}
+
+              {getDomainsForCourse(activeCourseTab).map((d, i) => (
                 <div key={d.id} className="group border-b border-outline-variant/25 last:border-0">
                   <div className="flex items-center gap-6 py-5">
                     <span className="text-3xl font-headline font-light text-outline-variant group-hover:text-primary transition-colors duration-300 w-10 flex-shrink-0 tabular-nums">
@@ -396,7 +421,7 @@ export default function LandingPage() {
                   <span className="font-headline font-bold text-inverse-on-surface">Learn Agent Architecture</span>
                 </div>
                 <p className="text-inverse-on-surface/60 text-sm leading-relaxed">
-                  The community study platform for the Anthropic Architecture Certification and future AI certifications.
+                  The community study platform for Anthropic certifications — Agent Architecture and Prompt Engineering.
                 </p>
               </div>
               <div>
