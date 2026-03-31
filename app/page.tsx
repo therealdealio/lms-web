@@ -137,7 +137,7 @@ export default function LandingPage() {
               </span>
 
               <h1 className="text-6xl lg:text-7xl font-headline font-black leading-[0.88] tracking-tighter text-on-surface">
-                Master<br /><span className="text-primary">Agent</span><br />Architecture.
+                Your School For<br />The <span className="text-primary">Agentic</span><br />Era.
               </h1>
 
               <p className="text-lg text-on-surface-variant leading-relaxed max-w-lg">
