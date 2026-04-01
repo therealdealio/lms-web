@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -8,6 +8,21 @@ import { signIn, useSession } from "next-auth/react";
 import { ArrowRight, Eye, EyeOff, CheckCircle, X } from "lucide-react";
 import { loadProgress, setUser } from "@/lib/progress";
 import { courses, getDomainsForCourse } from "@/lib/curriculum";
+
+function useReveal() {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { el.classList.add("visible"); observer.unobserve(el); } },
+      { threshold: 0.12 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
 
 type AuthMode = "signin" | "signup";
 
@@ -25,6 +40,9 @@ export default function LandingPage() {
   const [existingUser, setExistingUser] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [activeCourseTab, setActiveCourseTab] = useState("aai");
+  const revealProof = useReveal();
+  const revealFeatures = useReveal();
+  const revealCurriculum = useReveal();
 
   useEffect(() => {
     if (status === "authenticated" && session?.user) {
@@ -85,7 +103,7 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-surface text-on-surface">
+    <div className="min-h-screen bg-surface text-on-surface noise-overlay">
 
       {/* ── Nav ── */}
       <nav className="fixed top-0 w-full z-50 glass border-b border-outline-variant/20">
@@ -132,19 +150,19 @@ export default function LandingPage() {
 
             {/* Left: copy */}
             <div className="space-y-8">
-              <span className="inline-block text-xs tracking-[0.25em] uppercase text-primary font-headline font-bold bg-primary/8 px-3 py-1.5 rounded-full">
+              <span className="animate-hero-1 inline-block text-xs tracking-[0.25em] uppercase text-primary font-headline font-bold bg-primary/8 px-3 py-1.5 rounded-full">
                 2 Certification Courses
               </span>
 
-              <h1 className="text-6xl lg:text-7xl font-headline font-black leading-[0.88] tracking-tighter text-on-surface">
-                Your School For<br />The <span className="text-primary">Agentic</span><br />Era.
+              <h1 className="animate-hero-2 text-6xl lg:text-7xl font-headline font-black leading-[0.88] tracking-[-0.04em] text-on-surface">
+                Your School<br /><span className="text-4xl lg:text-5xl font-accent italic text-on-surface-variant">For The</span> <span className="font-accent italic text-primary">Agentic Era.</span>
               </h1>
 
-              <p className="text-lg text-on-surface-variant leading-relaxed max-w-lg">
+              <p className="animate-hero-3 text-lg text-on-surface-variant leading-relaxed max-w-lg">
                 The community study platform for <strong className="text-on-surface font-semibold">Anthropic Certifications</strong> — covering Agent Architecture and Prompt Engineering. AI-powered explanations, real practice questions, community forum.
               </p>
 
-              <div className="flex flex-col gap-3">
+              <div className="animate-hero-3 flex flex-col gap-3">
                 {[
                   "138+ exam-style practice questions across 16 domains",
                   "2 courses: Agent Architecture + Prompt Engineering",
@@ -157,25 +175,25 @@ export default function LandingPage() {
                 ))}
               </div>
 
-              <div className="flex flex-wrap gap-4 pt-2">
+              <div className="animate-hero-4 flex flex-wrap gap-4 pt-2">
                 <button onClick={() => openModal("signup")}
-                  className="inline-flex items-center gap-2 bg-gradient-to-r from-primary to-primary-container text-on-primary px-8 py-4 rounded-md font-headline font-bold text-lg shadow-lg shadow-primary/15 hover:scale-[1.02] transition-transform">
+                  className="inline-flex items-center gap-2 bg-gradient-to-r from-primary to-primary-container text-on-primary px-8 py-4 rounded-md font-headline font-bold text-lg shadow-lg shadow-primary/15 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/25 active:translate-y-0 transition-all duration-200">
                   Start Learning Free <ArrowRight size={20} />
                 </button>
                 <a href="#curriculum" onClick={(e) => { e.preventDefault(); document.getElementById("curriculum")?.scrollIntoView({ behavior: "smooth" }); }}
-                  className="inline-flex items-center gap-2 border-2 border-primary/25 text-primary px-8 py-4 rounded-md font-headline font-bold text-lg hover:border-primary/60 hover:bg-primary/5 transition-colors">
+                  className="inline-flex items-center gap-2 border-2 border-primary/25 text-primary px-8 py-4 rounded-md font-headline font-bold text-lg hover:border-primary/60 hover:bg-primary/5 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200">
                   View Curriculum
                 </a>
               </div>
             </div>
 
             {/* Right: product preview mockup */}
-            <div className="hidden lg:block relative">
+            <div className="hidden lg:block relative animate-hero-5 -mr-16">
               {/* Outer glow frame */}
               <div className="absolute -inset-4 bg-gradient-to-br from-primary/10 to-primary-container/5 rounded-2xl blur-xl" />
 
               {/* Mock dashboard card */}
-              <div className="relative bg-surface-container-lowest rounded-2xl shadow-2xl shadow-primary/10 overflow-hidden border border-outline-variant/20">
+              <div className="relative bg-surface-container-lowest rounded-2xl shadow-[0_24px_80px_-12px_rgba(0,0,0,0.15)] overflow-hidden border border-outline-variant/20" style={{ transform: "perspective(1200px) rotateY(-4deg)" }}>
                 {/* Mock nav bar */}
                 <div className="bg-surface-container-low px-5 py-3 flex items-center justify-between border-b border-outline-variant/20">
                   <div className="flex items-center gap-2">
@@ -196,7 +214,7 @@ export default function LandingPage() {
                       <span className="text-xs font-label text-primary font-bold">2 Courses · 5 / 16 Domains</span>
                     </div>
                     <div className="h-1.5 bg-surface-container rounded-full overflow-hidden">
-                      <div className="h-full w-[38%] bg-gradient-to-r from-primary to-primary-container rounded-full" />
+                      <div className="h-full bg-gradient-to-r from-primary to-primary-container rounded-full animate-progress-loop" />
                     </div>
                   </div>
 
@@ -256,7 +274,7 @@ export default function LandingPage() {
         </section>
 
         {/* ── Social proof strip ── */}
-        <div className="bg-surface-container border-y border-outline-variant/20 py-6">
+        <div ref={revealProof} className="reveal bg-surface-container border-y border-outline-variant/20 py-6">
           <div className="max-w-7xl mx-auto px-6 flex flex-wrap items-center justify-center gap-10 text-center">
             {[
               { stat: "2", label: "Certification Courses" },
@@ -274,7 +292,7 @@ export default function LandingPage() {
         </div>
 
         {/* ── Features Bento ── */}
-        <section className="py-24 bg-surface-container-low">
+        <section ref={revealFeatures} className="reveal py-24 bg-surface-container-low">
           <div className="max-w-7xl mx-auto px-6">
             <div className="mb-16">
               <span className="text-xs tracking-[0.2em] uppercase text-primary font-headline font-bold">What&apos;s Included</span>
@@ -349,33 +367,33 @@ export default function LandingPage() {
         </section>
 
         {/* ── Curriculum ── */}
-        <section id="curriculum" className="py-24 bg-surface">
+        <section id="curriculum" ref={revealCurriculum} className="reveal py-24 bg-dark-50 text-dark-800">
           <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-12 gap-16">
             <div className="lg:col-span-4 lg:sticky lg:top-32 h-fit">
-              <span className="text-xs tracking-[0.2em] uppercase text-primary font-headline font-bold">The Syllabus</span>
-              <h2 className="text-4xl font-headline font-black tracking-tighter mt-3 mb-4 text-on-surface">
+              <span className="text-xs tracking-[0.2em] uppercase text-primary-fixed-dim font-headline font-bold">The Syllabus</span>
+              <h2 className="text-4xl font-headline font-black tracking-tighter mt-3 mb-4 text-dark-950">
                 16 domains.<br />2 courses.<br />Every concept.
               </h2>
-              <p className="text-on-surface-variant text-sm leading-relaxed mb-8">
+              <p className="text-dark-600 text-sm leading-relaxed mb-8">
                 Each domain maps directly to an Anthropic certification exam. Study at your own pace, track progress, and test with real exam-style questions.
               </p>
               <button onClick={() => openModal("signup")}
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-primary to-primary-container text-on-primary px-6 py-3 rounded-md font-headline font-bold text-sm hover:opacity-90 transition-all">
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-primary-fixed-dim to-primary-fixed text-on-primary-fixed px-6 py-3 rounded-md font-headline font-bold text-sm hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary-fixed-dim/30 active:translate-y-0 transition-all duration-200">
                 Start Studying Free <ArrowRight size={16} />
               </button>
             </div>
 
             <div className="lg:col-span-8">
               {/* Course tabs */}
-              <div className="flex gap-1 mb-6 border-b border-outline-variant/25">
+              <div className="flex gap-1 mb-6 border-b border-dark-200/30">
                 {courses.map((course) => (
                   <button
                     key={course.id}
                     onClick={() => setActiveCourseTab(course.id)}
                     className={`flex items-center gap-2 px-4 py-3 text-sm font-headline font-bold border-b-2 -mb-px transition-colors ${
                       activeCourseTab === course.id
-                        ? "text-primary border-primary"
-                        : "text-on-surface-variant hover:text-on-surface border-transparent hover:border-outline-variant"
+                        ? "text-primary-fixed-dim border-primary-fixed-dim"
+                        : "text-dark-500 hover:text-dark-700 border-transparent hover:border-dark-300"
                     }`}
                   >
                     <span>{course.icon}</span>
@@ -388,20 +406,20 @@ export default function LandingPage() {
               {(() => {
                 const activeCourse = courses.find((c) => c.id === activeCourseTab);
                 return activeCourse ? (
-                  <p className="text-on-surface-variant text-sm leading-relaxed mb-6">{activeCourse.description}</p>
+                  <p className="text-dark-500 text-sm leading-relaxed mb-6">{activeCourse.description}</p>
                 ) : null;
               })()}
 
               {getDomainsForCourse(activeCourseTab).map((d, i) => (
-                <div key={d.id} className="group border-b border-outline-variant/25 last:border-0">
+                <div key={d.id} className="group border-b border-dark-200/25 last:border-0">
                   <div className="flex items-center gap-6 py-5">
-                    <span className="text-3xl font-headline font-light text-outline-variant group-hover:text-primary transition-colors duration-300 w-10 flex-shrink-0 tabular-nums">
+                    <span className="text-3xl font-headline font-light text-dark-300 group-hover:text-primary-fixed-dim transition-colors duration-300 w-10 flex-shrink-0 tabular-nums">
                       {String(i + 1).padStart(2, "0")}
                     </span>
-                    <h4 className="flex-1 text-lg font-headline font-bold text-on-surface group-hover:text-primary transition-colors duration-300">
+                    <h4 className="flex-1 text-lg font-headline font-bold text-dark-800 group-hover:text-primary-fixed-dim transition-colors duration-300">
                       {d.title}
                     </h4>
-                    <span className="text-xs font-label font-bold text-primary bg-primary/8 px-2.5 py-1 rounded-full flex-shrink-0 whitespace-nowrap">
+                    <span className="text-xs font-label font-bold text-primary-fixed-dim bg-primary-fixed-dim/15 px-2.5 py-1 rounded-full flex-shrink-0 whitespace-nowrap">
                       {d.weight}% of exam
                     </span>
                   </div>

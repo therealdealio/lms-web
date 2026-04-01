@@ -101,6 +101,7 @@ const config: Config = {
         headline: ["var(--font-space-grotesk)", "Space Grotesk", "sans-serif"],
         body:     ["var(--font-inter)", "Inter", "sans-serif"],
         label:    ["var(--font-space-grotesk)", "Space Grotesk", "sans-serif"],
+        accent:   ["var(--font-instrument-serif)", "Instrument Serif", "serif"],
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
@@ -112,6 +113,12 @@ const config: Config = {
         "fade-in":    "fadeIn 0.5s ease-in-out",
         "slide-up":   "slideUp 0.4s ease-out",
         "pulse-slow": "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        "hero-1":     "fadeSlideUp 0.6s ease-out 0.1s both",
+        "hero-2":     "fadeSlideUp 0.6s ease-out 0.25s both",
+        "hero-3":     "fadeSlideUp 0.6s ease-out 0.4s both",
+        "hero-4":     "fadeSlideUp 0.6s ease-out 0.55s both",
+        "hero-5":     "fadeSlideUp 0.8s ease-out 0.5s both",
+        "progress-loop": "progressLoop 4s ease-in-out infinite",
       },
       keyframes: {
         fadeIn: {
@@ -121,6 +128,14 @@ const config: Config = {
         slideUp: {
           "0%":   { opacity: "0", transform: "translateY(20px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        fadeSlideUp: {
+          "0%":   { opacity: "0", transform: "translateY(24px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        progressLoop: {
+          "0%, 100%": { width: "38%" },
+          "50%":      { width: "72%" },
         },
       },
     },
