@@ -205,56 +205,85 @@ export default function LandingPage() {
                   </span>
                 </div>
 
-                {/* Mock content */}
-                <div className="p-5 space-y-4">
-                  {/* Progress bar block */}
-                  <div className="bg-surface-container-low rounded-xl p-4">
-                    <div className="flex justify-between items-center mb-3">
-                      <span className="text-xs font-headline font-bold text-on-surface">Your Progress</span>
-                      <span className="text-xs font-label text-primary font-bold">2 Courses · 5 / 16 Domains</span>
+                {/* Mock content — mirrors real dashboard */}
+                <div className="p-4 space-y-3">
+                  {/* Welcome hero strip */}
+                  <div className="rounded-lg bg-gradient-to-r from-primary to-primary-container p-4 text-on-primary">
+                    <p className="text-[9px] font-label text-on-primary/70">Welcome back</p>
+                    <div className="text-sm font-headline font-black tracking-tight">Richard</div>
+                    <p className="text-[9px] font-label text-on-primary/80 mt-0.5">3 of 8 domains passed · Keep going!</p>
+                    <div className="mt-2 flex justify-between text-[9px]">
+                      <span className="text-on-primary/70 font-label">Overall Progress</span>
+                      <span className="font-headline font-bold">38%</span>
                     </div>
-                    <div className="h-1.5 bg-surface-container rounded-full overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-primary to-primary-container rounded-full animate-progress-loop" />
+                    <div className="h-1 bg-on-primary/20 rounded-full overflow-hidden mt-1">
+                      <div className="h-full bg-on-primary rounded-full animate-progress-loop" />
                     </div>
                   </div>
 
-                  {/* Domain cards */}
-                  <div className="grid grid-cols-2 gap-3">
+                  {/* Stat cards row */}
+                  <div className="grid grid-cols-4 gap-2">
                     {[
-                      { title: "Claude Fundamentals", pct: 85, done: true },
-                      { title: "Prompt Foundations", pct: 72, done: true },
-                      { title: "Agent SDK", pct: 40, done: false },
-                      { title: "Clarity & Roles", pct: 20, done: false },
-                    ].map((d) => (
-                      <div key={d.title} className={`rounded-lg p-3 ${d.done ? "bg-primary/8" : "bg-surface-container-low"}`}>
-                        <div className="text-[10px] font-headline font-bold text-on-surface mb-2 leading-tight">{d.title}</div>
-                        <div className="h-1 bg-surface-container rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-gradient-to-r from-primary to-primary-container rounded-full transition-all"
-                            style={{ width: `${d.pct}%` }}
-                          />
-                        </div>
-                        <div className="text-[9px] font-label text-on-surface-variant mt-1">{d.pct}% complete</div>
+                      { value: "3/8", label: "Passed", color: "text-emerald-600" },
+                      { value: "5/8", label: "Started", color: "text-primary" },
+                      { value: "12", label: "Prompts", color: "text-on-surface" },
+                      { value: "—", label: "Cert", color: "text-on-surface-variant" },
+                    ].map((s) => (
+                      <div key={s.label} className="p-2 rounded-lg bg-surface-container-lowest border border-outline-variant/20">
+                        <div className={`text-sm font-headline font-bold ${s.color}`}>{s.value}</div>
+                        <div className="text-[8px] text-on-surface-variant font-label">{s.label}</div>
                       </div>
                     ))}
                   </div>
 
-                  {/* AI Q&A mock */}
-                  <div className="bg-surface-container-low rounded-xl p-4 space-y-3">
-                    <div className="text-xs font-headline font-bold text-on-surface">AI Study Assistant</div>
-                    <div className="bg-surface-container rounded-lg p-3">
-                      <p className="text-[10px] text-on-surface-variant leading-relaxed">
-                        &ldquo;What is the difference between ReAct and Chain-of-Thought prompting?&rdquo;
-                      </p>
-                    </div>
-                    <div className="bg-primary/8 rounded-lg p-3 border-l-2 border-primary">
-                      <p className="text-[10px] text-on-surface leading-relaxed">
-                        ReAct interleaves reasoning and acting — the model reasons, takes an action, observes the result, then reasons again. Chain-of-Thought is purely reasoning...
-                      </p>
-                    </div>
-                    <div className="flex justify-end">
-                      <div className="text-[9px] text-primary font-label font-bold">AI-powered explanations</div>
-                    </div>
+                  {/* Course tabs */}
+                  <div className="flex gap-1 border-b border-outline-variant/25">
+                    <span className="px-2 py-1.5 text-[10px] font-headline font-bold text-primary border-b-2 border-primary -mb-px">🤖 Agentic AI</span>
+                    <span className="px-2 py-1.5 text-[10px] font-headline font-bold text-on-surface-variant -mb-px">✍️ Prompt Eng.</span>
+                    <span className="px-2 py-1.5 text-[10px] font-label text-on-surface-variant -mb-px">💬 Forum</span>
+                  </div>
+
+                  {/* Domain cards grid */}
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { icon: "🏗️", num: 1, title: "Agentic Architecture", weight: 27, score: 85, passed: true },
+                      { icon: "🔧", num: 2, title: "Tool Design & MCP", weight: 18, score: 78, passed: true },
+                      { icon: "⚙️", num: 3, title: "Claude Code Config", weight: 20, score: null, passed: false },
+                      { icon: "✏️", num: 4, title: "Prompt Engineering", weight: 20, score: null, passed: false },
+                    ].map((d) => (
+                      <div key={d.title} className="p-2.5 rounded-lg bg-surface-container-lowest border border-outline-variant/20 space-y-1.5">
+                        <div className="flex items-start gap-1.5">
+                          <span className="text-base">{d.icon}</span>
+                          <div className="flex-1 min-w-0">
+                            <span className="text-[8px] font-label font-bold text-primary bg-primary/8 px-1.5 py-0.5 rounded-full">
+                              Domain {d.num} · {d.weight}%
+                            </span>
+                            <div className="text-[10px] font-headline font-bold text-on-surface leading-tight mt-0.5">{d.title}</div>
+                          </div>
+                        </div>
+                        {d.score !== null && (
+                          <div className="space-y-1">
+                            <div className="flex justify-between text-[8px]">
+                              <span className="text-on-surface-variant">Best Score</span>
+                              <span className={`font-bold ${d.passed ? "text-emerald-600" : "text-red-500"}`}>{d.score}%</span>
+                            </div>
+                            <div className="h-0.5 bg-surface-container rounded-full overflow-hidden">
+                              <div className={`h-full rounded-full ${d.passed ? "bg-emerald-500" : "bg-red-400"}`} style={{ width: `${d.score}%` }} />
+                            </div>
+                          </div>
+                        )}
+                        <div className="flex gap-1.5">
+                          <span className="flex-1 text-center text-[8px] font-headline font-bold text-on-primary bg-gradient-to-r from-primary to-primary-container rounded px-2 py-1">
+                            {d.passed ? "Review" : "Start"}
+                          </span>
+                          {d.score !== null && (
+                            <span className="text-center text-[8px] font-label text-on-surface-variant bg-surface-container rounded px-2 py-1 border border-outline-variant/30">
+                              Exam
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
