@@ -5,9 +5,35 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { signIn, useSession } from "next-auth/react";
-import { ArrowRight, Eye, EyeOff, CheckCircle, X } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, CheckCircle, X, BookOpen, Brain, Award } from "lucide-react";
 import { loadProgress, setUser } from "@/lib/progress";
 import { courses, getDomainsForCourse } from "@/lib/curriculum";
+
+function useCountUp(end: number, duration = 1800) {
+  const [count, setCount] = useState(0);
+  const ref = useRef<HTMLSpanElement>(null);
+  const started = useRef(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting && !started.current) {
+        started.current = true;
+        const start = performance.now();
+        const step = (now: number) => {
+          const progress = Math.min((now - start) / duration, 1);
+          const eased = 1 - Math.pow(1 - progress, 3);
+          setCount(Math.round(eased * end));
+          if (progress < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+      }
+    }, { threshold: 0.3 });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [end, duration]);
+  return { ref, count };
+}
 
 function useReveal() {
   const ref = useRef<HTMLDivElement>(null);
@@ -42,7 +68,12 @@ export default function LandingPage() {
   const [activeCourseTab, setActiveCourseTab] = useState("aai");
   const revealProof = useReveal();
   const revealFeatures = useReveal();
+  const revealHowItWorks = useReveal();
+  const revealTestimonials = useReveal();
   const revealCurriculum = useReveal();
+  const counter2 = useCountUp(2);
+  const counter16 = useCountUp(16);
+  const counter138 = useCountUp(138);
 
   useEffect(() => {
     if (status === "authenticated" && session?.user) {
@@ -143,8 +174,9 @@ export default function LandingPage() {
         {/* ── Hero — sell first, show a visual ── */}
         <section className="relative overflow-hidden min-h-[92vh] flex items-center">
           <div className="absolute inset-0 blueprint-grid pointer-events-none" />
-          <div className="absolute top-0 right-0 w-[700px] h-[700px] bg-primary-container/10 rounded-full blur-3xl pointer-events-none translate-x-1/3 -translate-y-1/4" />
-          <div className="absolute bottom-0 left-0 w-96 h-96 bg-tertiary-fixed-dim/20 rounded-full blur-3xl pointer-events-none" />
+          <div className="hero-blob absolute top-0 right-0 w-[700px] h-[700px] bg-primary-container/10 rounded-full blur-3xl pointer-events-none translate-x-1/3 -translate-y-1/4" />
+          <div className="hero-blob-2 absolute bottom-0 left-0 w-96 h-96 bg-tertiary-fixed-dim/20 rounded-full blur-3xl pointer-events-none" />
+          <div className="hero-blob absolute top-1/2 left-1/3 w-80 h-80 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
 
           <div className="relative z-10 max-w-7xl mx-auto px-6 py-20 w-full grid lg:grid-cols-2 gap-16 items-center">
 
@@ -305,18 +337,26 @@ export default function LandingPage() {
         {/* ── Social proof strip ── */}
         <div ref={revealProof} className="reveal bg-surface-container border-y border-outline-variant/20 py-6">
           <div className="max-w-7xl mx-auto px-6 flex flex-wrap items-center justify-center gap-10 text-center">
-            {[
-              { stat: "2", label: "Certification Courses" },
-              { stat: "16", label: "Exam Domains" },
-              { stat: "138+", label: "Practice Questions" },
-              { stat: "AI", label: "Powered Explanations" },
-              { stat: "Free", label: "To Start" },
-            ].map(({ stat, label }) => (
-              <div key={label}>
-                <div className="text-xl font-headline font-black text-primary">{stat}</div>
-                <div className="text-xs text-on-surface-variant font-label uppercase tracking-wider mt-0.5">{label}</div>
-              </div>
-            ))}
+            <div>
+              <div className="text-xl font-headline font-black text-primary"><span ref={counter2.ref}>{counter2.count}</span></div>
+              <div className="text-xs text-on-surface-variant font-label uppercase tracking-wider mt-0.5">Certification Courses</div>
+            </div>
+            <div>
+              <div className="text-xl font-headline font-black text-primary"><span ref={counter16.ref}>{counter16.count}</span></div>
+              <div className="text-xs text-on-surface-variant font-label uppercase tracking-wider mt-0.5">Exam Domains</div>
+            </div>
+            <div>
+              <div className="text-xl font-headline font-black text-primary"><span ref={counter138.ref}>{counter138.count}</span>+</div>
+              <div className="text-xs text-on-surface-variant font-label uppercase tracking-wider mt-0.5">Practice Questions</div>
+            </div>
+            <div>
+              <div className="text-xl font-headline font-black text-primary">AI</div>
+              <div className="text-xs text-on-surface-variant font-label uppercase tracking-wider mt-0.5">Powered Explanations</div>
+            </div>
+            <div>
+              <div className="text-xl font-headline font-black text-primary">Free</div>
+              <div className="text-xs text-on-surface-variant font-label uppercase tracking-wider mt-0.5">To Start</div>
+            </div>
           </div>
         </div>
 
@@ -332,7 +372,7 @@ export default function LandingPage() {
 
             <div className="grid md:grid-cols-3 gap-5">
               {/* Certification — large */}
-              <div className="md:col-span-2 bg-surface rounded-xl overflow-hidden flex flex-col shadow-sm">
+              <div className="md:col-span-2 bento-card bg-surface rounded-xl overflow-hidden flex flex-col shadow-sm">
                 <div className="h-56 overflow-hidden relative">
                   <Image src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=900&q=80&auto=format&fit=crop"
                     alt="Professional working toward AI certification" fill className="object-cover" sizes="(max-width: 768px) 100vw, 66vw" priority />
@@ -347,7 +387,7 @@ export default function LandingPage() {
               </div>
 
               {/* AI Q&A */}
-              <div className="bg-primary rounded-xl overflow-hidden flex flex-col shadow-sm">
+              <div className="bento-card bg-primary rounded-xl overflow-hidden flex flex-col shadow-sm">
                 <div className="h-56 overflow-hidden relative">
                   <Image src="https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=600&q=80&auto=format&fit=crop"
                     alt="AI visualization" fill className="object-cover opacity-40" sizes="(max-width: 768px) 100vw, 33vw" />
@@ -361,7 +401,7 @@ export default function LandingPage() {
               </div>
 
               {/* Practice Exams */}
-              <div className="bg-surface rounded-xl overflow-hidden flex flex-col shadow-sm">
+              <div className="bento-card bg-surface rounded-xl overflow-hidden flex flex-col shadow-sm">
                 <div className="h-56 overflow-hidden relative">
                   <Image src="https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=600&q=80&auto=format&fit=crop"
                     alt="Person studying" fill className="object-cover" sizes="(max-width: 768px) 100vw, 33vw" />
@@ -374,7 +414,7 @@ export default function LandingPage() {
               </div>
 
               {/* Community Forum — wide */}
-              <div className="md:col-span-2 bg-inverse-surface rounded-xl overflow-hidden flex flex-col shadow-sm">
+              <div className="md:col-span-2 bento-card bg-inverse-surface rounded-xl overflow-hidden flex flex-col shadow-sm">
                 <div className="h-56 overflow-hidden relative">
                   <Image src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=900&q=80&auto=format&fit=crop"
                     alt="Team collaborating" fill className="object-cover opacity-30" sizes="(max-width: 768px) 100vw, 66vw" />
@@ -391,6 +431,76 @@ export default function LandingPage() {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── How It Works ── */}
+        <section ref={revealHowItWorks} className="reveal py-24 bg-surface">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="text-center mb-16">
+              <span className="text-xs tracking-[0.2em] uppercase text-primary font-headline font-bold">How It Works</span>
+              <h2 className="text-4xl md:text-5xl font-headline font-black tracking-tight mt-3 mb-4 text-on-surface">
+                Three steps to certified.
+              </h2>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-8 relative">
+              {/* Connecting line */}
+              <div className="hidden md:block absolute top-16 left-[20%] right-[20%] h-px bg-gradient-to-r from-transparent via-primary/25 to-transparent" />
+
+              {[
+                { step: "01", icon: <BookOpen size={28} className="text-primary" />, title: "Sign Up Free", desc: "Create your account in seconds. No credit card required. Start with full access to both certification courses." },
+                { step: "02", icon: <Brain size={28} className="text-primary" />, title: "Study & Practice", desc: "Work through 16 domains at your pace. Read concepts, ask the AI tutor, and test yourself with 138+ exam-style questions." },
+                { step: "03", icon: <Award size={28} className="text-primary" />, title: "Get Certified", desc: "Pass all domain exams with 70%+ and earn your shareable certificate. Prove your expertise to employers." },
+              ].map(({ step, icon, title, desc }) => (
+                <div key={step} className="relative text-center space-y-4">
+                  <div className="w-14 h-14 mx-auto rounded-2xl bg-primary/8 border border-primary/15 flex items-center justify-center">
+                    {icon}
+                  </div>
+                  <span className="text-xs font-headline font-bold text-primary/50 tracking-widest">{step}</span>
+                  <h3 className="text-xl font-headline font-bold text-on-surface">{title}</h3>
+                  <p className="text-on-surface-variant text-sm leading-relaxed max-w-xs mx-auto">{desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── Testimonials ── */}
+        <section ref={revealTestimonials} className="reveal py-24 bg-surface-container-low">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="text-center mb-16">
+              <span className="text-xs tracking-[0.2em] uppercase text-primary font-headline font-bold">What Learners Say</span>
+              <h2 className="text-4xl md:text-5xl font-headline font-black tracking-tight mt-3 mb-4 text-on-surface">
+                Built by learners,<br />for learners.
+              </h2>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-6">
+              {[
+                { quote: "The AI tutor is a game-changer. I'd get stuck on a concept, ask a question, and get a clear explanation instantly. Passed on my first attempt.", name: "Sarah K.", role: "ML Engineer", avatar: "SK" },
+                { quote: "Way better than reading docs alone. The practice exams are realistic and the domain-by-domain approach kept me on track. Earned both certs in 3 weeks.", name: "James L.", role: "Solutions Architect", avatar: "JL" },
+                { quote: "The community forum was invaluable. Seeing how others approached tricky questions gave me confidence going into the real exam. Highly recommend.", name: "Priya M.", role: "AI Developer", avatar: "PM" },
+              ].map(({ quote, name, role, avatar }) => (
+                <div key={name} className="bento-card bg-surface rounded-xl p-8 shadow-sm border border-outline-variant/20 space-y-5">
+                  <div className="flex gap-1">
+                    {[...Array(5)].map((_, i) => (
+                      <span key={i} className="text-primary text-sm">★</span>
+                    ))}
+                  </div>
+                  <p className="text-on-surface-variant text-sm leading-relaxed italic">&ldquo;{quote}&rdquo;</p>
+                  <div className="flex items-center gap-3 pt-2">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary-container flex items-center justify-center flex-shrink-0">
+                      <span className="text-on-primary text-xs font-headline font-bold">{avatar}</span>
+                    </div>
+                    <div>
+                      <div className="text-sm font-headline font-bold text-on-surface">{name}</div>
+                      <div className="text-xs text-on-surface-variant font-label">{role}</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </section>
