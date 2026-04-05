@@ -244,9 +244,14 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between p-4 rounded-xl bg-primary/5 border border-primary/15">
             <div className="flex items-center gap-3">
               <Zap size={18} className="text-primary flex-shrink-0" />
-              <p className="text-sm font-label text-on-surface">
-                Only <span className="font-bold text-primary">{promptsLeft} AI prompts</span> left — unlock 500 more for $5.
-              </p>
+              <div>
+                <p className="text-sm font-label text-on-surface">
+                  Only <span className="font-bold text-primary">{promptsLeft} AI prompts</span> left — unlock 500 more for $5.
+                </p>
+                <p className="text-xs text-on-surface-variant font-label mt-0.5">
+                  Each AI prompt costs ~$0.01 to run on a high-tier model. Your $5 goes directly toward covering these API costs.
+                </p>
+              </div>
             </div>
             <Link href="/upgrade"
               className="flex items-center gap-1.5 px-4 py-2 rounded-md bg-gradient-to-r from-primary to-primary-container text-on-primary font-headline font-bold text-xs hover:opacity-90 whitespace-nowrap shadow-sm">
