@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "Learn Agent Architecture — Anthropic Certification Prep";
+export const alt = "Learn Agent Architecture — Your School For The Agentic Era";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -13,186 +13,235 @@ export default async function Image() {
           height: "100%",
           display: "flex",
           flexDirection: "column",
-          backgroundColor: "#FFFAF8",
+          backgroundColor: "#FDF8F5",
           position: "relative",
           overflow: "hidden",
         }}
       >
-        {/* Background warm glow blobs */}
+        {/* Background glow blobs */}
         <div
           style={{
             position: "absolute",
-            top: "-80px",
+            top: "-100px",
             right: "-80px",
-            width: "420px",
-            height: "420px",
+            width: "500px",
+            height: "500px",
             borderRadius: "50%",
-            backgroundColor: "#FDDDD2",
-            opacity: 0.5,
-            filter: "blur(80px)",
+            backgroundColor: "#DD7740",
+            opacity: 0.08,
+            filter: "blur(90px)",
           }}
         />
         <div
           style={{
             position: "absolute",
-            bottom: "-60px",
+            bottom: "-80px",
             left: "-60px",
-            width: "320px",
-            height: "320px",
+            width: "380px",
+            height: "380px",
             borderRadius: "50%",
-            backgroundColor: "#FEF3C7",
-            opacity: 0.6,
-            filter: "blur(60px)",
+            backgroundColor: "#9b4510",
+            opacity: 0.07,
+            filter: "blur(70px)",
           }}
         />
 
-        {/* Main content */}
+        {/* Main layout: left content + right logo visual */}
         <div
           style={{
             display: "flex",
-            flexDirection: "column",
-            justifyContent: "space-between",
             height: "100%",
-            padding: "56px 64px",
+            padding: "52px 64px",
             position: "relative",
+            gap: "48px",
+            alignItems: "center",
           }}
         >
-          {/* Top row: badge + domain pills */}
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <div
-              style={{
-                backgroundColor: "#E8572E",
-                borderRadius: "8px",
-                padding: "8px 20px",
-                fontSize: "15px",
-                color: "white",
-                fontWeight: 700,
-                letterSpacing: "0.01em",
-              }}
-            >
-              Anthropic Certification Prep
-            </div>
-            <div
-              style={{
-                backgroundColor: "#FEF0EC",
-                border: "1.5px solid #F8907A",
-                borderRadius: "8px",
-                padding: "8px 18px",
-                fontSize: "15px",
-                color: "#B84828",
-                fontWeight: 600,
-              }}
-            >
-              Community Forum
-            </div>
-            <div
-              style={{
-                backgroundColor: "#FFFBEB",
-                border: "1.5px solid #FCD34D",
-                borderRadius: "8px",
-                padding: "8px 18px",
-                fontSize: "15px",
-                color: "#B45309",
-                fontWeight: 600,
-              }}
-            >
-              AI-Powered Study
-            </div>
-          </div>
-
-          {/* Main heading */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-            <div
-              style={{
-                fontSize: "78px",
-                fontWeight: 800,
-                color: "#3D1509",
-                lineHeight: 1,
-                letterSpacing: "-0.02em",
-              }}
-            >
-              Learn Agent
-            </div>
-            <div
-              style={{
-                fontSize: "78px",
-                fontWeight: 800,
-                color: "#E8572E",
-                lineHeight: 1,
-                letterSpacing: "-0.02em",
-              }}
-            >
-              Architecture
-            </div>
-            <div
-              style={{
-                fontSize: "22px",
-                color: "#98584A",
-                fontWeight: 400,
-                marginTop: "12px",
-                maxWidth: "620px",
-                lineHeight: 1.4,
-              }}
-            >
-              Master Claude API, Agent SDK, MCP & Claude Code — and prepare
-              for the most prestigious AI certification in the field.
-            </div>
-          </div>
-
-          {/* Bottom row: stats + url */}
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            {/* Stat cards */}
-            {[
-              { value: "8", label: "Domains" },
-              { value: "58+", label: "Questions" },
-              { value: "AI", label: "Q&A Chat" },
-              { value: "Forum", label: "Community" },
-              { value: "Free", label: "To Start" },
-            ].map((stat) => (
+          {/* Left: all copy */}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              flex: 1,
+              justifyContent: "space-between",
+              height: "100%",
+            }}
+          >
+            {/* Top badge */}
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
               <div
-                key={stat.label}
                 style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  backgroundColor: "#FAF4F1",
-                  border: "1.5px solid #E8D5D0",
-                  borderRadius: "12px",
-                  padding: "14px 22px",
-                  gap: "2px",
+                  background: "linear-gradient(135deg, #DD7740, #9b4510)",
+                  borderRadius: "8px",
+                  padding: "8px 18px",
+                  fontSize: "13px",
+                  color: "white",
+                  fontWeight: 700,
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
                 }}
               >
-                <div
-                  style={{
-                    fontSize: "26px",
-                    fontWeight: 700,
-                    color: "#D85A30",
-                    lineHeight: 1,
-                  }}
-                >
-                  {stat.value}
-                </div>
-                <div
-                  style={{
-                    fontSize: "12px",
-                    color: "#B07868",
-                    fontWeight: 500,
-                    letterSpacing: "0.03em",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  {stat.label}
-                </div>
+                Anthropic Certification Prep
               </div>
-            ))}
+              <div
+                style={{
+                  backgroundColor: "#F8F3F0",
+                  border: "1.5px solid #DCC1B5",
+                  borderRadius: "8px",
+                  padding: "8px 16px",
+                  fontSize: "13px",
+                  color: "#9b4510",
+                  fontWeight: 600,
+                  letterSpacing: "0.02em",
+                }}
+              >
+                2 Certification Courses
+              </div>
+            </div>
 
-            {/* Spacer + domain chips */}
-            <div style={{ marginLeft: "auto", display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "6px" }}>
-              <div style={{ fontSize: "13px", color: "#C49890", fontWeight: 500 }}>
+            {/* Main headline */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+              <div
+                style={{
+                  fontSize: "82px",
+                  fontWeight: 900,
+                  color: "#1C1B1A",
+                  lineHeight: 0.92,
+                  letterSpacing: "-0.04em",
+                }}
+              >
+                Your School
+              </div>
+              <div
+                style={{
+                  fontSize: "82px",
+                  fontWeight: 900,
+                  color: "#1C1B1A",
+                  lineHeight: 0.92,
+                  letterSpacing: "-0.04em",
+                  opacity: 0.45,
+                  fontStyle: "italic",
+                  fontSize: "52px",
+                }}
+              >
+                For The
+              </div>
+              <div
+                style={{
+                  fontSize: "72px",
+                  fontWeight: 900,
+                  color: "#9b4510",
+                  lineHeight: 0.92,
+                  letterSpacing: "-0.03em",
+                  fontStyle: "italic",
+                }}
+              >
+                Agentic Era.
+              </div>
+              <div
+                style={{
+                  fontSize: "20px",
+                  color: "#56433A",
+                  fontWeight: 400,
+                  marginTop: "16px",
+                  lineHeight: 1.45,
+                  maxWidth: "540px",
+                }}
+              >
+                The community study platform for Anthropic Certifications —
+                covering Agent Architecture and Prompt Engineering.
+              </div>
+            </div>
+
+            {/* Bottom: stats + URL */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              {/* Stat chips */}
+              <div style={{ display: "flex", gap: "10px" }}>
+                {[
+                  { value: "16", label: "Domains" },
+                  { value: "138+", label: "Questions" },
+                  { value: "2", label: "Courses" },
+                  { value: "AI", label: "Tutor" },
+                  { value: "Free", label: "To Start" },
+                ].map((stat) => (
+                  <div
+                    key={stat.label}
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      backgroundColor: "#F2EDEA",
+                      border: "1.5px solid #DCC1B5",
+                      borderRadius: "10px",
+                      padding: "12px 20px",
+                      gap: "2px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: "24px",
+                        fontWeight: 800,
+                        color: "#9b4510",
+                        lineHeight: 1,
+                      }}
+                    >
+                      {stat.value}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: "11px",
+                        color: "#897268",
+                        fontWeight: 600,
+                        letterSpacing: "0.05em",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      {stat.label}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {/* URL */}
+              <div style={{ fontSize: "15px", color: "#897268", fontWeight: 500 }}>
                 learnagentarchitecture.com
               </div>
-              <div style={{ fontSize: "12px", color: "#D8BAB5", fontWeight: 400 }}>
-                More AI certification tracks coming soon
+            </div>
+          </div>
+
+          {/* Right: logo mark */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            <div
+              style={{
+                width: "260px",
+                height: "260px",
+                borderRadius: "56px",
+                background: "linear-gradient(135deg, #DD7740 0%, #7A3208 100%)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                position: "relative",
+                boxShadow: "0 32px 80px rgba(155,69,16,0.30)",
+              }}
+            >
+              {/* Letter A recreated with divs */}
+              <div
+                style={{
+                  fontSize: "180px",
+                  fontWeight: 900,
+                  color: "#FAECE7",
+                  letterSpacing: "-0.06em",
+                  lineHeight: 1,
+                  marginTop: "8px",
+                }}
+              >
+                A
               </div>
             </div>
           </div>

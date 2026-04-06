@@ -1,12 +1,31 @@
 <svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-  <rect width="100" height="100" rx="16" fill="#D85A30"/>
-  <circle cx="50" cy="36" r="9" fill="#FAECE7"/>
-  <circle cx="24" cy="62" r="7" fill="#F0997B"/>
-  <circle cx="76" cy="62" r="7" fill="#F0997B"/>
-  <circle cx="50" cy="82" r="6" fill="#FAC775"/>
-  <line x1="50" y1="45" x2="24" y2="55" stroke="#FAECE7" stroke-width="1.8" stroke-linecap="round"/>
-  <line x1="50" y1="45" x2="76" y2="55" stroke="#FAECE7" stroke-width="1.8" stroke-linecap="round"/>
-  <line x1="24" y1="69" x2="50" y2="76" stroke="#F0997B" stroke-width="1.5" stroke-linecap="round"/>
-  <line x1="76" y1="69" x2="50" y2="76" stroke="#F0997B" stroke-width="1.5" stroke-linecap="round"/>
-  <line x1="24" y1="62" x2="76" y2="62" stroke="#F0997B" stroke-width="1" stroke-dasharray="3,2.5" stroke-linecap="round"/>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#DD7740"/>
+      <stop offset="100%" stop-color="#7A3208"/>
+    </linearGradient>
+    <!-- Blueprint dot grid -->
+    <pattern id="grid" x="0" y="0" width="10" height="10" patternUnits="userSpaceOnUse">
+      <circle cx="5" cy="5" r="0.6" fill="#FAECE7" opacity="0.15"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="100" height="100" rx="22" fill="url(#bg)"/>
+  <!-- Subtle blueprint grid texture -->
+  <rect width="100" height="100" rx="22" fill="url(#grid)"/>
+
+  <!-- Letter A — left leg -->
+  <line x1="18" y1="83" x2="50" y2="15" stroke="#FAECE7" stroke-width="7.5" stroke-linecap="round"/>
+  <!-- Letter A — right leg -->
+  <line x1="82" y1="83" x2="50" y2="15" stroke="#FAECE7" stroke-width="7.5" stroke-linecap="round"/>
+  <!-- Letter A — crossbar (golden accent) -->
+  <line x1="30" y1="57" x2="70" y2="57" stroke="#FAC775" stroke-width="5.5" stroke-linecap="round"/>
+
+  <!-- Agent nodes at vertices -->
+  <circle cx="50" cy="15" r="5.5" fill="#FAC775"/>
+  <circle cx="18" cy="83" r="4" fill="#FAECE7" opacity="0.7"/>
+  <circle cx="82" cy="83" r="4" fill="#FAECE7" opacity="0.7"/>
+  <circle cx="30" cy="57" r="3" fill="#FAC775"/>
+  <circle cx="70" cy="57" r="3" fill="#FAC775"/>
 </svg>
