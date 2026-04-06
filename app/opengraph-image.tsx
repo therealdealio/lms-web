@@ -114,14 +114,13 @@ export default async function Image() {
               </div>
               <div
                 style={{
-                  fontSize: "82px",
+                  fontSize: "52px",
                   fontWeight: 900,
                   color: "#1C1B1A",
                   lineHeight: 0.92,
                   letterSpacing: "-0.04em",
                   opacity: 0.45,
                   fontStyle: "italic",
-                  fontSize: "52px",
                 }}
               >
                 For The
