@@ -3,6 +3,7 @@ import { Inter, Space_Grotesk, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 import AuthProvider from "@/components/AuthProvider";
 import PageViewTracker from "@/components/PageViewTracker";
+import CookieConsent from "@/components/CookieConsent";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -128,6 +129,7 @@ export default function RootLayout({
         <AuthProvider>
           <PageViewTracker />
           {children}
+          <CookieConsent />
         </AuthProvider>
       </body>
     </html>

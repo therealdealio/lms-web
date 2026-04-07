@@ -587,6 +587,8 @@ export default function LandingPage() {
                   <Link href="/dashboard" className="block text-inverse-on-surface/70 hover:text-inverse-on-surface transition-colors text-sm font-label">Study Dashboard</Link>
                   <Link href="/forum" className="block text-inverse-on-surface/70 hover:text-inverse-on-surface transition-colors text-sm font-label">Community Forum</Link>
                   <Link href="/about" className="block text-inverse-on-surface/70 hover:text-inverse-on-surface transition-colors text-sm font-label">About</Link>
+                  <Link href="/terms" className="block text-inverse-on-surface/70 hover:text-inverse-on-surface transition-colors text-sm font-label">Terms of Service</Link>
+                  <Link href="/privacy" className="block text-inverse-on-surface/70 hover:text-inverse-on-surface transition-colors text-sm font-label">Privacy Policy</Link>
                 </div>
               </div>
               <div>
