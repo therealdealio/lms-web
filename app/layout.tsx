@@ -1,19 +1,27 @@
 import type { Metadata } from "next";
-import { Inter, Space_Grotesk, Instrument_Serif } from "next/font/google";
+import { Fraunces, Newsreader, IBM_Plex_Mono, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 import AuthProvider from "@/components/AuthProvider";
 import PageViewTracker from "@/components/PageViewTracker";
 import CookieConsent from "@/components/CookieConsent";
 
-const inter = Inter({
+const fraunces = Fraunces({
   subsets: ["latin"],
-  variable: "--font-inter",
+  axes: ["opsz", "SOFT"],
+  variable: "--font-fraunces",
   display: "swap",
 });
 
-const spaceGrotesk = Space_Grotesk({
+const newsreader = Newsreader({
   subsets: ["latin"],
-  variable: "--font-space-grotesk",
+  variable: "--font-newsreader",
+  display: "swap",
+});
+
+const plexMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-plex-mono",
   display: "swap",
 });
 
@@ -118,7 +126,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable} ${instrumentSerif.variable}`}>
+    <html lang="en" className={`${fraunces.variable} ${newsreader.variable} ${plexMono.variable} ${instrumentSerif.variable}`}>
       <head>
         <script
           type="application/ld+json"

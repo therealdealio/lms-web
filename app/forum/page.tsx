@@ -3,70 +3,22 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { MessageSquare, Users, ArrowLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import { loadProgress } from "@/lib/progress";
 
+const ROMANS = ["I","II","III","IV","V","VI","VII","VIII"];
+
 const CATEGORIES = [
-  {
-    id: "general",
-    label: "General",
-    description: "Introduce yourself and share how you use agents in your day-to-day life or job.",
-    icon: "👋",
-  },
-  {
-    id: "suggestions",
-    label: "Website Suggestions & Support",
-    description: "Share ideas to improve the site, report bugs, or get help with anything.",
-    icon: "💡",
-  },
-  {
-    id: "1",
-    label: "Domain 1: Agentic Architecture & Orchestration",
-    description: "Discuss agentic loops, multi-agent coordination, subagent isolation, and orchestration patterns.",
-    icon: "🤖",
-  },
-  {
-    id: "2",
-    label: "Domain 2: Tool Design & MCP Integration",
-    description: "Share insights on tool design patterns, MCP integration, and API surface design.",
-    icon: "🔧",
-  },
-  {
-    id: "3",
-    label: "Domain 3: Claude Code Configuration & Workflows",
-    description: "Explore Claude Code setup, CLAUDE.md configuration, and development workflows.",
-    icon: "💻",
-  },
-  {
-    id: "4",
-    label: "Domain 4: Prompt Engineering & Structured Output",
-    description: "Discuss prompt techniques, structured outputs, JSON schemas, and evaluation strategies.",
-    icon: "✍️",
-  },
-  {
-    id: "5",
-    label: "Domain 5: Context Management & Reliability",
-    description: "Talk about context windows, caching, memory patterns, and reliability in production.",
-    icon: "🧠",
-  },
-  {
-    id: "6",
-    label: "Domain 6: Claude Fundamentals",
-    description: "Core Claude API concepts, models, token usage, and fundamental usage patterns.",
-    icon: "⚡",
-  },
-  {
-    id: "7",
-    label: "Domain 7: Safety & Responsible Use",
-    description: "Safety principles, responsible deployment, ethical considerations, and best practices.",
-    icon: "🛡️",
-  },
-  {
-    id: "8",
-    label: "Domain 8: Vision & Multimodal Capabilities",
-    description: "Discuss image understanding, document processing, and multimodal AI applications.",
-    icon: "👁️",
-  },
+  { id: "general",     label: "General",                                                  description: "Introduce yourself and share how you use agents day-to-day.",            icon: "👋", domain: false },
+  { id: "suggestions", label: "Website Suggestions & Support",                            description: "Ideas to improve the site, bug reports, general help.",                  icon: "💡", domain: false },
+  { id: "1",           label: "Agentic Architecture & Orchestration",                     description: "Agentic loops, multi-agent coordination, subagent isolation patterns.",   icon: "🤖", domain: true },
+  { id: "2",           label: "Tool Design & MCP Integration",                            description: "Tool design patterns, MCP integration, API surface design.",             icon: "🔧", domain: true },
+  { id: "3",           label: "Claude Code Configuration & Workflows",                    description: "Claude Code setup, CLAUDE.md configuration, dev workflows.",             icon: "💻", domain: true },
+  { id: "4",           label: "Prompt Engineering & Structured Output",                   description: "Prompt techniques, structured output, JSON schemas, eval strategies.",    icon: "✍️", domain: true },
+  { id: "5",           label: "Context Management & Reliability",                         description: "Context windows, caching, memory patterns, production reliability.",      icon: "🧠", domain: true },
+  { id: "6",           label: "Claude Fundamentals",                                      description: "Core Claude API concepts, models, token usage, fundamentals.",            icon: "⚡", domain: true },
+  { id: "7",           label: "Safety & Responsible Use",                                 description: "Safety principles, responsible deployment, ethical best practice.",       icon: "🛡️", domain: true },
+  { id: "8",           label: "Vision & Multimodal Capabilities",                         description: "Image understanding, document processing, multimodal applications.",      icon: "👁️", domain: true },
 ];
 
 interface CategoryStats {
@@ -80,11 +32,7 @@ export default function ForumPage() {
 
   useEffect(() => {
     const p = loadProgress();
-    if (!p.user) {
-      router.push("/");
-      return;
-    }
-
+    if (!p.user) { router.push("/"); return; }
     fetch("/api/forum/stats")
       .then((r) => r.ok ? r.json() : {})
       .then((data: CategoryStats) => { setStats(data); setLoading(false); })
@@ -94,85 +42,100 @@ export default function ForumPage() {
   const totalPosts = Object.values(stats).reduce((sum, s) => sum + s.postCount, 0);
 
   return (
-    <div className="min-h-screen bg-surface text-on-surface">
+    <div className="min-h-screen bg-paper text-ink paper-fiber">
 
       {/* Nav */}
-      <nav className="sticky top-0 z-50 glass border-b border-outline-variant/20 px-6 py-4">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <Link href="/dashboard" className="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors text-sm font-label font-medium">
-            <ArrowLeft size={16} />
+      <nav className="sticky top-0 z-50 bg-paper/92 backdrop-blur-sm border-b border-ink">
+        <div className="max-w-4xl mx-auto flex items-center justify-between px-8 py-3">
+          <Link href="/dashboard" className="flex items-center gap-2 font-label text-[11px] uppercase tracking-[0.18em] text-ink hover:text-oxide transition-colors link-sweep">
+            <ArrowLeft size={13} />
             Dashboard
           </Link>
-          <div className="flex items-center gap-3">
-            <img src="/logo.svg" alt="" className="w-7 h-7 rounded" />
-            <span className="font-headline font-bold text-on-surface text-sm hidden sm:block">Learn Agent Architecture</span>
-          </div>
+          <Link href="/" className="hidden sm:flex items-center gap-3">
+            <span className="font-display font-black text-ink text-lg leading-none tracking-tight">L·A·A</span>
+            <span className="h-4 w-px bg-ink/40" />
+            <span className="font-label text-[10px] uppercase tracking-[0.22em] text-ink-fade">Forum</span>
+          </Link>
         </div>
       </nav>
 
-      <div className="max-w-4xl mx-auto px-6 py-10 space-y-8">
-
-        {/* Header */}
-        <div className="flex items-start justify-between">
-          <div className="space-y-2">
-            <span className="text-xs tracking-[0.2em] uppercase text-primary font-headline font-bold">Community</span>
-            <h1 className="text-3xl font-headline font-black tracking-tight text-on-surface flex items-center gap-3">
-              <MessageSquare className="text-primary" size={28} />
-              Community Forum
-            </h1>
-            <p className="text-on-surface-variant font-label">
-              Share your thoughts, ask questions, and connect with fellow learners.
-            </p>
-          </div>
+      {/* Dossier strip */}
+      <div className="border-b border-ink">
+        <div className="max-w-4xl mx-auto px-8 py-3 flex flex-wrap items-center justify-between gap-3 dossier-meta">
+          <span className="flex items-center gap-3">
+            <span className="inline-block w-2 h-2 bg-oxide rounded-full animate-pulse" />
+            Community Correspondence
+          </span>
+          <span className="hidden md:block">10 channels · domain-scoped</span>
           {!loading && (
-            <div className="flex items-center gap-2 px-4 py-2 rounded-md bg-surface-container-lowest border border-outline-variant/20 text-sm text-on-surface-variant font-label flex-shrink-0">
-              <Users size={14} />
-              {totalPosts} {totalPosts === 1 ? "post" : "posts"}
-            </div>
+            <span className="tabular">{totalPosts} {totalPosts === 1 ? "entry" : "entries"} in register</span>
           )}
         </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto px-8 py-12 space-y-10">
+
+        {/* Header */}
+        <header className="space-y-4">
+          <div className="section-no">§</div>
+          <div className="rule-thick w-16" />
+          <div className="dossier-meta">The Forum</div>
+          <h1 className="font-display font-bold text-ink text-5xl lg:text-6xl leading-[0.92] tracking-[-0.03em]">
+            Correspondence<br /><span className="italic font-light text-oxide" style={{ fontVariationSettings: '"opsz" 144, "SOFT" 100' }}>between candidates.</span>
+          </h1>
+          <p className="font-body text-[17px] leading-[1.6] text-ink-soft max-w-xl">
+            Ten channels — two general, eight domain-scoped. Post a question, leave a ruling, read what others have surfaced before you.
+          </p>
+        </header>
 
         {/* Category list */}
-        <div className="space-y-2">
-          {CATEGORIES.map((cat) => {
+        <section className="border-2 border-ink">
+          {CATEGORIES.map((cat, i) => {
             const catStats = stats[cat.id];
-            const isDomain = !["general", "suggestions"].includes(cat.id);
+            const postCount = catStats?.postCount ?? 0;
+            const ref = cat.domain ? `Dom. ${ROMANS[Number(cat.id) - 1] || cat.id}` : (cat.id === "general" ? "Gen." : "Supp.");
             return (
               <Link
                 key={cat.id}
                 href={`/forum/${cat.id}`}
-                className="flex items-center gap-4 p-5 rounded-xl bg-surface-container-lowest border border-outline-variant/20 hover:border-primary/30 hover:shadow-sm transition-all group"
+                className={`flex items-center gap-6 p-5 bg-paper-fade hover:bg-paper transition-colors group ${i > 0 ? "border-t-2 border-ink" : ""}`}
               >
-                <div className="w-11 h-11 rounded-lg bg-surface-container flex items-center justify-center text-xl flex-shrink-0">
+                <span className="font-display italic text-oxide text-3xl leading-none tabular w-12 flex-shrink-0 text-center">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <span className="text-2xl leading-none flex-shrink-0 grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 transition-all">
                   {cat.icon}
-                </div>
+                </span>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h2 className="font-headline font-bold text-on-surface group-hover:text-primary transition-colors text-sm">
+                  <div className="flex items-baseline gap-3 flex-wrap">
+                    <h2 className="font-display font-bold text-ink group-hover:text-oxide transition-colors text-lg leading-tight tracking-[-0.01em]">
                       {cat.label}
                     </h2>
-                    {isDomain && (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-headline font-bold bg-primary/8 text-primary">
-                        Domain {cat.id}
-                      </span>
-                    )}
+                    <span className="font-label text-[10px] uppercase tracking-[0.18em] text-ink-fade">
+                      {ref}
+                    </span>
                   </div>
-                  <p className="text-on-surface-variant text-xs mt-0.5 line-clamp-1 font-label">{cat.description}</p>
+                  <p className="font-body text-[14px] text-ink-soft mt-0.5 leading-snug line-clamp-1">{cat.description}</p>
                 </div>
                 <div className="flex items-center gap-4 flex-shrink-0">
                   {loading ? (
-                    <div className="w-12 h-4 bg-surface-container rounded animate-pulse" />
+                    <div className="w-16 h-4 bg-ink/10 animate-pulse" />
                   ) : (
-                    <span className="text-xs text-on-surface-variant font-label">
-                      {catStats?.postCount ?? 0} posts
+                    <span className="font-label text-[10px] uppercase tracking-[0.18em] text-ink tabular">
+                      {postCount} {postCount === 1 ? "entry" : "entries"}
                     </span>
                   )}
-                  <ChevronRight size={16} className="text-on-surface-variant/40 group-hover:text-primary transition-colors" />
+                  <ArrowUpRight size={16} className="text-ink-fade group-hover:text-oxide transition-colors" />
                 </div>
               </Link>
             );
           })}
-        </div>
+        </section>
+
+        <footer className="pt-6 border-t-2 border-ink flex items-center justify-between">
+          <span className="dossier-meta">© {new Date().getFullYear()} · Learn Agent Architecture · Forum</span>
+          <span className="font-display italic text-ink">— End of Register —</span>
+        </footer>
       </div>
     </div>
   );

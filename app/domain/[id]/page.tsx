@@ -5,13 +5,9 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft,
-  ArrowRight,
+  ArrowUpRight,
   ChevronDown,
   ChevronUp,
-  BookOpen,
-  AlertTriangle,
-  Code,
-  CheckCircle,
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { getDomain, getCourseForDomain, getDomainNumber } from "@/lib/curriculum";
@@ -19,12 +15,14 @@ import { loadProgress, markDomainStarted } from "@/lib/progress";
 import { Domain } from "@/lib/types";
 
 const AiChat = dynamic(() => import("@/components/AiChat"), {
-  loading: () => <div className="h-24 rounded-2xl bg-surface-container animate-pulse" />,
+  loading: () => <div className="h-24 border-2 border-ink/20 bg-paper-fade animate-pulse" />,
 });
 
 const ConceptQuiz = dynamic(() => import("@/components/ConceptQuiz"), {
-  loading: () => <div className="h-16 rounded-xl bg-surface-container animate-pulse" />,
+  loading: () => <div className="h-16 border border-ink/20 bg-paper-fade animate-pulse" />,
 });
+
+const ROMANS = ["I","II","III","IV","V","VI","VII","VIII","IX","X","XI","XII","XIII","XIV","XV","XVI"];
 
 export default function DomainPage() {
   const params = useParams();
@@ -56,230 +54,268 @@ export default function DomainPage() {
 
   if (!domain) {
     return (
-      <div className="min-h-screen bg-surface flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-paper flex items-center justify-center">
+        <div className="font-label text-[11px] uppercase tracking-[0.2em] text-ink flex items-center gap-3">
+          <span className="inline-block w-2.5 h-2.5 bg-oxide animate-pulse" />
+          Retrieving Domain…
+        </div>
       </div>
     );
   }
 
   const course = getCourseForDomain(domain.id);
   const domainNum = getDomainNumber(domain.id);
+  const roman = ROMANS[domainNum - 1] || String(domainNum);
   const domainsInCourse = course?.domains ?? [];
   const domainIndex = domainsInCourse.findIndex((d) => d.id === domain.id);
   const prevDomain = domainIndex > 0 ? domainsInCourse[domainIndex - 1] : null;
   const nextDomain = domainIndex < domainsInCourse.length - 1 ? domainsInCourse[domainIndex + 1] : null;
 
   return (
-    <div className="min-h-screen bg-surface text-on-surface">
+    <div className="min-h-screen bg-paper text-ink paper-fiber">
 
       {/* Nav */}
-      <nav className="sticky top-0 z-50 glass border-b border-outline-variant/20 px-6 py-4">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <Link href="/dashboard" className="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors text-sm font-label font-medium">
-            <ArrowLeft size={15} />
+      <nav className="sticky top-0 z-50 bg-paper/92 backdrop-blur-sm border-b border-ink">
+        <div className="max-w-5xl mx-auto flex items-center justify-between px-8 py-3">
+          <Link href="/dashboard" className="flex items-center gap-2 font-label text-[11px] uppercase tracking-[0.18em] text-ink hover:text-oxide transition-colors link-sweep">
+            <ArrowLeft size={13} />
             Dashboard
           </Link>
-          <div className="flex items-center gap-3">
-            <span className="text-xs text-on-surface-variant font-label hidden sm:block">
-              Domain {domainNum} of {domainsInCourse.length}
+          <div className="flex items-center gap-4">
+            <span className="dossier-meta hidden sm:block">
+              Domain {roman} of {ROMANS[domainsInCourse.length - 1] || domainsInCourse.length}
             </span>
             <Link
               href={`/domain/${domain.id}/practice`}
-              className="flex items-center gap-2 px-4 py-2 rounded-md bg-gradient-to-r from-primary to-primary-container text-on-primary text-sm font-headline font-bold hover:opacity-90 transition-all shadow-sm"
+              className="btn-ink"
             >
-              <CheckCircle size={14} />
-              Practice Exam
+              Sit Exam <ArrowUpRight size={13} />
             </Link>
           </div>
         </div>
       </nav>
 
-      <div className="max-w-5xl mx-auto px-6 py-10 space-y-8">
-
-        {/* Plain English intro */}
-        <div className="flex gap-4 p-5 rounded-xl bg-primary/5 border border-primary/15">
-          <span className="text-2xl flex-shrink-0">💡</span>
-          <div>
-            <p className="text-xs font-headline font-bold text-primary uppercase tracking-wider mb-1">In Plain English</p>
-            <p className="text-on-surface text-sm leading-relaxed">{domain.plainEnglish}</p>
-          </div>
+      {/* Dossier strip */}
+      <div className="border-b border-ink">
+        <div className="max-w-5xl mx-auto px-8 py-3 flex flex-wrap items-center justify-between gap-3 dossier-meta">
+          <span className="flex items-center gap-3">
+            <span className="inline-block w-2 h-2 bg-oxide rounded-full animate-pulse" />
+            Study Session · {domain.id.toUpperCase()}
+          </span>
+          <span className="hidden md:block">{course?.title ?? ""}</span>
+          <span>{domain.concepts.length} concepts · {domain.questions.length} questions</span>
         </div>
+      </div>
+
+      <div className="max-w-5xl mx-auto px-8 py-12 space-y-12">
 
         {/* Domain header */}
-        <div className="space-y-5">
-          <div className="flex flex-wrap gap-2">
-            <span className="px-2.5 py-1 rounded-full text-xs font-headline font-bold bg-primary/8 text-primary">
-              Domain {domainNum}
+        <header className="space-y-6">
+          <div className="flex items-baseline gap-6">
+            <span className="font-display italic text-oxide text-7xl lg:text-8xl leading-none tabular flex-shrink-0">
+              {roman}.
             </span>
-            <span className="px-2.5 py-1 rounded-full text-xs font-label bg-surface-container text-on-surface-variant">
-              {domain.weight}% of Exam
-            </span>
-            <span className="px-2.5 py-1 rounded-full text-xs font-label bg-surface-container text-on-surface-variant">
-              {domain.concepts.length} Concepts
-            </span>
-            <span className="px-2.5 py-1 rounded-full text-xs font-label bg-surface-container text-on-surface-variant">
-              {domain.questions.length} Practice Questions
-            </span>
-          </div>
-
-          <div className="flex items-start gap-4">
-            <span className="text-5xl flex-shrink-0">{domain.icon}</span>
-            <div>
-              <h1 className="text-3xl font-headline font-black tracking-tight text-on-surface">{domain.title}</h1>
-              <p className="text-on-surface-variant mt-2 leading-relaxed">{domain.description}</p>
+            <div className="flex-1 pt-2">
+              <div className="dossier-meta mb-2">
+                Domain · {domain.weight}% of Exam
+              </div>
+              <h1 className="font-display font-bold text-ink text-4xl lg:text-5xl leading-[0.95] tracking-[-0.03em]">
+                {domain.title}
+              </h1>
             </div>
+            <span className="text-5xl leading-none flex-shrink-0 hidden sm:block">{domain.icon}</span>
           </div>
 
-          <div className="flex gap-2">
-            <button onClick={expandAll}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-surface-container hover:bg-surface-container-high text-on-surface-variant text-xs font-label transition-colors">
-              <ChevronDown size={13} /> Expand All
-            </button>
-            <button onClick={collapseAll}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-surface-container hover:bg-surface-container-high text-on-surface-variant text-xs font-label transition-colors">
-              <ChevronUp size={13} /> Collapse All
-            </button>
+          <div className="rule-thick" />
+
+          <p className="font-body text-[17px] leading-[1.6] text-ink-soft max-w-3xl">{domain.description}</p>
+        </header>
+
+        {/* Plain English */}
+        <aside className="border-2 border-ink bg-paper-fade p-6 flex gap-5">
+          <span className="font-display italic text-oxide text-4xl leading-none flex-shrink-0">§</span>
+          <div>
+            <div className="dossier-meta mb-1.5">Plain Reading</div>
+            <p className="font-body text-[16px] text-ink leading-[1.55]">{domain.plainEnglish}</p>
           </div>
-        </div>
+        </aside>
 
         {/* Concepts */}
-        <div className="space-y-3">
-          {domain.concepts.map((concept, index) => (
-            <div key={index} className="rounded-xl bg-surface-container-lowest border border-outline-variant/20 overflow-hidden shadow-sm">
-
-              {/* Concept header */}
-              <button
-                onClick={() => toggleConcept(index)}
-                className="w-full flex items-center justify-between p-5 hover:bg-surface-container-low transition-colors text-left"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-8 h-8 rounded-lg bg-primary/8 flex items-center justify-center text-primary font-headline font-bold text-sm flex-shrink-0">
-                    {index + 1}
-                  </div>
-                  <div>
-                    <h3 className="font-headline font-bold text-on-surface">{concept.title}</h3>
-                    {!expandedConcepts.has(index) && (
-                      <p className="text-on-surface-variant text-sm mt-0.5 line-clamp-1">
-                        {concept.content.slice(0, 90)}...
-                      </p>
-                    )}
-                  </div>
-                </div>
-                {expandedConcepts.has(index)
-                  ? <ChevronUp size={17} className="text-on-surface-variant flex-shrink-0" />
-                  : <ChevronDown size={17} className="text-on-surface-variant flex-shrink-0" />}
-              </button>
-
-              {/* Concept content */}
-              {expandedConcepts.has(index) && (
-                <div className="px-5 pb-6 space-y-6 border-t border-outline-variant/15">
-
-                  {/* Main content */}
-                  <p className="pt-5 text-on-surface-variant leading-relaxed">{concept.content}</p>
-
-                  {/* Key points */}
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <BookOpen size={15} className="text-primary" />
-                      <h4 className="font-headline font-bold text-on-surface text-sm">Key Points</h4>
-                    </div>
-                    <div className="space-y-2 pl-1">
-                      {concept.keyPoints.map((point, pi) => (
-                        <div key={pi} className="flex items-start gap-3">
-                          <div className="w-4 h-4 rounded-full bg-primary/8 border border-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                          </div>
-                          <p className="text-on-surface text-sm leading-relaxed">{point}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Exam trap */}
-                  {concept.examTrap && (
-                    <div className="p-4 rounded-lg bg-error-container/20 border border-error/20 space-y-1.5">
-                      <div className="flex items-center gap-2">
-                        <AlertTriangle size={15} className="text-error" />
-                        <h4 className="font-headline font-bold text-on-surface text-sm">Exam Trap</h4>
-                      </div>
-                      <p className="text-on-surface-variant text-sm leading-relaxed">{concept.examTrap}</p>
-                    </div>
-                  )}
-
-                  {/* Code example */}
-                  {concept.codeExample && (
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <Code size={15} className="text-primary" />
-                        <h4 className="font-headline font-bold text-on-surface text-sm">Code Example</h4>
-                      </div>
-                      <pre className="p-4 rounded-lg bg-inverse-surface text-inverse-on-surface text-xs leading-relaxed overflow-x-auto">
-                        <code>{concept.codeExample}</code>
-                      </pre>
-                    </div>
-                  )}
-
-                  {/* AI Quiz */}
-                  <ConceptQuiz
-                    conceptTitle={concept.title}
-                    conceptContent={concept.content}
-                    keyPoints={concept.keyPoints}
-                    domainName={domain.title}
-                  />
-                </div>
-              )}
+        <section className="space-y-4">
+          <div className="flex items-end justify-between gap-4 border-b-2 border-ink pb-3">
+            <div>
+              <div className="section-no !text-3xl">№ 01</div>
+              <div className="dossier-meta">The Concepts</div>
+              <h2 className="font-display font-bold text-ink text-3xl tracking-[-0.02em] mt-1">
+                {domain.concepts.length} Readings.
+              </h2>
             </div>
-          ))}
-        </div>
+            <div className="flex gap-2">
+              <button onClick={expandAll}
+                className="flex items-center gap-1.5 px-3 py-2 border border-ink text-ink hover:bg-ink hover:text-paper font-label text-[10px] uppercase tracking-[0.18em] transition-colors">
+                <ChevronDown size={12} /> Open All
+              </button>
+              <button onClick={collapseAll}
+                className="flex items-center gap-1.5 px-3 py-2 border border-ink text-ink hover:bg-ink hover:text-paper font-label text-[10px] uppercase tracking-[0.18em] transition-colors">
+                <ChevronUp size={12} /> Close All
+              </button>
+            </div>
+          </div>
 
-        {/* Practice Exam CTA */}
-        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between p-6 rounded-xl bg-primary/5 border border-primary/15">
+          <div className="space-y-3">
+            {domain.concepts.map((concept, index) => {
+              const isOpen = expandedConcepts.has(index);
+              return (
+                <article key={index} className="border-2 border-ink bg-paper-fade overflow-hidden">
+                  <button
+                    onClick={() => toggleConcept(index)}
+                    className={`w-full flex items-center justify-between p-5 transition-colors text-left ${isOpen ? "bg-ink text-paper" : "hover:bg-paper"}`}
+                  >
+                    <div className="flex items-baseline gap-5">
+                      <span className={`font-display italic tabular text-3xl leading-none flex-shrink-0 w-10 ${isOpen ? "text-foil" : "text-oxide"}`}>
+                        {String(index + 1).padStart(2, "0")}.
+                      </span>
+                      <div>
+                        <div className={`dossier-meta ${isOpen ? "!text-paper/60" : ""}`}>Reading {index + 1}</div>
+                        <h3 className={`font-display font-bold text-lg leading-tight tracking-[-0.01em] mt-0.5 ${isOpen ? "text-paper" : "text-ink"}`}>
+                          {concept.title}
+                        </h3>
+                        {!isOpen && (
+                          <p className="font-body text-[14px] text-ink-fade mt-1 line-clamp-1 max-w-2xl">
+                            {concept.content.slice(0, 120)}…
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    {isOpen
+                      ? <ChevronUp size={17} className="text-paper/70 flex-shrink-0" />
+                      : <ChevronDown size={17} className="text-ink-fade flex-shrink-0" />}
+                  </button>
+
+                  {isOpen && (
+                    <div className="p-7 space-y-7 border-t-2 border-ink bg-paper">
+
+                      {/* Main body */}
+                      <p className="font-body text-[16px] leading-[1.65] text-ink first-letter:font-display first-letter:font-bold first-letter:text-[3rem] first-letter:float-left first-letter:leading-[0.85] first-letter:mr-2 first-letter:mt-1 first-letter:text-oxide">
+                        {concept.content}
+                      </p>
+
+                      {/* Key points */}
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-3 border-b border-ink/15 pb-2">
+                          <span className="font-display italic text-oxide text-xl leading-none">✦</span>
+                          <h4 className="font-label text-[11px] uppercase tracking-[0.22em] text-ink font-semibold">Key Points</h4>
+                        </div>
+                        <ol className="space-y-2.5">
+                          {concept.keyPoints.map((point, pi) => (
+                            <li key={pi} className="grid grid-cols-[2rem_1fr] gap-3 items-baseline">
+                              <span className="font-display italic text-oxide tabular">
+                                {String.fromCharCode(97 + pi)}.
+                              </span>
+                              <span className="font-body text-[15px] leading-[1.55] text-ink">{point}</span>
+                            </li>
+                          ))}
+                        </ol>
+                      </div>
+
+                      {/* Exam trap */}
+                      {concept.examTrap && (
+                        <div className="border-2 border-oxide bg-oxide/5 p-5 space-y-2">
+                          <div className="flex items-center gap-3">
+                            <span className="stamp text-oxide border-oxide">⚠ Trap</span>
+                            <h4 className="font-display font-bold text-ink text-base">Exam Trap</h4>
+                          </div>
+                          <div className="rule-hair" />
+                          <p className="font-body text-[15px] leading-[1.55] text-ink">{concept.examTrap}</p>
+                        </div>
+                      )}
+
+                      {/* Code example */}
+                      {concept.codeExample && (
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-3 border-b border-ink/15 pb-2">
+                            <span className="dossier-meta">Code Specimen</span>
+                          </div>
+                          <pre className="text-[0.82rem]"><code>{concept.codeExample}</code></pre>
+                        </div>
+                      )}
+
+                      {/* Concept quiz */}
+                      <ConceptQuiz
+                        conceptTitle={concept.title}
+                        conceptContent={concept.content}
+                        keyPoints={concept.keyPoints}
+                        domainName={domain.title}
+                      />
+                    </div>
+                  )}
+                </article>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Practice exam CTA */}
+        <aside className="border-2 border-ink bg-ink text-paper p-8 flex flex-col sm:flex-row gap-6 items-start sm:items-center justify-between relative overflow-hidden">
+          <span aria-hidden className="absolute -top-2 -left-2 w-4 h-4 border-t-2 border-l-2 border-foil pointer-events-none" />
+          <span aria-hidden className="absolute -bottom-2 -right-2 w-4 h-4 border-b-2 border-r-2 border-foil pointer-events-none" />
           <div>
-            <h3 className="font-headline font-bold text-on-surface">Ready to test your knowledge?</h3>
-            <p className="text-on-surface-variant text-sm mt-1 font-label">
-              {domain.questions.length} practice questions · Need ≥70% to pass
+            <div className="dossier-meta !text-paper/60 mb-2">Examination</div>
+            <h3 className="font-display font-bold text-3xl tracking-[-0.02em] leading-tight">
+              Ready to be <span className="italic font-light text-foil" style={{ fontVariationSettings: '"opsz" 144, "SOFT" 100' }}>tested</span>, candidate?
+            </h3>
+            <p className="font-body text-[15px] leading-snug text-paper/70 mt-2">
+              {domain.questions.length} exam-style questions · pass mark {">= 70%"}
             </p>
           </div>
           <Link
             href={`/domain/${domain.id}/practice`}
-            className="flex items-center gap-2 px-6 py-3 rounded-md bg-gradient-to-r from-primary to-primary-container text-on-primary font-headline font-bold text-sm hover:opacity-90 transition-all whitespace-nowrap shadow-sm"
+            className="flex-shrink-0 flex items-center gap-2 bg-foil text-ink hover:bg-paper px-6 py-3 font-label text-[11px] uppercase tracking-[0.18em] font-semibold transition-colors"
           >
-            Start Practice Exam
-            <ArrowRight size={16} />
+            Sit Exam <ArrowUpRight size={14} />
           </Link>
-        </div>
+        </aside>
 
         {/* AI Chat */}
-        <AiChat
-          domainName={domain.title}
-          domainId={domain.id}
-          context={`Domain ${domainNum}: ${domain.title}. Key concepts: ${domain.concepts.map((c) => c.title).join(", ")}.`}
-        />
+        <section className="space-y-3">
+          <div className="flex items-end gap-4 border-b-2 border-ink pb-2">
+            <div className="section-no !text-3xl">№ 02</div>
+            <div className="flex-1">
+              <div className="dossier-meta">The Tutor</div>
+              <h2 className="font-display font-bold text-ink text-2xl tracking-[-0.02em]">
+                Consult Claude on this Domain.
+              </h2>
+            </div>
+          </div>
+          <AiChat
+            domainName={domain.title}
+            domainId={domain.id}
+            context={`Domain ${domainNum}: ${domain.title}. Key concepts: ${domain.concepts.map((c) => c.title).join(", ")}.`}
+          />
+        </section>
 
-        {/* Prev / Next navigation */}
-        <div className="flex justify-between items-center pt-4 border-t border-outline-variant/20">
+        {/* Prev / Next */}
+        <nav className="flex justify-between items-center pt-6 border-t-2 border-ink gap-4">
           {prevDomain ? (
             <Link href={`/domain/${prevDomain.id}`}
-              className="flex items-center gap-2 px-4 py-2 rounded-md bg-surface-container-lowest border border-outline-variant/20 hover:border-primary/30 text-on-surface-variant hover:text-primary text-sm font-label transition-colors shadow-sm">
-              <ArrowLeft size={15} />
-              Domain {getDomainNumber(prevDomain.id)}
+              className="flex items-center gap-2 px-4 py-2.5 border border-ink text-ink hover:bg-ink hover:text-paper font-label text-[11px] uppercase tracking-[0.18em] transition-colors">
+              <ArrowLeft size={13} />
+              <span>Previous · {ROMANS[getDomainNumber(prevDomain.id) - 1] || getDomainNumber(prevDomain.id)}</span>
             </Link>
           ) : <div />}
 
           {nextDomain ? (
             <Link href={`/domain/${nextDomain.id}`}
-              className="flex items-center gap-2 px-4 py-2 rounded-md bg-surface-container-lowest border border-outline-variant/20 hover:border-primary/30 text-on-surface-variant hover:text-primary text-sm font-label transition-colors shadow-sm">
-              Domain {getDomainNumber(nextDomain.id)}
-              <ArrowRight size={15} />
+              className="flex items-center gap-2 px-4 py-2.5 border border-ink text-ink hover:bg-ink hover:text-paper font-label text-[11px] uppercase tracking-[0.18em] transition-colors">
+              <span>Next · {ROMANS[getDomainNumber(nextDomain.id) - 1] || getDomainNumber(nextDomain.id)}</span>
+              <ArrowUpRight size={13} />
             </Link>
           ) : (
-            <Link href="/dashboard"
-              className="flex items-center gap-2 px-4 py-2 rounded-md bg-gradient-to-r from-primary to-primary-container text-on-primary text-sm font-headline font-bold hover:opacity-90 transition-all shadow-sm">
-              Back to Dashboard
-              <ArrowRight size={15} />
+            <Link href="/dashboard" className="btn-ink">
+              Return to Dashboard <ArrowUpRight size={14} />
             </Link>
           )}
-        </div>
+        </nav>
       </div>
     </div>
   );

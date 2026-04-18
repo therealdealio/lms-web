@@ -3,9 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import { signIn, useSession } from "next-auth/react";
-import { ArrowRight, Eye, EyeOff, CheckCircle, X, BookOpen, Brain, Award } from "lucide-react";
+import { ArrowUpRight, Eye, EyeOff, X } from "lucide-react";
 import { loadProgress, setUser } from "@/lib/progress";
 import { courses, getDomainsForCourse } from "@/lib/curriculum";
 
@@ -52,6 +51,12 @@ function useReveal() {
 
 type AuthMode = "signin" | "signup";
 
+const DOSSIER_META = {
+  fileNo: "№ 01 / CERT-AAC",
+  classification: "PUBLIC · COMMUNITY DOSSIER",
+  edition: "Edition IV — Spring 2026",
+};
+
 export default function LandingPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
@@ -66,6 +71,7 @@ export default function LandingPage() {
   const [existingUser, setExistingUser] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [activeCourseTab, setActiveCourseTab] = useState("aai");
+  const [clock, setClock] = useState("");
   const revealProof = useReveal();
   const revealFeatures = useReveal();
   const revealHowItWorks = useReveal();
@@ -89,6 +95,19 @@ export default function LandingPage() {
     if (progress.user) setExistingUser(progress.user.name);
   }, []);
 
+  useEffect(() => {
+    const update = () => {
+      const d = new Date();
+      const hh = String(d.getUTCHours()).padStart(2, "0");
+      const mm = String(d.getUTCMinutes()).padStart(2, "0");
+      const ss = String(d.getUTCSeconds()).padStart(2, "0");
+      setClock(`${hh}:${mm}:${ss} UTC`);
+    };
+    update();
+    const id = setInterval(update, 1000);
+    return () => clearInterval(id);
+  }, []);
+
   const handleSSO = async (provider: string) => {
     setSsoLoading(provider);
     await signIn(provider, { callbackUrl: "/dashboard" });
@@ -97,19 +116,19 @@ export default function LandingPage() {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    if (!email.trim() || !password) { setError("Please enter your email and password."); return; }
+    if (!email.trim() || !password) { setError("Enter email and password."); return; }
     setIsLoading(true);
     const result = await signIn("credentials", { email: email.trim().toLowerCase(), password, redirect: false });
-    if (result?.error) { setError("Invalid email or password. Please try again."); setIsLoading(false); }
+    if (result?.error) { setError("Invalid credentials."); setIsLoading(false); }
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    if (!name.trim()) { setError("Please enter a username."); return; }
-    if (name.trim().length < 2 || name.trim().length > 30) { setError("Username must be 2–30 characters."); return; }
-    if (!email.trim() || !email.includes("@")) { setError("Please enter a valid email address."); return; }
-    if (password.length < 6) { setError("Password must be at least 6 characters."); return; }
+    if (!name.trim()) { setError("Enter a username."); return; }
+    if (name.trim().length < 2 || name.trim().length > 30) { setError("Username 2–30 characters."); return; }
+    if (!email.trim() || !email.includes("@")) { setError("Enter a valid email."); return; }
+    if (password.length < 6) { setError("Password min 6 characters."); return; }
     setIsLoading(true);
     const res = await fetch("/api/auth/signup", {
       method: "POST",
@@ -119,7 +138,7 @@ export default function LandingPage() {
     const data = await res.json();
     if (!res.ok) { setError(data.error || "Something went wrong."); setIsLoading(false); return; }
     const result = await signIn("credentials", { email: email.trim().toLowerCase(), password, redirect: false });
-    if (result?.error) { setError("Account created! Please sign in."); setAuthMode("signin"); setIsLoading(false); }
+    if (result?.error) { setError("Account created. Please sign in."); setAuthMode("signin"); setIsLoading(false); }
   };
 
   const openModal = (mode: AuthMode = "signup") => {
@@ -133,22 +152,43 @@ export default function LandingPage() {
     setError("");
   };
 
+  const tickerItems = [
+    "AGENT ARCHITECTURE",
+    "TOOL DESIGN & MCP",
+    "CLAUDE CODE",
+    "PROMPT ENGINEERING",
+    "CONTEXT MANAGEMENT",
+    "CLAUDE FUNDAMENTALS",
+    "SAFETY & RESPONSIBLE USE",
+    "VISION & MULTIMODAL",
+  ];
+
   return (
-    <div className="min-h-screen bg-surface text-on-surface noise-overlay">
+    <div className="min-h-screen bg-paper text-ink paper-fiber">
 
       {/* ── Nav ── */}
-      <nav className="fixed top-0 w-full z-50 glass border-b border-outline-variant/20">
-        <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-3">
-            <img src="/logo.svg" alt="LAA Logo" className="w-8 h-8 rounded-lg" />
-            <span className="font-headline font-bold text-on-surface tracking-tight">Learn Agent Architecture</span>
+      <nav className="fixed top-0 w-full z-50 bg-paper/90 backdrop-blur-sm border-b border-ink">
+        <div className="max-w-[1440px] mx-auto flex items-center justify-between px-8 py-4">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
+              <span className="font-display font-black text-ink text-lg leading-none tracking-tight">L·A·A</span>
+              <div className="hidden sm:block h-5 w-px bg-ink/40" />
+              <div className="hidden sm:flex flex-col leading-tight">
+                <span className="font-label text-[10px] uppercase tracking-[0.22em] text-ink-fade">Dossier</span>
+                <span className="font-display text-[13px] font-semibold text-ink -mt-0.5 italic">Learn Agent Architecture</span>
+              </div>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 md:gap-4">
             <a href="#curriculum" onClick={(e) => { e.preventDefault(); document.getElementById("curriculum")?.scrollIntoView({ behavior: "smooth" }); }}
-              className="text-on-surface-variant hover:text-primary transition-colors text-sm font-label font-medium hidden md:block px-3 py-2">
-              Curriculum
+              className="hidden md:inline-block font-label text-[11px] uppercase tracking-[0.18em] text-ink hover:text-oxide transition-colors link-sweep px-2">
+              Syllabus
             </a>
-            <Link href="/about" className="text-on-surface-variant hover:text-primary transition-colors text-sm font-label font-medium hidden md:block px-3 py-2">
+            <a href="#dossier" onClick={(e) => { e.preventDefault(); document.getElementById("dossier")?.scrollIntoView({ behavior: "smooth" }); }}
+              className="hidden md:inline-block font-label text-[11px] uppercase tracking-[0.18em] text-ink hover:text-oxide transition-colors link-sweep px-2">
+              Dossier
+            </a>
+            <Link href="/about" className="hidden md:inline-block font-label text-[11px] uppercase tracking-[0.18em] text-ink hover:text-oxide transition-colors link-sweep px-2">
               About
             </Link>
             {process.env.NODE_ENV === "development" && (
@@ -157,12 +197,11 @@ export default function LandingPage() {
                   setUser({ name: "Dev User", email: "dev@local.test", startedAt: new Date().toISOString() });
                   router.push("/dashboard");
                 }}
-                className="text-xs px-3 py-1.5 rounded border border-dashed border-outline-variant text-on-surface-variant hover:border-primary hover:text-primary transition-colors font-label">
-                Dev Login
+                className="font-label text-[10px] uppercase tracking-[0.18em] text-ink-fade border border-dashed border-ink-fade px-2.5 py-1 hover:text-oxide hover:border-oxide transition-colors">
+                Dev
               </button>
             )}
-            <button onClick={() => openModal("signin")}
-              className="bg-gradient-to-r from-primary to-primary-container text-on-primary px-5 py-2.5 rounded-md font-headline font-bold text-sm hover:opacity-90 transition-all active:scale-95">
+            <button onClick={() => openModal("signin")} className="btn-ink">
               Sign In
             </button>
           </div>
@@ -171,436 +210,576 @@ export default function LandingPage() {
 
       <main className="pt-[73px]">
 
-        {/* ── Hero — sell first, show a visual ── */}
-        <section className="relative overflow-hidden min-h-[92vh] flex items-center">
-          <div className="absolute inset-0 blueprint-grid pointer-events-none" />
-          <div className="hero-blob absolute top-0 right-0 w-[700px] h-[700px] bg-primary-container/10 rounded-full blur-3xl pointer-events-none translate-x-1/3 -translate-y-1/4" />
-          <div className="hero-blob-2 absolute bottom-0 left-0 w-96 h-96 bg-tertiary-fixed-dim/20 rounded-full blur-3xl pointer-events-none" />
-          <div className="hero-blob absolute top-1/2 left-1/3 w-80 h-80 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
-
-          <div className="relative z-10 max-w-7xl mx-auto px-6 py-20 w-full grid lg:grid-cols-2 gap-16 items-center">
-
-            {/* Left: copy */}
-            <div className="space-y-8">
-              <span className="animate-hero-1 inline-block text-xs tracking-[0.25em] uppercase text-primary font-headline font-bold bg-primary/8 px-3 py-1.5 rounded-full">
-                2 Certification Courses
-              </span>
-
-              <h1 className="animate-hero-2 text-6xl lg:text-7xl font-headline font-black leading-[0.88] tracking-[-0.04em] text-on-surface">
-                Your School<br /><span className="text-4xl lg:text-5xl font-accent italic text-on-surface-variant">For The</span> <span className="font-accent italic text-primary">Agentic Era.</span>
-              </h1>
-
-              <p className="animate-hero-3 text-lg text-on-surface-variant leading-relaxed max-w-lg">
-                The community study platform for <strong className="text-on-surface font-semibold">Anthropic Certifications</strong> — covering Agent Architecture and Prompt Engineering. AI-powered explanations, real practice questions, community forum.
-              </p>
-
-              <div className="animate-hero-3 flex flex-col gap-3">
-                {[
-                  "138+ exam-style practice questions across 16 domains",
-                  "2 courses: Agent Architecture + Prompt Engineering",
-                  "AI tutor & community forum for every domain",
-                ].map((item) => (
-                  <div key={item} className="flex items-start gap-3">
-                    <CheckCircle size={16} className="text-primary mt-0.5 flex-shrink-0" />
-                    <span className="text-on-surface-variant text-sm">{item}</span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="animate-hero-4 flex flex-wrap gap-4 pt-2">
-                <button onClick={() => openModal("signup")}
-                  className="inline-flex items-center gap-2 bg-gradient-to-r from-primary to-primary-container text-on-primary px-8 py-4 rounded-md font-headline font-bold text-lg shadow-lg shadow-primary/15 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/25 active:translate-y-0 transition-all duration-200">
-                  Start Learning Free <ArrowRight size={20} />
-                </button>
-                <a href="#curriculum" onClick={(e) => { e.preventDefault(); document.getElementById("curriculum")?.scrollIntoView({ behavior: "smooth" }); }}
-                  className="inline-flex items-center gap-2 border-2 border-primary/25 text-primary px-8 py-4 rounded-md font-headline font-bold text-lg hover:border-primary/60 hover:bg-primary/5 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200">
-                  View Curriculum
-                </a>
-              </div>
-            </div>
-
-            {/* Right: product preview mockup */}
-            <div className="hidden lg:block relative animate-hero-5 -mr-16">
-              {/* Outer glow frame */}
-              <div className="absolute -inset-4 bg-gradient-to-br from-primary/10 to-primary-container/5 rounded-2xl blur-xl" />
-
-              {/* Mock dashboard card */}
-              <div className="relative bg-surface-container-lowest rounded-2xl shadow-[0_24px_80px_-12px_rgba(0,0,0,0.15)] overflow-hidden border border-outline-variant/20" style={{ transform: "perspective(1200px) rotateY(-4deg)" }}>
-                {/* Mock nav bar */}
-                <div className="bg-surface-container-low px-5 py-3 flex items-center justify-between border-b border-outline-variant/20">
-                  <div className="flex items-center gap-2">
-                    <img src="/logo.svg" alt="" className="w-5 h-5 rounded" />
-                    <span className="text-xs font-headline font-bold text-on-surface">Dashboard</span>
-                  </div>
-                  <span className="text-[10px] font-label font-bold text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-full">
-                    Sample Preview
-                  </span>
-                </div>
-
-                {/* Mock content — mirrors real dashboard */}
-                <div className="p-4 space-y-3">
-                  {/* Welcome hero strip */}
-                  <div className="rounded-lg bg-gradient-to-r from-primary to-primary-container p-4 text-on-primary">
-                    <p className="text-[9px] font-label text-on-primary/70">Welcome back</p>
-                    <div className="text-sm font-headline font-black tracking-tight">Richard</div>
-                    <p className="text-[9px] font-label text-on-primary/80 mt-0.5">3 of 8 domains passed · Keep going!</p>
-                    <div className="mt-2 flex justify-between text-[9px]">
-                      <span className="text-on-primary/70 font-label">Overall Progress</span>
-                      <span className="font-headline font-bold">38%</span>
-                    </div>
-                    <div className="h-1 bg-on-primary/20 rounded-full overflow-hidden mt-1">
-                      <div className="h-full bg-on-primary rounded-full animate-progress-loop" />
-                    </div>
-                  </div>
-
-                  {/* Stat cards row */}
-                  <div className="grid grid-cols-4 gap-2">
-                    {[
-                      { value: "3/8", label: "Passed", color: "text-emerald-600" },
-                      { value: "5/8", label: "Started", color: "text-primary" },
-                      { value: "12", label: "Prompts", color: "text-on-surface" },
-                      { value: "—", label: "Cert", color: "text-on-surface-variant" },
-                    ].map((s) => (
-                      <div key={s.label} className="p-2 rounded-lg bg-surface-container-lowest border border-outline-variant/20">
-                        <div className={`text-sm font-headline font-bold ${s.color}`}>{s.value}</div>
-                        <div className="text-[8px] text-on-surface-variant font-label">{s.label}</div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Course tabs */}
-                  <div className="flex gap-1 border-b border-outline-variant/25">
-                    <span className="px-2 py-1.5 text-[10px] font-headline font-bold text-primary border-b-2 border-primary -mb-px">🤖 Agentic AI</span>
-                    <span className="px-2 py-1.5 text-[10px] font-headline font-bold text-on-surface-variant -mb-px">✍️ Prompt Eng.</span>
-                    <span className="px-2 py-1.5 text-[10px] font-label text-on-surface-variant -mb-px">💬 Forum</span>
-                  </div>
-
-                  {/* Domain cards grid */}
-                  <div className="grid grid-cols-2 gap-2">
-                    {[
-                      { icon: "🏗️", num: 1, title: "Agentic Architecture", weight: 27, score: 85, passed: true },
-                      { icon: "🔧", num: 2, title: "Tool Design & MCP", weight: 18, score: 78, passed: true },
-                      { icon: "⚙️", num: 3, title: "Claude Code Config", weight: 20, score: null, passed: false },
-                      { icon: "✏️", num: 4, title: "Prompt Engineering", weight: 20, score: null, passed: false },
-                    ].map((d) => (
-                      <div key={d.title} className="p-2.5 rounded-lg bg-surface-container-lowest border border-outline-variant/20 space-y-1.5">
-                        <div className="flex items-start gap-1.5">
-                          <span className="text-base">{d.icon}</span>
-                          <div className="flex-1 min-w-0">
-                            <span className="text-[8px] font-label font-bold text-primary bg-primary/8 px-1.5 py-0.5 rounded-full">
-                              Domain {d.num} · {d.weight}%
-                            </span>
-                            <div className="text-[10px] font-headline font-bold text-on-surface leading-tight mt-0.5">{d.title}</div>
-                          </div>
-                        </div>
-                        {d.score !== null && (
-                          <div className="space-y-1">
-                            <div className="flex justify-between text-[8px]">
-                              <span className="text-on-surface-variant">Best Score</span>
-                              <span className={`font-bold ${d.passed ? "text-emerald-600" : "text-red-500"}`}>{d.score}%</span>
-                            </div>
-                            <div className="h-0.5 bg-surface-container rounded-full overflow-hidden">
-                              <div className={`h-full rounded-full ${d.passed ? "bg-emerald-500" : "bg-red-400"}`} style={{ width: `${d.score}%` }} />
-                            </div>
-                          </div>
-                        )}
-                        <div className="flex gap-1.5">
-                          <span className="flex-1 text-center text-[8px] font-headline font-bold text-on-primary bg-gradient-to-r from-primary to-primary-container rounded px-2 py-1">
-                            {d.passed ? "Review" : "Start"}
-                          </span>
-                          {d.score !== null && (
-                            <span className="text-center text-[8px] font-label text-on-surface-variant bg-surface-container rounded px-2 py-1 border border-outline-variant/30">
-                              Exam
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Floating trust badge */}
-              <div className="absolute -bottom-4 -left-4 bg-surface-container-lowest rounded-xl shadow-lg shadow-primary/10 px-4 py-3 border border-outline-variant/20 flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary-container flex items-center justify-center flex-shrink-0">
-                  <span className="text-on-primary text-xs font-headline font-black">✓</span>
-                </div>
-                <div>
-                  <div className="text-xs font-headline font-bold text-on-surface">Community Driven</div>
-                  <div className="text-[10px] text-on-surface-variant font-label">Free to start, always</div>
-                </div>
-              </div>
-            </div>
+        {/* ── Dossier masthead ── */}
+        <div className="border-b border-ink">
+          <div className="max-w-[1440px] mx-auto px-8 py-3 flex flex-wrap items-center justify-between gap-4 dossier-meta">
+            <span className="flex items-center gap-3">
+              <span className="inline-block w-2 h-2 bg-oxide rounded-full animate-pulse" />
+              {DOSSIER_META.fileNo}
+            </span>
+            <span className="hidden sm:block">{DOSSIER_META.classification}</span>
+            <span className="hidden md:block tabular">{clock || "—"}</span>
+            <span>{DOSSIER_META.edition}</span>
           </div>
-        </section>
+        </div>
 
-        {/* ── Social proof strip ── */}
-        <div ref={revealProof} className="reveal bg-surface-container border-y border-outline-variant/20 py-6">
-          <div className="max-w-7xl mx-auto px-6 flex flex-wrap items-center justify-center gap-10 text-center">
-            <div>
-              <div className="text-xl font-headline font-black text-primary"><span ref={counter2.ref}>{counter2.count}</span></div>
-              <div className="text-xs text-on-surface-variant font-label uppercase tracking-wider mt-0.5">Certification Courses</div>
-            </div>
-            <div>
-              <div className="text-xl font-headline font-black text-primary"><span ref={counter16.ref}>{counter16.count}</span></div>
-              <div className="text-xs text-on-surface-variant font-label uppercase tracking-wider mt-0.5">Exam Domains</div>
-            </div>
-            <div>
-              <div className="text-xl font-headline font-black text-primary"><span ref={counter138.ref}>{counter138.count}</span>+</div>
-              <div className="text-xs text-on-surface-variant font-label uppercase tracking-wider mt-0.5">Practice Questions</div>
-            </div>
-            <div>
-              <div className="text-xl font-headline font-black text-primary">AI</div>
-              <div className="text-xs text-on-surface-variant font-label uppercase tracking-wider mt-0.5">Powered Explanations</div>
-            </div>
-            <div>
-              <div className="text-xl font-headline font-black text-primary">Free</div>
-              <div className="text-xs text-on-surface-variant font-label uppercase tracking-wider mt-0.5">To Start</div>
+        {/* ── Ticker ── */}
+        <div className="border-b-2 border-ink bg-ink text-paper overflow-hidden">
+          <div className="py-3 flex items-center">
+            <div className="ticker-track">
+              {[...tickerItems, ...tickerItems, ...tickerItems].map((item, i) => (
+                <span key={i} className="font-label text-xs tracking-[0.22em] mx-10 flex items-center gap-4">
+                  <span className="text-oxide">✕</span>
+                  {item}
+                </span>
+              ))}
             </div>
           </div>
         </div>
 
-        {/* ── Features Bento ── */}
-        <section ref={revealFeatures} className="reveal py-24 bg-surface-container-low">
-          <div className="max-w-7xl mx-auto px-6">
-            <div className="mb-16">
-              <span className="text-xs tracking-[0.2em] uppercase text-primary font-headline font-bold">What&apos;s Included</span>
-              <h2 className="text-4xl md:text-5xl font-headline font-black tracking-tight mt-3 mb-4 text-on-surface">
-                Everything you need<br />to get certified.
-              </h2>
+        {/* ── Hero: editorial broadsheet ── */}
+        <section className="relative overflow-hidden">
+          <div className="absolute inset-0 hairline-grid pointer-events-none opacity-70" />
+          <div className="relative z-10 max-w-[1440px] mx-auto px-8 py-14 lg:py-24">
+
+            {/* Top rail */}
+            <div className="flex flex-wrap items-end justify-between mb-10 gap-4">
+              <div className="animate-hero-1 space-y-1">
+                <div className="dossier-meta">Volume I · Chapter One</div>
+                <div className="font-label text-[11px] tracking-[0.2em] text-oxide uppercase">Prepared for Candidates of the Anthropic Architecture Certification</div>
+              </div>
+              <div className="animate-hero-1 text-right hidden sm:block">
+                <div className="dossier-meta">Authorisation</div>
+                <div className="stamp text-oxide border-oxide">✓ Community Cleared</div>
+              </div>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-5">
-              {/* Certification — large */}
-              <div className="md:col-span-2 bento-card bg-surface rounded-xl overflow-hidden flex flex-col shadow-sm">
-                <div className="h-56 overflow-hidden relative">
-                  <Image src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=900&q=80&auto=format&fit=crop"
-                    alt="Professional working toward AI certification" fill className="object-cover" sizes="(max-width: 768px) 100vw, 66vw" priority />
-                </div>
-                <div className="p-8">
-                  <span className="text-xs font-label font-bold uppercase tracking-widest text-primary mb-3 block">Certification Prep</span>
-                  <h3 className="text-2xl font-headline font-bold mb-2 text-on-surface">Two Anthropic Certifications</h3>
-                  <p className="text-on-surface-variant text-sm leading-relaxed">
-                    Prepare for the Agent Architecture and Prompt Engineering certifications — covering everything from agentic orchestration to advanced prompting techniques.
+            <div className="rule-thick mb-12" />
+
+            {/* Headline */}
+            <div className="grid grid-cols-12 gap-6 lg:gap-10 items-end">
+              <div className="col-span-12 lg:col-span-9">
+                <h1 className="animate-hero-2 font-display font-display-opsz text-[14vw] sm:text-[11vw] lg:text-[9.5rem] xl:text-[11rem] leading-[0.82] tracking-[-0.045em] text-ink">
+                  <span className="block">A School</span>
+                  <span className="block italic font-light" style={{ fontVariationSettings: '"opsz" 144, "SOFT" 100' }}>
+                    for the
+                  </span>
+                  <span className="block text-oxide">Agentic Era.</span>
+                </h1>
+              </div>
+              <div className="col-span-12 lg:col-span-3 space-y-5 pb-3">
+                <div className="animate-hero-3">
+                  <div className="dossier-meta mb-1">Subject</div>
+                  <p className="font-body text-[15px] leading-snug text-ink">
+                    Community study platform for <em className="font-semibold not-italic">Anthropic&apos;s</em> two certifications — <span className="font-semibold">Agent Architecture</span> and <span className="font-semibold">Prompt Engineering</span>.
                   </p>
                 </div>
-              </div>
-
-              {/* AI Q&A */}
-              <div className="bento-card bg-primary rounded-xl overflow-hidden flex flex-col shadow-sm">
-                <div className="h-56 overflow-hidden relative">
-                  <Image src="https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=600&q=80&auto=format&fit=crop"
-                    alt="AI visualization" fill className="object-cover opacity-40" sizes="(max-width: 768px) 100vw, 33vw" />
-                  <div className="absolute inset-0 bg-gradient-to-b from-primary/30 to-primary" />
-                </div>
-                <div className="p-8 text-on-primary">
-                  <span className="text-xs font-label font-bold uppercase tracking-widest opacity-70 mb-3 block">Study Tool</span>
-                  <h3 className="text-2xl font-headline font-bold mb-2">AI-Powered Q&A</h3>
-                  <p className="opacity-75 text-sm leading-relaxed">Ask any concept question and get an instant, detailed explanation from an AI tutor. Available anytime you need it.</p>
+                <div className="rule-hair" />
+                <div className="animate-hero-3 font-label text-[11px] uppercase tracking-[0.18em] text-ink-soft">
+                  Directed Self-Study · 16 Domains · 138+ Questions
                 </div>
               </div>
+            </div>
 
-              {/* Practice Exams */}
-              <div className="bento-card bg-surface rounded-xl overflow-hidden flex flex-col shadow-sm">
-                <div className="h-56 overflow-hidden relative">
-                  <Image src="https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=600&q=80&auto=format&fit=crop"
-                    alt="Person studying" fill className="object-cover" sizes="(max-width: 768px) 100vw, 33vw" />
-                </div>
-                <div className="p-8">
-                  <span className="text-xs font-label font-bold uppercase tracking-widest text-primary mb-3 block">Practice</span>
-                  <h3 className="text-2xl font-headline font-bold mb-2 text-on-surface">Realistic Practice Exams</h3>
-                  <p className="text-on-surface-variant text-sm leading-relaxed">138+ multiple-choice questions across both courses with detailed answer explanations. Learn from every attempt.</p>
-                </div>
+            {/* Hero footer */}
+            <div className="rule-thick mt-16 mb-6" />
+            <div className="grid grid-cols-12 gap-6 lg:gap-10">
+              <div className="col-span-12 lg:col-span-5 animate-hero-3">
+                <p className="font-body text-lg leading-[1.55] text-ink-soft first-letter:font-display first-letter:font-bold first-letter:text-[4.5rem] first-letter:float-left first-letter:leading-[0.85] first-letter:mr-3 first-letter:mt-1 first-letter:text-oxide">
+                  Every candidate for an Anthropic certification eventually confronts the same problem: scattered documents, no structured curriculum, no community, no practice exams worth the name. This dossier exists to solve that.
+                </p>
               </div>
 
-              {/* Community Forum — wide */}
-              <div className="md:col-span-2 bento-card bg-inverse-surface rounded-xl overflow-hidden flex flex-col shadow-sm">
-                <div className="h-56 overflow-hidden relative">
-                  <Image src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=900&q=80&auto=format&fit=crop"
-                    alt="Team collaborating" fill className="object-cover opacity-30" sizes="(max-width: 768px) 100vw, 66vw" />
-                  <div className="absolute inset-0 bg-gradient-to-b from-transparent to-inverse-surface/95" />
-                </div>
-                <div className="p-8 text-inverse-on-surface">
-                  <span className="text-xs font-label font-bold uppercase tracking-widest opacity-50 mb-3 block">Community</span>
-                  <h3 className="text-2xl font-headline font-bold mb-2">Community Forum</h3>
-                  <p className="opacity-60 text-sm leading-relaxed mb-5">Domain-specific discussions, peer support, and exam tips from engineers working through the same material.</p>
-                  <div className="flex gap-2 flex-wrap">
-                    {["16 Domains", "2 Courses", "Free Forever"].map((tag) => (
-                      <span key={tag} className="bg-white/10 text-white/80 px-3 py-1 rounded-full text-xs font-headline font-bold">{tag}</span>
-                    ))}
-                  </div>
-                </div>
+              <div className="col-span-12 lg:col-span-4 animate-hero-4 space-y-4">
+                <div className="dossier-meta">Contents</div>
+                <ol className="space-y-3">
+                  {[
+                    { n: "I", t: "AI tutor for every concept, every domain." },
+                    { n: "II", t: "138+ exam-style practice questions, explained." },
+                    { n: "III", t: "Domain-by-domain forum, moderated by peers." },
+                    { n: "IV", t: "Certificate upon mastery of all domains." },
+                  ].map(({ n, t }) => (
+                    <li key={n} className="grid grid-cols-[2rem_1fr] gap-3 items-baseline border-b border-ink/10 pb-2">
+                      <span className="font-display italic text-oxide tabular text-lg">{n}.</span>
+                      <span className="font-body text-[15px] text-ink leading-snug">{t}</span>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+
+              <div className="col-span-12 lg:col-span-3 animate-hero-4 flex flex-col gap-3 justify-end">
+                <button onClick={() => openModal("signup")} className="btn-ink w-full justify-between">
+                  <span>Open Dossier</span>
+                  <ArrowUpRight size={16} />
+                </button>
+                <a href="#curriculum" onClick={(e) => { e.preventDefault(); document.getElementById("curriculum")?.scrollIntoView({ behavior: "smooth" }); }}
+                   className="btn-ghost w-full justify-between">
+                  <span>Read Syllabus</span>
+                  <ArrowUpRight size={16} />
+                </a>
+                <p className="font-label text-[10px] uppercase tracking-[0.18em] text-ink-fade text-center mt-1">
+                  No payment · 15 AI prompts gratis
+                </p>
               </div>
             </div>
           </div>
         </section>
 
-        {/* ── How It Works ── */}
-        <section ref={revealHowItWorks} className="reveal py-24 bg-surface">
-          <div className="max-w-7xl mx-auto px-6">
-            <div className="text-center mb-16">
-              <span className="text-xs tracking-[0.2em] uppercase text-primary font-headline font-bold">How It Works</span>
-              <h2 className="text-4xl md:text-5xl font-headline font-black tracking-tight mt-3 mb-4 text-on-surface">
-                Three steps to certified.
-              </h2>
+        {/* ── Statistics rail ── */}
+        <section ref={revealProof} className="reveal border-y-2 border-ink bg-paper-deep">
+          <div className="max-w-[1440px] mx-auto px-8 py-10 grid grid-cols-2 md:grid-cols-5 divide-x divide-ink/20">
+            {[
+              { label: "Certifications", value: <span ref={counter2.ref}>{counter2.count}</span>, suffix: "" },
+              { label: "Exam Domains", value: <span ref={counter16.ref}>{counter16.count}</span>, suffix: "" },
+              { label: "Questions", value: <span ref={counter138.ref}>{counter138.count}</span>, suffix: "+" },
+              { label: "AI Tutor", value: <span>∞</span>, suffix: "" },
+              { label: "To Begin", value: <span className="italic font-display">Free</span>, suffix: "" },
+            ].map(({ label, value, suffix }, i) => (
+              <div key={i} className="px-6 first:pl-0 last:pr-0">
+                <div className="dossier-meta mb-2">§ 0{i + 1}</div>
+                <div className="font-display text-5xl md:text-6xl font-bold text-ink tabular leading-none">
+                  {value}{suffix}
+                </div>
+                <div className="mt-2 font-label text-[11px] uppercase tracking-[0.18em] text-ink-soft">{label}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ── Exhibit A — animated specimen sheet ── */}
+        <section className="py-24 bg-paper hairline-grid border-b border-ink/15">
+          <div className="max-w-[1440px] mx-auto px-8">
+            <div className="grid grid-cols-12 gap-10 items-start">
+              {/* Left — caption block */}
+              <div className="col-span-12 lg:col-span-4 lg:sticky lg:top-32">
+                <div className="section-no">№ 02</div>
+                <div className="rule-thick my-4 w-16" />
+                <div className="dossier-meta mb-2">Exhibit A · Specimen Sheet</div>
+                <h2 className="font-display font-display-tight text-5xl lg:text-6xl font-bold leading-[0.92] tracking-[-0.03em] text-ink">
+                  A page from <br />the candidate&apos;s<br /><span className="italic font-light text-oxide" style={{ fontVariationSettings: '"opsz" 144, "SOFT" 100' }}>dossier.</span>
+                </h2>
+                <p className="font-body text-[16px] leading-[1.6] text-ink-soft mt-6 max-w-sm">
+                  The candidate dashboard — rendered below as a specimen — tracks mastery per domain, preserves attempt history, and returns you to the concept that last gave trouble. Progress persists across sessions.
+                </p>
+                <div className="mt-6 flex flex-wrap gap-2">
+                  {["Progress by Domain", "Attempt History", "AI Tutor Quota", "Certificate Ledger"].map((tag) => (
+                    <span key={tag} className="font-label text-[10px] uppercase tracking-[0.16em] text-ink border border-ink px-2.5 py-1">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+                <div className="mt-8 dossier-meta">
+                  Fig. 01 · Candidate Dashboard · Annotated
+                </div>
+              </div>
+
+              {/* Right — specimen frame */}
+              <div className="col-span-12 lg:col-span-8">
+                <figure className="relative">
+                  {/* Corner ticks */}
+                  <span aria-hidden className="absolute -top-2 -left-2 w-4 h-4 border-t-2 border-l-2 border-ink pointer-events-none" />
+                  <span aria-hidden className="absolute -top-2 -right-2 w-4 h-4 border-t-2 border-r-2 border-ink pointer-events-none" />
+                  <span aria-hidden className="absolute -bottom-2 -left-2 w-4 h-4 border-b-2 border-l-2 border-ink pointer-events-none" />
+                  <span aria-hidden className="absolute -bottom-2 -right-2 w-4 h-4 border-b-2 border-r-2 border-ink pointer-events-none" />
+
+                  {/* Specimen title bar */}
+                  <div className="border-2 border-ink border-b-0 bg-ink text-paper px-4 py-2.5 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className="flex gap-1.5">
+                        <span className="w-2.5 h-2.5 rounded-full bg-oxide" />
+                        <span className="w-2.5 h-2.5 rounded-full bg-foil" />
+                        <span className="w-2.5 h-2.5 rounded-full bg-paper/40" />
+                      </span>
+                      <span className="dossier-meta !text-paper/80">Specimen · /dashboard</span>
+                    </div>
+                    <span className="dossier-meta !text-paper/50 hidden sm:block">annotated · do not redistribute</span>
+                  </div>
+
+                  {/* Specimen body */}
+                  <div className="relative border-2 border-ink bg-paper-fade p-4 md:p-6">
+                    {/* Overlay stamp */}
+                    <span aria-hidden className="hidden md:flex absolute top-6 right-6 stamp text-oxide border-oxide bg-paper-fade/90 z-10">
+                      ✕ Sample
+                    </span>
+
+                    {/* Inner dashboard mock — reskinned to paper/ink */}
+                    <div className="space-y-4">
+                      {/* Welcome strip — ink on paper with oxide underline */}
+                      <div className="border-2 border-ink bg-ink text-paper p-5">
+                        <div className="flex items-baseline justify-between flex-wrap gap-2 mb-1">
+                          <div>
+                            <p className="dossier-meta !text-paper/60">Candidate File</p>
+                            <div className="font-display text-3xl font-bold tracking-[-0.02em] leading-none mt-1">Richard</div>
+                          </div>
+                          <div className="font-label text-[10px] uppercase tracking-[0.18em] text-foil">
+                            3 / 8 Domains · Passed
+                          </div>
+                        </div>
+                        <div className="mt-4 flex justify-between items-baseline">
+                          <span className="dossier-meta !text-paper/60">Overall Progress</span>
+                          <span className="font-display text-xl font-bold text-paper tabular">38<span className="text-foil">%</span></span>
+                        </div>
+                        <div className="h-[3px] bg-paper/15 overflow-hidden mt-2">
+                          <div className="h-full bg-foil animate-progress-loop" />
+                        </div>
+                      </div>
+
+                      {/* Stat cards row */}
+                      <div className="grid grid-cols-4 gap-2">
+                        {[
+                          { value: "3/8",  label: "Passed",  accent: "text-ink",       numeral: "I"   },
+                          { value: "5/8",  label: "Started", accent: "text-oxide",     numeral: "II"  },
+                          { value: "12",   label: "Prompts", accent: "text-ink",       numeral: "III" },
+                          { value: "—",    label: "Cert",    accent: "text-ink-fade",  numeral: "IV"  },
+                        ].map((s) => (
+                          <div key={s.label} className="border border-ink p-2.5 bg-paper">
+                            <div className="flex items-baseline justify-between mb-1">
+                              <span className="font-display italic text-oxide text-xs leading-none">{s.numeral}</span>
+                              <span className="font-label text-[8px] uppercase tracking-[0.14em] text-ink-fade">§</span>
+                            </div>
+                            <div className={`font-display text-lg font-bold tabular leading-none ${s.accent}`}>{s.value}</div>
+                            <div className="mt-1 font-label text-[9px] uppercase tracking-[0.16em] text-ink-soft">{s.label}</div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Course tabs */}
+                      <div className="flex gap-0 border-b border-ink/30">
+                        <span className="px-3 py-2 font-label text-[10px] uppercase tracking-[0.16em] text-ink border-b-2 border-ink -mb-px font-semibold">
+                          <span className="font-display italic text-oxide mr-1.5">I</span>Agentic AI
+                        </span>
+                        <span className="px-3 py-2 font-label text-[10px] uppercase tracking-[0.16em] text-ink-fade -mb-px">
+                          <span className="font-display italic mr-1.5">II</span>Prompt Eng.
+                        </span>
+                        <span className="px-3 py-2 font-label text-[10px] uppercase tracking-[0.16em] text-ink-fade -mb-px">
+                          Forum
+                        </span>
+                      </div>
+
+                      {/* Domain cards grid */}
+                      <div className="grid grid-cols-2 gap-2">
+                        {[
+                          { num: "01", title: "Agentic Architecture", weight: 27, score: 85,  passed: true  },
+                          { num: "02", title: "Tool Design & MCP",    weight: 18, score: 78,  passed: true  },
+                          { num: "03", title: "Claude Code Config",   weight: 20, score: null, passed: false },
+                          { num: "04", title: "Prompt Engineering",   weight: 20, score: null, passed: false },
+                        ].map((d) => (
+                          <div key={d.num} className="border border-ink bg-paper p-3 space-y-2">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1 min-w-0">
+                                <div className="font-label text-[9px] uppercase tracking-[0.16em] text-oxide">
+                                  Domain {d.num} · {d.weight}%
+                                </div>
+                                <div className="font-display font-bold text-ink text-[13px] leading-tight mt-0.5 tracking-[-0.01em]">
+                                  {d.title}
+                                </div>
+                              </div>
+                              {d.passed && (
+                                <span className="font-display italic text-oxide text-xl leading-none ml-2">✓</span>
+                              )}
+                            </div>
+                            {d.score !== null ? (
+                              <div className="space-y-1">
+                                <div className="flex justify-between font-label text-[9px] uppercase tracking-[0.14em]">
+                                  <span className="text-ink-fade">Best</span>
+                                  <span className={`font-bold tabular ${d.passed ? "text-emerald-700" : "text-oxide"}`}>{d.score}%</span>
+                                </div>
+                                <div className="h-[2px] bg-ink/10 overflow-hidden">
+                                  <div className={`h-full ${d.passed ? "bg-emerald-700" : "bg-oxide"}`} style={{ width: `${d.score}%` }} />
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="h-[2px] bg-ink/10" />
+                            )}
+                            <div className="flex gap-1.5 pt-0.5">
+                              <span className={`flex-1 text-center font-label text-[9px] uppercase tracking-[0.16em] px-2 py-1 font-semibold ${
+                                d.passed ? "bg-ink text-paper" : "bg-oxide text-paper"
+                              }`}>
+                                {d.passed ? "Review" : "Start"}
+                              </span>
+                              {d.score !== null && (
+                                <span className="text-center font-label text-[9px] uppercase tracking-[0.16em] text-ink bg-paper-deep border border-ink px-2 py-1">
+                                  Exam
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Caption */}
+                  <figcaption className="mt-4 flex flex-wrap items-center justify-between gap-3 font-label text-[10px] uppercase tracking-[0.18em] text-ink-soft">
+                    <span>Fig. 01 — Candidate Dashboard · /dashboard</span>
+                    <span className="text-ink-fade">Rendered at candidate tempo · progress bar animated</span>
+                  </figcaption>
+                </figure>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Dossier — What's Included (replaces bento) ── */}
+        <section id="dossier" ref={revealFeatures} className="reveal py-24 bg-paper">
+          <div className="max-w-[1440px] mx-auto px-8">
+            <div className="grid grid-cols-12 gap-10 mb-14">
+              <div className="col-span-12 lg:col-span-4">
+                <div className="section-no">№ 03</div>
+                <div className="rule-thick my-4 w-16" />
+                <div className="dossier-meta mb-2">Included in this Dossier</div>
+                <h2 className="font-display font-display-tight text-5xl lg:text-6xl font-bold leading-[0.92] tracking-[-0.03em] text-ink">
+                  What you <span className="italic font-light text-oxide" style={{ fontVariationSettings: '"opsz" 144, "SOFT" 100' }}>receive</span>.
+                </h2>
+              </div>
+              <div className="col-span-12 lg:col-span-7 lg:col-start-6 flex items-end">
+                <p className="font-body text-[17px] leading-[1.6] text-ink-soft max-w-lg">
+                  Four instruments, each designed for a specific stage of preparation — from unfamiliar concept, to confident answer, to certified candidate.
+                </p>
+              </div>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-8 relative">
-              {/* Connecting line */}
-              <div className="hidden md:block absolute top-16 left-[20%] right-[20%] h-px bg-gradient-to-r from-transparent via-primary/25 to-transparent" />
-
+            <div className="grid grid-cols-12 gap-5">
               {[
-                { step: "01", icon: <BookOpen size={28} className="text-primary" />, title: "Sign Up Free", desc: "Create your account in seconds. No credit card required. Start with full access to both certification courses." },
-                { step: "02", icon: <Brain size={28} className="text-primary" />, title: "Study & Practice", desc: "Work through 16 domains at your pace. Read concepts, ask the AI tutor, and test yourself with 138+ exam-style questions." },
-                { step: "03", icon: <Award size={28} className="text-primary" />, title: "Get Certified", desc: "Pass all domain exams with 70%+ and earn your shareable certificate. Prove your expertise to employers." },
-              ].map(({ step, icon, title, desc }) => (
-                <div key={step} className="relative text-center space-y-4">
-                  <div className="w-14 h-14 mx-auto rounded-2xl bg-primary/8 border border-primary/15 flex items-center justify-center">
-                    {icon}
+                { n: "I",   tag: "Instrument",  title: "Two Anthropic Certifications",     desc: "Agent Architecture & Prompt Engineering — every objective mapped to a domain, every domain to a study module.", span: "lg:col-span-7", accent: "oxide" },
+                { n: "II",  tag: "Study Tool",  title: "AI Tutor, on demand",               desc: "Ask the AI anything about any concept. Streaming explanations grounded in course material.", span: "lg:col-span-5", accent: "ink" },
+                { n: "III", tag: "Practice",    title: "138+ Exam-grade Questions",         desc: "Multiple-choice items written to match the real certification format, with detailed rationale.", span: "lg:col-span-5", accent: "ink" },
+                { n: "IV",  tag: "Community",   title: "Forum for every Domain",            desc: "Peer discussion, exam traps, unofficial commentary. Domain-scoped so nothing bleeds.", span: "lg:col-span-7", accent: "oxide" },
+              ].map(({ n, tag, title, desc, span, accent }) => (
+                <article key={n} className={`col-span-12 ${span} dossier-card p-10 flex flex-col gap-6 min-h-[320px]`}>
+                  <header className="flex items-start justify-between gap-6">
+                    <div className="flex items-baseline gap-4">
+                      <span className={`font-display italic text-6xl leading-none ${accent === "oxide" ? "text-oxide" : "text-ink"}`}>
+                        {n}
+                      </span>
+                      <div>
+                        <div className="dossier-meta">{tag}</div>
+                        <h3 className="font-display font-display-tight text-3xl font-bold tracking-tight text-ink leading-tight mt-1">
+                          {title}
+                        </h3>
+                      </div>
+                    </div>
+                    <ArrowUpRight size={22} className="text-ink mt-2 flex-shrink-0" />
+                  </header>
+                  <div className="rule-hair" />
+                  <p className="font-body text-[16px] leading-[1.55] text-ink-soft">
+                    {desc}
+                  </p>
+                  <div className="mt-auto font-label text-[10px] uppercase tracking-[0.22em] text-ink-fade">
+                    Item {n} of IV
                   </div>
-                  <span className="text-xs font-headline font-bold text-primary/50 tracking-widest">{step}</span>
-                  <h3 className="text-xl font-headline font-bold text-on-surface">{title}</h3>
-                  <p className="text-on-surface-variant text-sm leading-relaxed max-w-xs mx-auto">{desc}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── Procedure (How It Works) ── */}
+        <section ref={revealHowItWorks} className="reveal py-24 bg-paper-deep border-y-2 border-ink paper-grain">
+          <div className="max-w-[1440px] mx-auto px-8 relative z-10">
+            <div className="grid grid-cols-12 gap-10 mb-16">
+              <div className="col-span-12 lg:col-span-5">
+                <div className="section-no">№ 04</div>
+                <div className="rule-thick my-4 w-16" />
+                <div className="dossier-meta mb-2">Procedure</div>
+                <h2 className="font-display font-display-tight text-5xl lg:text-6xl font-bold leading-[0.92] tracking-[-0.03em] text-ink">
+                  Three moves.<br /><span className="italic font-light text-oxide" style={{ fontVariationSettings: '"opsz" 144, "SOFT" 100' }}>One outcome.</span>
+                </h2>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-12 gap-0 border-2 border-ink bg-paper">
+              {[
+                { step: "I",   title: "Enrol",                  desc: "Create an account in 30 seconds. No card. Both courses unlock instantly. Pick up where prior visitors left off via saved progress." },
+                { step: "II",  title: "Study & Drill",          desc: "Walk the 16 domains at your tempo. Concepts, then AI tutor, then questions. Revisit what still feels soft." },
+                { step: "III", title: "Earn the Certificate",   desc: "Pass every domain exam at seventy percent or above. Print a signed certificate. Ship it to recruiters or paste it into LinkedIn." },
+              ].map(({ step, title, desc }, i) => (
+                <div key={step} className={`col-span-12 md:col-span-4 p-10 relative ${i > 0 ? "md:border-l-2 md:border-ink" : ""} ${i < 2 ? "border-b-2 border-ink md:border-b-0" : ""}`}>
+                  <div className="flex items-start justify-between mb-6">
+                    <span className="font-display italic text-8xl text-oxide leading-none">{step}</span>
+                    <span className="dossier-meta mt-3">Step {i + 1} / 3</span>
+                  </div>
+                  <h3 className="font-display font-display-tight text-3xl font-bold text-ink leading-tight mb-4">
+                    {title}
+                  </h3>
+                  <p className="font-body text-[15px] leading-[1.6] text-ink-soft">{desc}</p>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* ── Testimonials ── */}
-        <section ref={revealTestimonials} className="reveal py-24 bg-surface-container-low">
-          <div className="max-w-7xl mx-auto px-6">
-            <div className="text-center mb-16">
-              <span className="text-xs tracking-[0.2em] uppercase text-primary font-headline font-bold">What Learners Say</span>
-              <h2 className="text-4xl md:text-5xl font-headline font-black tracking-tight mt-3 mb-4 text-on-surface">
-                Built by learners,<br />for learners.
-              </h2>
+        {/* ── Testimonials as field reports ── */}
+        <section ref={revealTestimonials} className="reveal py-24 bg-paper">
+          <div className="max-w-[1440px] mx-auto px-8">
+            <div className="grid grid-cols-12 gap-10 mb-14">
+              <div className="col-span-12 lg:col-span-6">
+                <div className="section-no">№ 05</div>
+                <div className="rule-thick my-4 w-16" />
+                <div className="dossier-meta mb-2">Field Reports</div>
+                <h2 className="font-display font-display-tight text-5xl lg:text-6xl font-bold leading-[0.92] tracking-[-0.03em] text-ink">
+                  Correspondence<br /><span className="italic font-light text-oxide" style={{ fontVariationSettings: '"opsz" 144, "SOFT" 100' }}>from the certified.</span>
+                </h2>
+              </div>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-12 gap-6">
               {[
-                { quote: "The AI tutor is a game-changer. I'd get stuck on a concept, ask a question, and get a clear explanation instantly. Passed on my first attempt.", name: "Sarah K.", role: "ML Engineer", avatar: "SK" },
-                { quote: "Way better than reading docs alone. The practice exams are realistic and the domain-by-domain approach kept me on track. Earned both certs in 3 weeks.", name: "James L.", role: "Solutions Architect", avatar: "JL" },
-                { quote: "The community forum was invaluable. Seeing how others approached tricky questions gave me confidence going into the real exam. Highly recommend.", name: "Priya M.", role: "AI Developer", avatar: "PM" },
-              ].map(({ quote, name, role, avatar }) => (
-                <div key={name} className="bento-card bg-surface rounded-xl p-8 shadow-sm border border-outline-variant/20 space-y-5">
-                  <div className="flex gap-1">
-                    {[...Array(5)].map((_, i) => (
-                      <span key={i} className="text-primary text-sm">★</span>
-                    ))}
-                  </div>
-                  <p className="text-on-surface-variant text-sm leading-relaxed italic">&ldquo;{quote}&rdquo;</p>
-                  <div className="flex items-center gap-3 pt-2">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary-container flex items-center justify-center flex-shrink-0">
-                      <span className="text-on-primary text-xs font-headline font-bold">{avatar}</span>
-                    </div>
+                { quote: "The AI tutor is a game-changer. I'd get stuck, ask, and receive an explanation I could actually work with. Passed on my first attempt.", name: "Sarah K.", role: "ML Engineer",       loc: "Berlin",   date: "02.26" },
+                { quote: "Superior to reading docs alone. Realistic practice exams. Domain-by-domain approach kept me moving. Both certifications inside three weeks.",         name: "James L.", role: "Solutions Architect", loc: "Toronto",  date: "01.26" },
+                { quote: "The forum was the surprise. Watching how others handled the traps gave me confidence before the real exam. Would recommend without qualification.",     name: "Priya M.", role: "AI Developer",    loc: "Bangalore", date: "03.26" },
+              ].map(({ quote, name, role, loc, date }, i) => (
+                <article key={name} className="col-span-12 md:col-span-4 bento-card bg-paper-fade border-2 border-ink p-8 flex flex-col gap-5">
+                  <header className="flex items-start justify-between">
+                    <div className="dossier-meta">Report № {String(i + 1).padStart(2, "0")}</div>
+                    <div className="dossier-meta text-oxide">{date}</div>
+                  </header>
+                  <div className="rule-hair" />
+                  <p className="font-display italic text-[20px] leading-[1.35] text-ink font-light" style={{ fontVariationSettings: '"opsz" 44, "SOFT" 60' }}>
+                    &ldquo;{quote}&rdquo;
+                  </p>
+                  <div className="rule-hair mt-auto" />
+                  <footer className="flex items-end justify-between">
                     <div>
-                      <div className="text-sm font-headline font-bold text-on-surface">{name}</div>
-                      <div className="text-xs text-on-surface-variant font-label">{role}</div>
+                      <div className="font-display text-lg font-bold text-ink leading-tight">{name}</div>
+                      <div className="font-label text-[10px] uppercase tracking-[0.18em] text-ink-fade mt-1">{role}</div>
                     </div>
-                  </div>
-                </div>
+                    <div className="font-label text-[10px] uppercase tracking-[0.18em] text-ink-fade">{loc}</div>
+                  </footer>
+                </article>
               ))}
             </div>
           </div>
         </section>
 
-        {/* ── Curriculum ── */}
-        <section id="curriculum" ref={revealCurriculum} className="reveal py-24 bg-dark-50 text-dark-800">
-          <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-12 gap-16">
+        {/* ── Syllabus ── */}
+        <section id="curriculum" ref={revealCurriculum} className="reveal py-28 bg-ink text-paper">
+          <div className="max-w-[1440px] mx-auto px-8 grid lg:grid-cols-12 gap-14">
             <div className="lg:col-span-4 lg:sticky lg:top-32 h-fit">
-              <span className="text-xs tracking-[0.2em] uppercase text-primary-fixed-dim font-headline font-bold">The Syllabus</span>
-              <h2 className="text-4xl font-headline font-black tracking-tighter mt-3 mb-4 text-dark-950">
-                16 domains.<br />2 courses.<br />Every concept.
+              <div className="font-display italic text-7xl text-paper/70 leading-none">№ 06</div>
+              <div className="h-[3px] bg-paper my-4 w-16" />
+              <div className="dossier-meta text-paper/70 mb-3">The Syllabus</div>
+              <h2 className="font-display font-display-tight text-5xl lg:text-6xl font-bold leading-[0.92] tracking-[-0.03em] text-paper">
+                16 domains.<br />2 courses.<br /><span className="italic font-light text-foil" style={{ fontVariationSettings: '"opsz" 144, "SOFT" 100' }}>Every concept.</span>
               </h2>
-              <p className="text-dark-600 text-sm leading-relaxed mb-8">
-                Each domain maps directly to an Anthropic certification exam. Study at your own pace, track progress, and test with real exam-style questions.
+              <p className="font-body text-[16px] leading-[1.6] text-paper/65 mt-6 mb-8">
+                Each domain maps directly to an objective on the Anthropic certification examination. Study at your pace, test yourself with exam-grade questions, track mastery domain by domain.
               </p>
               <button onClick={() => openModal("signup")}
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-primary-fixed-dim to-primary-fixed text-on-primary-fixed px-6 py-3 rounded-md font-headline font-bold text-sm hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary-fixed-dim/30 active:translate-y-0 transition-all duration-200">
-                Start Studying Free <ArrowRight size={16} />
+                className="inline-flex items-center gap-3 bg-paper text-ink px-6 py-3.5 font-label text-xs uppercase tracking-[0.18em] font-semibold border border-paper hover:bg-oxide hover:text-paper hover:border-oxide transition-all">
+                Begin the Syllabus <ArrowUpRight size={14} />
               </button>
             </div>
 
             <div className="lg:col-span-8">
-              {/* Course tabs */}
-              <div className="flex gap-1 mb-6 border-b border-dark-200/30">
+              <div className="flex gap-0 mb-8 border-b border-paper/30">
                 {courses.map((course) => (
                   <button
                     key={course.id}
                     onClick={() => setActiveCourseTab(course.id)}
-                    className={`flex items-center gap-2 px-4 py-3 text-sm font-headline font-bold border-b-2 -mb-px transition-colors ${
+                    className={`flex items-center gap-2.5 px-5 py-4 font-label text-xs uppercase tracking-[0.18em] font-semibold border-b-2 -mb-px transition-colors ${
                       activeCourseTab === course.id
-                        ? "text-primary-fixed-dim border-primary-fixed-dim"
-                        : "text-dark-500 hover:text-dark-700 border-transparent hover:border-dark-300"
+                        ? "text-foil border-foil"
+                        : "text-paper/50 hover:text-paper border-transparent"
                     }`}
                   >
-                    <span>{course.icon}</span>
-                    {course.title}
+                    <span className="font-display italic text-base normal-case tracking-normal">{course.id.toUpperCase()}</span>
+                    <span className="hidden sm:inline">{course.title}</span>
                   </button>
                 ))}
               </div>
 
-              {/* Active course description */}
               {(() => {
                 const activeCourse = courses.find((c) => c.id === activeCourseTab);
                 return activeCourse ? (
-                  <p className="text-dark-500 text-sm leading-relaxed mb-6">{activeCourse.description}</p>
+                  <p className="font-body text-[15px] leading-[1.6] text-paper/60 mb-8 max-w-2xl italic">
+                    {activeCourse.description}
+                  </p>
                 ) : null;
               })()}
 
-              {getDomainsForCourse(activeCourseTab).map((d, i) => (
-                <div key={d.id} className="group border-b border-dark-200/25 last:border-0">
-                  <div className="flex items-center gap-6 py-5">
-                    <span className="text-3xl font-headline font-light text-dark-300 group-hover:text-primary-fixed-dim transition-colors duration-300 w-10 flex-shrink-0 tabular-nums">
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                    <h4 className="flex-1 text-lg font-headline font-bold text-dark-800 group-hover:text-primary-fixed-dim transition-colors duration-300">
-                      {d.title}
-                    </h4>
-                    <span className="text-xs font-label font-bold text-primary-fixed-dim bg-primary-fixed-dim/15 px-2.5 py-1 rounded-full flex-shrink-0 whitespace-nowrap">
-                      {d.weight}% of exam
-                    </span>
-                  </div>
-                </div>
-              ))}
+              <ol>
+                {getDomainsForCourse(activeCourseTab).map((d, i) => (
+                  <li key={d.id} className="group border-b border-paper/15 last:border-0">
+                    <div className="flex items-baseline gap-6 py-5">
+                      <span className="font-display italic text-paper/40 group-hover:text-foil transition-colors tabular text-2xl w-12 flex-shrink-0">
+                        {String(i + 1).padStart(2, "0")}
+                      </span>
+                      <div className="flex-1 flex items-baseline gap-4 flex-wrap">
+                        <h4 className="font-display font-display-tight text-xl lg:text-2xl font-semibold text-paper group-hover:text-foil transition-colors tracking-[-0.01em]">
+                          {d.title}
+                        </h4>
+                        <span className="flex-1 border-b border-dotted border-paper/20 translate-y-[-4px] hidden sm:block" />
+                        <span className="font-label text-[11px] uppercase tracking-[0.16em] text-foil tabular">
+                          {d.weight}% · exam
+                        </span>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ol>
             </div>
           </div>
         </section>
 
-        {/* ── Footer ── */}
-        <footer className="py-16 bg-inverse-surface">
-          <div className="max-w-7xl mx-auto px-6">
-            <div className="grid md:grid-cols-3 gap-12 mb-12">
-              <div>
-                <div className="flex items-center gap-3 mb-4">
-                  <img src="/logo.svg" alt="LAA Logo" className="w-8 h-8 rounded-lg" />
-                  <span className="font-headline font-bold text-inverse-on-surface">Learn Agent Architecture</span>
+        {/* ── Closing colophon / footer ── */}
+        <footer className="bg-paper border-t-2 border-ink">
+          <div className="max-w-[1440px] mx-auto px-8 py-16">
+
+            <div className="grid grid-cols-12 gap-8 mb-12">
+              <div className="col-span-12 lg:col-span-5">
+                <div className="dossier-meta mb-2">Colophon</div>
+                <div className="font-display font-display-tight text-3xl lg:text-4xl font-bold text-ink leading-tight mb-4 tracking-[-0.02em]">
+                  Learn Agent Architecture.
                 </div>
-                <p className="text-inverse-on-surface/60 text-sm leading-relaxed">
-                  The community study platform for Anthropic certifications — Agent Architecture and Prompt Engineering.
+                <p className="font-body text-[15px] leading-[1.6] text-ink-soft max-w-sm">
+                  An independent dossier prepared for candidates of the Anthropic Agent Architecture and Prompt Engineering certifications. Set in Fraunces, Newsreader, and IBM Plex Mono.
                 </p>
               </div>
-              <div>
-                <p className="font-headline font-bold text-inverse-on-surface/50 text-xs mb-4 uppercase tracking-wider">Platform</p>
-                <div className="space-y-3">
-                  <Link href="/dashboard" className="block text-inverse-on-surface/70 hover:text-inverse-on-surface transition-colors text-sm font-label">Study Dashboard</Link>
-                  <Link href="/forum" className="block text-inverse-on-surface/70 hover:text-inverse-on-surface transition-colors text-sm font-label">Community Forum</Link>
-                  <Link href="/about" className="block text-inverse-on-surface/70 hover:text-inverse-on-surface transition-colors text-sm font-label">About</Link>
-                  <Link href="/terms" className="block text-inverse-on-surface/70 hover:text-inverse-on-surface transition-colors text-sm font-label">Terms of Service</Link>
-                  <Link href="/privacy" className="block text-inverse-on-surface/70 hover:text-inverse-on-surface transition-colors text-sm font-label">Privacy Policy</Link>
-                </div>
+
+              <div className="col-span-6 lg:col-span-3">
+                <div className="dossier-meta mb-4">Sections</div>
+                <ul className="space-y-2">
+                  {[
+                    { href: "/dashboard", label: "Dashboard" },
+                    { href: "/forum",     label: "Forum" },
+                    { href: "/about",     label: "About" },
+                  ].map(({ href, label }) => (
+                    <li key={href}>
+                      <Link href={href} className="font-body text-[15px] text-ink link-sweep">{label}</Link>
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <div>
-                <p className="font-headline font-bold text-inverse-on-surface/50 text-xs mb-4 uppercase tracking-wider">Disclaimer</p>
-                <p className="text-inverse-on-surface/50 text-xs leading-relaxed">
-                  Independent community learning platform. Not affiliated with or endorsed by Anthropic PBC. Built to prepare learners for top AI certifications.
+
+              <div className="col-span-6 lg:col-span-2">
+                <div className="dossier-meta mb-4">Legal</div>
+                <ul className="space-y-2">
+                  <li><Link href="/terms"   className="font-body text-[15px] text-ink link-sweep">Terms</Link></li>
+                  <li><Link href="/privacy" className="font-body text-[15px] text-ink link-sweep">Privacy</Link></li>
+                </ul>
+              </div>
+
+              <div className="col-span-12 lg:col-span-2">
+                <div className="dossier-meta mb-4">Disclaimer</div>
+                <p className="font-body text-[12px] leading-[1.5] text-ink-fade">
+                  Independent community resource. Not affiliated with or endorsed by Anthropic PBC.
                 </p>
               </div>
             </div>
-            <div className="border-t border-white/10 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
-              <p className="text-inverse-on-surface/40 text-xs font-label">© {new Date().getFullYear()} Learn Agent Architecture</p>
-              <p className="text-inverse-on-surface/40 text-xs font-label">learnagentarchitecture.com</p>
+
+            <div className="rule-double" />
+
+            <div className="pt-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div className="flex items-center gap-4">
+                <span className="stamp stamp-rotate-back text-oxide border-oxide">
+                  ✕ Community Cleared
+                </span>
+                <span className="font-label text-[10px] uppercase tracking-[0.18em] text-ink-fade">
+                  © {new Date().getFullYear()} · learnagentarchitecture.com
+                </span>
+              </div>
+              <span className="font-display italic text-lg text-ink">— Fin —</span>
             </div>
           </div>
         </footer>
@@ -609,117 +788,123 @@ export default function LandingPage() {
       {/* ── Auth Modal ── */}
       {showModal && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-on-surface/40 backdrop-blur-sm px-4"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-ink/60 backdrop-blur-sm px-4"
           onClick={closeModal}
         >
           <div
-            className="relative w-full max-w-md bg-surface rounded-2xl shadow-2xl shadow-primary/10 border border-outline-variant/20 overflow-hidden"
+            className="relative w-full max-w-md bg-paper border-2 border-ink overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Close button */}
-            <button
-              onClick={closeModal}
-              className="absolute top-4 right-4 p-2 rounded-full hover:bg-surface-container text-on-surface-variant hover:text-on-surface transition-colors"
-            >
-              <X size={18} />
-            </button>
+            {/* Dossier header */}
+            <div className="bg-ink text-paper px-6 py-3 flex items-center justify-between">
+              <div className="dossier-meta !text-paper/80">
+                {authMode === "signup" ? "Form 01-A · Enrolment" : "Form 01-B · Re-entry"}
+              </div>
+              <button
+                onClick={closeModal}
+                className="p-1 text-paper/70 hover:text-oxide transition-colors"
+                aria-label="Close"
+              >
+                <X size={16} />
+              </button>
+            </div>
 
             <div className="p-8 space-y-6">
               {/* Header */}
-              <div className="space-y-1 pr-8">
-                <h2 className="text-2xl font-headline font-black text-on-surface tracking-tight">
+              <div className="space-y-2">
+                <h2 className="font-display font-display-tight text-3xl font-bold text-ink tracking-[-0.02em] leading-tight">
                   {existingUser
-                    ? `Welcome back, ${existingUser}!`
+                    ? <>Welcome back, <span className="italic font-light text-oxide" style={{ fontVariationSettings: '"opsz" 144, "SOFT" 100' }}>{existingUser}</span>.</>
                     : authMode === "signup"
-                    ? "Create your free account"
-                    : "Sign in to continue"}
+                    ? <>Open your <span className="italic font-light text-oxide" style={{ fontVariationSettings: '"opsz" 144, "SOFT" 100' }}>dossier</span>.</>
+                    : <>Sign in to <span className="italic font-light text-oxide" style={{ fontVariationSettings: '"opsz" 144, "SOFT" 100' }}>continue</span>.</>}
                 </h2>
-                <p className="text-on-surface-variant text-sm font-label">
+                <div className="rule-hair" />
+                <p className="font-body text-sm text-ink-soft leading-relaxed">
                   {existingUser
-                    ? "Sign in to pick up where you left off."
+                    ? "Resume where you left off."
                     : authMode === "signup"
-                    ? "Start studying for the Anthropic Architecture Certification."
-                    : "Access your study dashboard and progress."}
+                    ? "Complimentary access. Both certifications. No card required."
+                    : "Access your progress and the full dossier."}
                 </p>
               </div>
 
               {/* Tab switcher */}
               {!existingUser && (
-                <div className="flex bg-surface-container rounded-lg p-1">
+                <div className="flex border border-ink">
                   {(["signup", "signin"] as AuthMode[]).map((m) => (
                     <button
                       key={m}
                       onClick={() => { setAuthMode(m); setError(""); }}
-                      className={`flex-1 py-2 rounded-md text-sm font-headline font-bold transition-all ${
+                      className={`flex-1 py-2.5 font-label text-[11px] uppercase tracking-[0.16em] font-semibold transition-all ${
                         authMode === m
-                          ? "bg-surface text-on-surface shadow-sm"
-                          : "text-on-surface-variant hover:text-on-surface"
+                          ? "bg-ink text-paper"
+                          : "bg-paper text-ink-soft hover:text-ink"
                       }`}
                     >
-                      {m === "signup" ? "Create Account" : "Sign In"}
+                      {m === "signup" ? "Enrol" : "Re-enter"}
                     </button>
                   ))}
                 </div>
               )}
 
               {/* SSO buttons */}
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {[
-                  { provider: "google", label: "Continue with Google", icon: "G" },
-                  { provider: "github", label: "Continue with GitHub", icon: "⌥" },
-                  { provider: "linkedin", label: "Continue with LinkedIn", icon: "in" },
+                  { provider: "google",   label: "Google",   icon: "G"  },
+                  { provider: "github",   label: "GitHub",   icon: "⌥"  },
+                  { provider: "linkedin", label: "LinkedIn", icon: "in" },
                 ].map(({ provider, label, icon }) => (
                   <button
                     key={provider}
                     onClick={() => handleSSO(provider)}
                     disabled={!!ssoLoading}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg border border-outline-variant/40 hover:border-primary/30 hover:bg-surface-container-low transition-all text-sm font-label font-medium text-on-surface disabled:opacity-50"
+                    className="w-full flex items-center gap-3 px-4 py-3 border border-ink/40 hover:border-ink hover:bg-paper-deep transition-all font-label text-sm text-ink disabled:opacity-50"
                   >
-                    <span className="w-6 h-6 rounded bg-surface-container flex items-center justify-center text-xs font-headline font-black text-primary flex-shrink-0">
+                    <span className="w-6 h-6 border border-ink flex items-center justify-center font-display font-bold text-xs text-ink flex-shrink-0">
                       {ssoLoading === provider ? "…" : icon}
                     </span>
-                    {label}
+                    <span className="font-body text-[14px]">Continue with {label}</span>
                   </button>
                 ))}
               </div>
 
-              {/* Divider */}
               <div className="flex items-center gap-3">
-                <div className="flex-1 h-px bg-outline-variant/30" />
-                <span className="text-xs font-label text-on-surface-variant">or with email</span>
-                <div className="flex-1 h-px bg-outline-variant/30" />
+                <div className="flex-1 h-px bg-ink/15" />
+                <span className="font-label text-[10px] uppercase tracking-[0.2em] text-ink-fade">or by email</span>
+                <div className="flex-1 h-px bg-ink/15" />
               </div>
 
               {/* Email/password form */}
-              <form onSubmit={authMode === "signup" ? handleSignUp : handleSignIn} className="space-y-4">
+              <form onSubmit={authMode === "signup" ? handleSignUp : handleSignIn} className="space-y-3">
                 {authMode === "signup" && !existingUser && (
                   <div className="space-y-1">
-                    <label className="text-xs font-label font-medium text-on-surface-variant uppercase tracking-wider">Username</label>
+                    <label className="dossier-meta block">Given Name</label>
                     <input
                       type="text"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      placeholder="Your name"
+                      placeholder="Enter your name"
                       autoComplete="name"
-                      className="w-full px-4 py-3 rounded-lg border border-outline-variant/40 bg-surface-container-low focus:outline-none focus:border-primary/60 focus:bg-surface text-on-surface text-sm font-label transition-all placeholder:text-on-surface-variant/40"
+                      className="w-full px-3 py-3 border border-ink/40 bg-paper-fade focus:outline-none focus:border-ink focus:bg-paper text-ink font-body text-sm transition-all placeholder:text-ink-fade/60"
                     />
                   </div>
                 )}
 
                 <div className="space-y-1">
-                  <label className="text-xs font-label font-medium text-on-surface-variant uppercase tracking-wider">Email</label>
+                  <label className="dossier-meta block">Email</label>
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@example.com"
                     autoComplete="email"
-                    className="w-full px-4 py-3 rounded-lg border border-outline-variant/40 bg-surface-container-low focus:outline-none focus:border-primary/60 focus:bg-surface text-on-surface text-sm font-label transition-all placeholder:text-on-surface-variant/40"
+                    className="w-full px-3 py-3 border border-ink/40 bg-paper-fade focus:outline-none focus:border-ink focus:bg-paper text-ink font-body text-sm transition-all placeholder:text-ink-fade/60"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-label font-medium text-on-surface-variant uppercase tracking-wider">Password</label>
+                  <label className="dossier-meta block">Password</label>
                   <div className="relative">
                     <input
                       type={showPassword ? "text" : "password"}
@@ -727,20 +912,20 @@ export default function LandingPage() {
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder={authMode === "signup" ? "At least 6 characters" : "Your password"}
                       autoComplete={authMode === "signup" ? "new-password" : "current-password"}
-                      className="w-full px-4 py-3 pr-12 rounded-lg border border-outline-variant/40 bg-surface-container-low focus:outline-none focus:border-primary/60 focus:bg-surface text-on-surface text-sm font-label transition-all placeholder:text-on-surface-variant/40"
+                      className="w-full px-3 py-3 pr-10 border border-ink/40 bg-paper-fade focus:outline-none focus:border-ink focus:bg-paper text-ink font-body text-sm transition-all placeholder:text-ink-fade/60"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword((p) => !p)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-on-surface-variant hover:text-on-surface transition-colors"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-ink-fade hover:text-ink transition-colors"
                     >
-                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                     </button>
                   </div>
                 </div>
 
                 {error && (
-                  <p className="text-error text-sm font-label bg-error-container/20 border border-error/20 rounded-lg px-3 py-2">
+                  <p className="font-label text-[11px] uppercase tracking-[0.14em] text-oxide border border-oxide/40 bg-oxide/5 px-3 py-2">
                     {error}
                   </p>
                 )}
@@ -748,25 +933,24 @@ export default function LandingPage() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full py-3 rounded-lg bg-gradient-to-r from-primary to-primary-container text-on-primary font-headline font-bold text-sm hover:opacity-90 transition-all disabled:opacity-60 shadow-sm shadow-primary/20"
+                  className="btn-ink w-full justify-center mt-2 disabled:opacity-60"
                 >
                   {isLoading
                     ? "Please wait…"
                     : authMode === "signup"
-                    ? "Create Free Account"
+                    ? "File Enrolment"
                     : "Sign In"}
                 </button>
               </form>
 
-              {/* Switch mode link */}
               {!existingUser && (
-                <p className="text-center text-xs font-label text-on-surface-variant">
-                  {authMode === "signup" ? "Already have an account? " : "Don't have an account? "}
+                <p className="text-center font-label text-[11px] uppercase tracking-[0.14em] text-ink-fade">
+                  {authMode === "signup" ? "Have a dossier? " : "New here? "}
                   <button
                     onClick={() => { setAuthMode(authMode === "signup" ? "signin" : "signup"); setError(""); }}
-                    className="text-primary font-bold hover:underline"
+                    className="text-oxide font-semibold hover:underline normal-case tracking-normal font-body"
                   >
-                    {authMode === "signup" ? "Sign in" : "Create one free"}
+                    {authMode === "signup" ? "Sign in" : "Enrol, complimentary."}
                   </button>
                 </p>
               )}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CheckCircle, XCircle, HelpCircle, MessageSquare } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { Question } from "@/lib/types";
 
 interface QuestionCardProps {
@@ -12,6 +12,8 @@ interface QuestionCardProps {
   selectedIndex?: number | null;
   onAskAI?: (question: string, selectedOption: string) => void;
 }
+
+const optionLetters = ["A", "B", "C", "D"];
 
 export default function QuestionCard({
   question,
@@ -30,152 +32,103 @@ export default function QuestionCard({
   const handleSelect = (index: number) => {
     if (effectiveAnswered && !showResult) return;
     if (showResult) return;
-
     setLocalSelected(index);
     setHasAnswered(true);
     const isCorrect = index === question.correctIndex;
     onAnswer(question.id, index, isCorrect);
   };
 
-  const getOptionStyle = (index: number): string => {
-    const base =
-      "w-full text-left p-4 rounded-xl border transition-all text-sm leading-relaxed ";
-
-    if (!effectiveAnswered) {
-      return (
-        base +
-        "border-dark-700 bg-white text-dark-200 hover:border-brand-400 hover:bg-brand-50 cursor-pointer"
-      );
-    }
-
-    if (index === question.correctIndex) {
-      return (
-        base +
-        "border-emerald-300 bg-emerald-50 text-emerald-800 cursor-default"
-      );
-    }
-
-    if (index === effectiveSelected && index !== question.correctIndex) {
-      return (
-        base +
-        "border-red-300 bg-red-50 text-red-800 cursor-default"
-      );
-    }
-
-    return base + "border-dark-700 bg-dark-800 text-dark-500 cursor-default";
-  };
-
-  const getOptionIcon = (index: number) => {
-    if (!effectiveAnswered) return null;
-
-    if (index === question.correctIndex) {
-      return <CheckCircle size={16} className="text-green-400 flex-shrink-0 mt-0.5" />;
-    }
-    if (index === effectiveSelected && index !== question.correctIndex) {
-      return <XCircle size={16} className="text-red-400 flex-shrink-0 mt-0.5" />;
-    }
-    return null;
-  };
-
-  const optionLetters = ["A", "B", "C", "D"];
-
   const isCorrect = effectiveSelected === question.correctIndex;
 
+  const optionClass = (index: number): string => {
+    const base = "w-full text-left p-4 border-2 transition-all font-body text-[15px] leading-[1.55] ";
+    if (!effectiveAnswered) {
+      return base + "border-ink/25 bg-paper hover:border-ink hover:bg-paper-fade cursor-pointer hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[2px_2px_0_0_var(--ink)]";
+    }
+    if (index === question.correctIndex) {
+      return base + "border-emerald-700 bg-emerald-700/8 text-ink cursor-default";
+    }
+    if (index === effectiveSelected && index !== question.correctIndex) {
+      return base + "border-oxide bg-oxide/5 text-ink cursor-default";
+    }
+    return base + "border-ink/15 bg-paper-fade text-ink-fade cursor-default opacity-70";
+  };
+
+  const optionBadgeClass = (index: number): string => {
+    const base = "flex-shrink-0 w-8 h-8 border flex items-center justify-center font-display font-bold text-sm mt-[2px] ";
+    if (!effectiveAnswered) return base + "border-ink/40 bg-paper text-ink";
+    if (index === question.correctIndex) return base + "border-emerald-700 bg-emerald-700 text-paper";
+    if (index === effectiveSelected) return base + "border-oxide bg-oxide text-paper";
+    return base + "border-ink/20 bg-paper-fade text-ink-fade";
+  };
+
   return (
-    <div className="p-6 rounded-2xl bg-white border border-dark-700 shadow-sm space-y-5">
-      {/* Question header */}
-      <div className="flex items-start gap-3">
-        <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-brand-50 border border-brand-200 flex items-center justify-center text-brand-700 text-sm font-bold">
-          {questionNumber}
-        </div>
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-xs text-dark-500 uppercase tracking-wider">
+    <article className="border-2 border-ink bg-paper-fade p-6 lg:p-8 space-y-6">
+      {/* Header rail */}
+      <header className="flex items-start justify-between gap-4 pb-4 border-b border-ink/20">
+        <div className="flex items-baseline gap-4">
+          <span className="font-display italic text-oxide text-4xl leading-none tabular flex-shrink-0">
+            {String(questionNumber).padStart(2, "0")}.
+          </span>
+          <div>
+            <div className="font-label text-[10px] uppercase tracking-[0.18em] text-ink-fade">
               {question.topic}
-            </span>
+            </div>
+            <p className="font-display font-semibold text-ink text-[20px] leading-[1.3] tracking-[-0.01em] mt-1.5">
+              {question.question}
+            </p>
           </div>
-          <p className="text-dark-50 font-medium leading-relaxed">{question.question}</p>
         </div>
         {effectiveAnswered && (
-          <div className="flex-shrink-0">
-            {isCorrect ? (
-              <CheckCircle size={20} className="text-green-400" />
-            ) : (
-              <XCircle size={20} className="text-red-400" />
-            )}
-          </div>
+          <span className={`stamp flex-shrink-0 ${isCorrect ? "text-emerald-700 border-emerald-700" : "text-oxide border-oxide"}`}>
+            {isCorrect ? "✓ Correct" : "✕ Incorrect"}
+          </span>
         )}
-      </div>
+      </header>
 
       {/* Options */}
-      <div className="space-y-2">
+      <div className="space-y-2.5">
         {question.options.map((option, index) => (
           <button
             key={index}
             onClick={() => handleSelect(index)}
-            className={getOptionStyle(index)}
+            className={optionClass(index)}
           >
-            <div className="flex items-start gap-3">
-              <span
-                className={`flex-shrink-0 w-6 h-6 rounded-md border text-xs font-bold flex items-center justify-center mt-0.5 ${
-                  effectiveAnswered
-                    ? index === question.correctIndex
-                      ? "border-emerald-400 bg-emerald-100 text-emerald-700"
-                      : index === effectiveSelected
-                      ? "border-red-400 bg-red-100 text-red-700"
-                      : "border-dark-600 bg-dark-800 text-dark-500"
-                    : "border-dark-600 bg-dark-800 text-dark-300"
-                }`}
-              >
+            <div className="flex items-start gap-4">
+              <span className={optionBadgeClass(index)}>
                 {optionLetters[index]}
               </span>
-              <span className="flex-1">{option}</span>
-              {getOptionIcon(index)}
+              <span className="flex-1 pt-1">{option}</span>
             </div>
           </button>
         ))}
       </div>
 
-      {/* Explanation */}
+      {/* Grounds (explanation) */}
       {effectiveAnswered && (
-        <div
-          className={`p-4 rounded-xl border space-y-2 ${
-            isCorrect
-              ? "bg-emerald-50 border-emerald-200"
-              : "bg-amber-50 border-amber-200"
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            <HelpCircle
-              size={16}
-              className={isCorrect ? "text-emerald-600" : "text-amber-600"}
-            />
-            <span
-              className={`text-sm font-medium ${
-                isCorrect ? "text-emerald-700" : "text-amber-700"
-              }`}
-            >
-              {isCorrect ? "Correct!" : "Incorrect — Here's Why:"}
-            </span>
+        <div className={`border-2 ${isCorrect ? "border-emerald-700 bg-emerald-700/5" : "border-oxide bg-oxide/5"} p-5 space-y-3`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 font-label text-[10px] uppercase tracking-[0.2em] font-semibold">
+              <span className={isCorrect ? "text-emerald-700" : "text-oxide"}>§ Ruling</span>
+              <span className="text-ink/30">·</span>
+              <span className="text-ink">{isCorrect ? "Affirmed" : "Overruled — see grounds"}</span>
+            </div>
           </div>
-          <p className="text-sm text-dark-300 leading-relaxed">{question.explanation}</p>
-
+          <div className="rule-hair" />
+          <p className="font-body text-[15px] leading-[1.6] text-ink first-letter:font-display first-letter:font-bold first-letter:text-3xl first-letter:float-left first-letter:leading-[0.85] first-letter:mr-2 first-letter:mt-1 first-letter:text-oxide">
+            {question.explanation}
+          </p>
           {onAskAI && (
             <button
-              onClick={() =>
-                onAskAI(
-                  question.question,
-                  question.options[effectiveSelected || 0]
-                )
-              }
-              className="flex items-center gap-2 mt-2 text-xs text-brand-600 hover:text-brand-500 transition-colors"
+              onClick={() => onAskAI(question.question, question.options[effectiveSelected || 0])}
+              className="inline-flex items-center gap-2 font-label text-[10px] uppercase tracking-[0.18em] text-oxide hover:text-ink font-semibold link-sweep mt-1"
             >
-              <MessageSquare size={12} />
-              Ask AI to explain this differently
+              Ask the AI for a second reading
+              <ArrowUpRight size={12} />
             </button>
           )}
         </div>
       )}
-    </div>
+    </article>
   );
 }

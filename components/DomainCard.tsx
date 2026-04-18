@@ -1,10 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { CheckCircle, Play, RotateCcw, ArrowRight, Trophy } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { Domain, DomainProgress } from "@/lib/types";
 import { PASSING_SCORE, getDomainNumber } from "@/lib/curriculum";
-import ProgressBar from "./ProgressBar";
 
 interface DomainCardProps {
   domain: Domain;
@@ -18,83 +17,93 @@ export default function DomainCard({ domain, domainProgress, index }: DomainCard
   const examScore = domainProgress?.examScore;
   const hasPassed = examScore !== null && examScore !== undefined && examScore >= PASSING_SCORE;
   const domainNum = getDomainNumber(domain.id);
+  const roman = ["I","II","III","IV","V","VI","VII","VIII","IX","X","XI","XII","XIII","XIV","XV","XVI"][domainNum - 1] || String(domainNum);
 
   return (
-    <div
-      className="relative p-5 rounded-xl bg-surface-container-lowest border border-outline-variant/20 hover:border-primary/30 transition-all duration-200 card-glow shadow-sm space-y-4"
-      style={{ animationDelay: `${index * 100}ms` }}
+    <article
+      className="group relative border-2 border-ink bg-paper-fade p-5 transition-all duration-200 hover:bg-paper hover:shadow-[4px_4px_0_0_var(--ink)] hover:-translate-x-[2px] hover:-translate-y-[2px] flex flex-col gap-4 min-h-[280px]"
+      style={{ animationDelay: `${index * 80}ms` }}
     >
-      {/* Status badge */}
-      {isCompleted && (
-        <div className="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-medium">
-          <CheckCircle size={12} />
-          Passed
-        </div>
-      )}
-
-      {/* Header */}
-      <div className="space-y-2">
-        <div className="flex items-start gap-3">
-          <span className="text-3xl">{domain.icon}</span>
-          <div className="flex-1 min-w-0">
-            <span className="px-2 py-0.5 rounded-full text-xs bg-primary/8 text-primary border border-primary/15 font-label font-bold">
-              Domain {domainNum} · {domain.weight}% of exam
-            </span>
-            <h3 className="font-headline font-bold text-on-surface text-base leading-snug mt-1">{domain.title}</h3>
+      {/* Top metadata rail */}
+      <header className="flex items-start justify-between gap-3 pb-3 border-b border-ink/15">
+        <div className="flex items-baseline gap-3">
+          <span className="font-display italic text-oxide text-3xl leading-none tabular">
+            {roman}
+          </span>
+          <div>
+            <div className="font-label text-[10px] uppercase tracking-[0.16em] text-ink-fade">
+              Domain · {domain.weight}%
+            </div>
+            <div className="font-label text-[10px] uppercase tracking-[0.16em] text-oxide mt-0.5">
+              {isCompleted ? "✓ Passed" : isStarted ? "◐ In Progress" : "○ Untouched"}
+            </div>
           </div>
         </div>
-        <p className="text-on-surface-variant text-sm leading-relaxed">
+        <span className="text-2xl leading-none grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition-all">
+          {domain.icon}
+        </span>
+      </header>
+
+      {/* Title + tagline */}
+      <div className="flex-1">
+        <h3 className="font-display font-bold text-ink text-xl leading-tight tracking-[-0.02em] mb-2">
+          {domain.title}
+        </h3>
+        <p className="font-body text-[14px] leading-[1.5] text-ink-soft line-clamp-3">
           {domain.tagline}
         </p>
       </div>
 
-      {/* Exam score */}
+      {/* Exam score bar */}
       {examScore !== null && examScore !== undefined && (
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-on-surface-variant">Best Exam Score</span>
-            <span className={`font-bold ${hasPassed ? "text-emerald-600" : "text-red-500"}`}>
-              {examScore}%
-              {hasPassed ? (
-                <Trophy size={14} className="inline ml-1" />
-              ) : (
-                <span className="ml-1 text-xs">({PASSING_SCORE}% needed)</span>
+        <div className="space-y-1.5 border-t border-ink/15 pt-3">
+          <div className="flex items-baseline justify-between">
+            <span className="font-label text-[10px] uppercase tracking-[0.16em] text-ink-fade">
+              Best · Exam
+            </span>
+            <span className={`font-display font-bold tabular text-lg leading-none ${hasPassed ? "text-emerald-700" : "text-oxide"}`}>
+              {examScore}<span className="text-sm">%</span>
+              {!hasPassed && (
+                <span className="ml-2 font-label text-[9px] uppercase tracking-[0.14em] text-ink-fade font-normal">
+                  ({PASSING_SCORE}% req.)
+                </span>
               )}
             </span>
           </div>
-          <ProgressBar
-            value={examScore}
-            color={hasPassed ? "green" : "red"}
-            size="sm"
-          />
+          <div className="h-[3px] bg-ink/10 overflow-hidden">
+            <div
+              className={`h-full ${hasPassed ? "bg-emerald-700" : "bg-oxide"}`}
+              style={{ width: `${examScore}%` }}
+            />
+          </div>
         </div>
       )}
 
       {/* Actions */}
-      <div className="flex gap-3 pt-1">
+      <div className="flex gap-2 border-t border-ink/15 pt-3">
         <Link
           href={`/domain/${domain.id}`}
-          className={`${isStarted ? "flex-1" : "w-full"} flex items-center justify-center gap-2 px-4 py-2.5 rounded-md bg-gradient-to-r from-primary to-primary-container text-on-primary text-sm font-headline font-bold transition-all hover:opacity-90 shadow-sm`}
+          className={`${isStarted ? "flex-1" : "w-full"} flex items-center justify-between gap-2 px-4 py-2.5 bg-ink text-paper hover:bg-oxide font-label text-[11px] uppercase tracking-[0.18em] font-semibold transition-colors`}
         >
-          <Play size={14} />
-          {isStarted ? (isCompleted ? "Review" : "Continue") : "Start Learning"}
+          <span>{isStarted ? (isCompleted ? "Review" : "Continue") : "Begin Study"}</span>
+          <ArrowUpRight size={14} />
         </Link>
-
         {isStarted && (
           <Link
             href={`/domain/${domain.id}/practice`}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-md bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface text-sm font-label font-medium transition-all border border-outline-variant/30"
+            className="flex items-center gap-1.5 px-4 py-2.5 border border-ink bg-paper hover:bg-ink hover:text-paper text-ink font-label text-[11px] uppercase tracking-[0.18em] font-semibold transition-colors"
           >
-            {isCompleted ? <RotateCcw size={14} /> : <ArrowRight size={14} />}
-            Exam
+            {isCompleted ? "Re-Exam" : "Exam"}
           </Link>
         )}
       </div>
 
-      {/* Questions count */}
-      <div className="text-xs text-on-surface-variant/60 text-center font-label">
-        {domain.questions.length} practice questions · {domain.concepts.length} concepts
-      </div>
-    </div>
+      {/* Footer metadata */}
+      <footer className="flex items-center justify-between font-label text-[10px] uppercase tracking-[0.16em] text-ink-fade -mt-1">
+        <span>{domain.questions.length} questions</span>
+        <span className="text-ink/30">·</span>
+        <span>{domain.concepts.length} concepts</span>
+      </footer>
+    </article>
   );
 }

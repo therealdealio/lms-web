@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Send, Bot, User, RefreshCw, Sparkles, ChevronDown, ChevronUp, Zap, AlertTriangle } from "lucide-react";
+import { ArrowUpRight, ChevronDown, ChevronUp, Send, RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { ChatMessage } from "@/lib/types";
@@ -59,11 +59,12 @@ export default function AiChat({
   const isAtLimit = remaining <= 0;
   const isNearLimit = !isAtLimit && remaining <= 3;
 
+  const userInitials = (session?.user?.name || session?.user?.email || "U").slice(0, 2).toUpperCase();
+
   const sendMessage = async (messageText?: string) => {
     const text = messageText || input.trim();
     if (!text || isStreaming || isAtLimit) return;
 
-    // Deduct prompt before sending — update localStorage and DB
     const updatedMembership = incrementPromptCount(userId);
     const newRemaining = getPromptsRemaining(userId);
     setRemaining(newRemaining);
@@ -71,7 +72,7 @@ export default function AiChat({
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ membership: { tier: updatedMembership.tier, promptsUsed: updatedMembership.promptsUsed } }),
-    }).catch(() => {});  // fire-and-forget, localStorage is already updated
+    }).catch(() => {});
     fetch("/api/track/prompt", { method: "POST" }).catch(() => {});
 
     const userMessage: ChatMessage = {
@@ -139,7 +140,7 @@ export default function AiChat({
     } catch (error) {
       const errorMessage: ChatMessage = {
         role: "assistant",
-        content: `I encountered an error: ${error instanceof Error ? error.message : "Unknown error"}. Please check that your ANTHROPIC_API_KEY is configured in .env.local and try again.`,
+        content: `Transmission error: ${error instanceof Error ? error.message : "Unknown error"}. Verify ANTHROPIC_API_KEY in .env.local and retry.`,
         timestamp: new Date().toISOString(),
       };
       setMessages((prev) => [...prev, errorMessage]);
@@ -162,112 +163,115 @@ export default function AiChat({
   };
 
   const suggestedQuestions = [
-    `Explain the key concepts of ${domainName} in simple terms`,
-    `What are the most common exam traps for Domain ${domainId}?`,
-    `Give me a code example for the main pattern in this domain`,
-    `What's the difference between correct and incorrect approaches here?`,
+    `Explain the key concepts of ${domainName} in plain terms.`,
+    `What are the most common exam traps for ${domainId.toUpperCase()}?`,
+    `Provide a code example for the principal pattern in this domain.`,
+    `Distinguish the correct approach from the common incorrect ones.`,
   ];
 
+  const remainingTone =
+    remaining <= 0 ? "text-oxide"
+    : remaining <= 3 ? "text-oxide"
+    : tier === "pro" ? "text-foil"
+    : "text-ink-fade";
+
   return (
-    <div className="rounded-2xl bg-white border border-dark-700 shadow-sm overflow-hidden">
+    <div className="border-2 border-ink bg-paper-fade overflow-hidden">
       {/* Header */}
       <button
         onClick={() => setIsCollapsed(!isCollapsed)}
-        className="w-full flex items-center justify-between p-4 hover:bg-dark-900 transition-colors"
+        className="w-full flex items-center justify-between px-5 py-4 bg-ink text-paper hover:bg-oxide transition-colors"
       >
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center shadow-sm">
-            <Sparkles size={16} className="text-white" />
-          </div>
+        <div className="flex items-center gap-4">
+          <span className="font-display italic text-foil text-3xl leading-none">§</span>
           <div className="text-left">
-            <div className="font-semibold text-dark-50 text-sm">AI Learning Assistant</div>
-            <div className="text-dark-400 text-xs">
-              <span className={`font-medium ${remaining <= 3 && remaining > 0 ? "text-amber-600" : remaining <= 0 ? "text-red-500" : tier === "pro" ? "text-brand-600" : ""}`}>
-                {remaining} prompt{remaining !== 1 ? "s" : ""} left
-              </span>
+            <div className="dossier-meta !text-paper/70">Instrument II · AI Tutor</div>
+            <div className="font-display font-bold text-paper text-lg leading-tight">
+              Consulting Desk
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          <span className={`font-label text-[10px] uppercase tracking-[0.18em] tabular ${remainingTone === "text-oxide" ? "text-oxide" : remainingTone === "text-foil" ? "text-foil" : "text-paper/60"}`}>
+            {remaining} prompt{remaining !== 1 ? "s" : ""} · {tier === "pro" ? "Pro" : "Free"}
+          </span>
           {messages.length > 0 && (
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                clearChat();
-              }}
-              className="p-1.5 rounded-lg text-dark-400 hover:text-dark-100 hover:bg-dark-800 transition-colors"
-              title="Clear chat"
+              onClick={(e) => { e.stopPropagation(); clearChat(); }}
+              className="p-1.5 text-paper/60 hover:text-paper transition-colors"
+              title="Clear ledger"
             >
-              <RefreshCw size={14} />
+              <RefreshCw size={13} />
             </button>
           )}
-          {isCollapsed ? (
-            <ChevronDown size={16} className="text-dark-400" />
-          ) : (
-            <ChevronUp size={16} className="text-dark-400" />
-          )}
+          {isCollapsed ? <ChevronDown size={16} className="text-paper/60" /> : <ChevronUp size={16} className="text-paper/60" />}
         </div>
       </button>
 
       {!isCollapsed && (
         <>
-          {/* Near-limit warning banner */}
+          {/* Near-limit banner */}
           {isNearLimit && (
-            <div className="mx-4 mb-0 mt-0 p-3 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2 text-sm text-amber-800">
-                <AlertTriangle size={14} className="flex-shrink-0" />
-                <span><strong>{remaining} prompt{remaining !== 1 ? "s" : ""}</strong> remaining on your free plan.</span>
+            <div className="mx-5 mt-5 border-2 border-oxide bg-oxide/5 p-4 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <span className="font-display italic text-oxide text-xl leading-none">!</span>
+                <span className="font-body text-[14px] text-ink">
+                  <strong>{remaining} prompt{remaining !== 1 ? "s" : ""}</strong> remain on the Free tier.
+                </span>
               </div>
               <button
                 onClick={() => router.push("/upgrade")}
-                className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-white text-xs font-semibold transition-colors"
+                className="flex-shrink-0 flex items-center gap-2 px-3 py-2 bg-oxide text-paper hover:bg-ink font-label text-[10px] uppercase tracking-[0.18em] font-semibold transition-colors"
               >
-                <Zap size={12} />
-                Upgrade $5
+                Replenish $5 <ArrowUpRight size={11} />
               </button>
             </div>
           )}
 
-          {/* Hit limit wall */}
+          {/* At-limit wall */}
           {isAtLimit && (
-            <div className="m-4 p-6 rounded-xl bg-brand-50 border border-brand-200 text-center space-y-4">
-              <div className="w-12 h-12 rounded-2xl bg-brand-100 flex items-center justify-center mx-auto">
-                <Zap size={22} className="text-brand-600" />
-              </div>
+            <div className="m-5 border-2 border-ink bg-paper p-8 text-center space-y-5">
+              <div className="stamp mx-auto text-oxide border-oxide">✕ Quota Exhausted</div>
               <div>
-                <h3 className="font-bold text-dark-50">You've used all {limit} free prompts</h3>
-                <p className="text-dark-400 text-sm mt-1">
-                  Upgrade to Pro for 500 prompts and keep learning.
+                <h3 className="font-display font-bold text-ink text-2xl tracking-[-0.02em] leading-tight">
+                  All {limit} complimentary prompts spent.
+                </h3>
+                <p className="font-body text-[15px] leading-snug text-ink-soft mt-2 max-w-sm mx-auto">
+                  Replenish with 500 additional prompts on the Pro tier — <strong>$5</strong>.
                 </p>
               </div>
               <button
                 onClick={() => router.push("/upgrade")}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-semibold transition-colors shadow-sm text-sm"
+                className="btn-ink"
               >
-                <Zap size={15} />
-                Upgrade to Pro — $5
+                Replenish — Pro <ArrowUpRight size={14} />
               </button>
             </div>
           )}
 
           {/* Messages */}
           {!isAtLimit && (
-            <div className="h-80 overflow-y-auto p-4 space-y-4 border-t border-dark-700">
+            <div className="h-96 overflow-y-auto px-5 py-6 space-y-5 border-t border-ink/20">
               {messages.length === 0 && !streamingContent && (
-                <div className="space-y-4">
-                  <div className="text-center text-dark-500 text-sm py-4">
-                    <Bot size={32} className="mx-auto mb-2 text-dark-600" />
-                    Ask any question about {domainName}
+                <div className="space-y-5">
+                  <div className="text-center py-4">
+                    <div className="font-display italic text-oxide text-5xl leading-none mb-2">?</div>
+                    <p className="font-body text-[15px] text-ink-soft italic">
+                      The Tutor is receiving, candidate. Pose your inquiry on <strong className="not-italic font-semibold text-ink">{domainName}</strong>.
+                    </p>
                   </div>
                   <div className="space-y-2">
-                    <p className="text-xs text-dark-500 uppercase tracking-wider">Suggested questions</p>
-                    {suggestedQuestions.map((q) => (
+                    <p className="dossier-meta mb-2">Suggested Inquiries</p>
+                    {suggestedQuestions.map((q, i) => (
                       <button
                         key={q}
                         onClick={() => sendMessage(q)}
-                        className="w-full text-left px-3 py-2 rounded-lg bg-dark-900 hover:bg-dark-800 text-dark-300 hover:text-dark-100 text-xs transition-colors border border-dark-700"
+                        className="w-full text-left flex items-start gap-3 px-4 py-3 border border-ink/30 bg-paper hover:bg-ink hover:text-paper text-ink font-body text-[14px] leading-snug transition-colors group"
                       >
-                        {q}
+                        <span className="font-display italic text-oxide group-hover:text-foil text-base leading-none flex-shrink-0 w-4">
+                          {String.fromCharCode(97 + i)}.
+                        </span>
+                        <span className="flex-1">{q}</span>
                       </button>
                     ))}
                   </div>
@@ -275,39 +279,29 @@ export default function AiChat({
               )}
 
               {messages.map((msg, i) => (
-                <div key={i} className={`flex gap-3 ${msg.role === "user" ? "flex-row-reverse" : ""}`}>
-                  <div
-                    className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${
-                      msg.role === "user"
-                        ? "bg-brand-600"
-                        : "bg-gradient-to-br from-brand-500 to-brand-700"
-                    }`}
-                  >
-                    {msg.role === "user" ? (
-                      <User size={14} className="text-white" />
-                    ) : (
-                      <Bot size={14} className="text-white" />
-                    )}
+                <div key={i} className="flex gap-3">
+                  <div className={`w-8 h-8 border border-ink flex items-center justify-center flex-shrink-0 font-display font-bold text-xs ${
+                    msg.role === "user" ? "bg-paper text-ink" : "bg-ink text-paper"
+                  }`}>
+                    {msg.role === "user" ? userInitials : "C"}
                   </div>
-                  <div
-                    className={`max-w-[85%] px-4 py-3 rounded-2xl text-sm leading-relaxed ${
-                      msg.role === "user"
-                        ? "bg-brand-50 border border-brand-200 text-dark-100 rounded-tr-sm"
-                        : "bg-dark-900 border border-dark-700 text-dark-200 rounded-tl-sm"
-                    }`}
-                  >
+                  <div className={`flex-1 min-w-0 ${msg.role === "user" ? "border-l-2 border-oxide pl-4" : "border-l-2 border-ink pl-4"}`}>
+                    <div className="dossier-meta mb-1">
+                      {msg.role === "user" ? "Candidate" : "Tutor · Claude"}
+                    </div>
                     {msg.role === "user" ? (
-                      <div className="whitespace-pre-wrap">{msg.content}</div>
+                      <div className="font-body text-[15px] leading-[1.6] text-ink whitespace-pre-wrap">{msg.content}</div>
                     ) : (
                       <div className="prose prose-sm max-w-none
-                        prose-p:my-1 prose-p:leading-relaxed prose-p:text-dark-200
-                        prose-headings:text-dark-50 prose-headings:font-semibold prose-headings:mt-3 prose-headings:mb-1
-                        prose-strong:text-dark-50 prose-strong:font-semibold
-                        prose-code:text-brand-700 prose-code:bg-brand-50 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-xs prose-code:before:content-none prose-code:after:content-none
-                        prose-pre:bg-dark-900 prose-pre:border prose-pre:border-dark-700 prose-pre:rounded-xl prose-pre:text-xs
-                        prose-ul:my-1 prose-ul:pl-4 prose-li:my-0.5 prose-li:text-dark-200
-                        prose-ol:my-1 prose-ol:pl-4
-                        prose-blockquote:border-brand-400 prose-blockquote:text-dark-300">
+                        prose-p:my-1.5 prose-p:text-ink prose-p:font-body prose-p:text-[15px] prose-p:leading-[1.6]
+                        prose-headings:text-ink prose-headings:font-display prose-headings:font-bold prose-headings:tracking-tight prose-headings:mt-3 prose-headings:mb-1
+                        prose-strong:text-ink prose-strong:font-semibold
+                        prose-em:text-ink prose-em:italic
+                        prose-code:text-oxide prose-code:bg-paper prose-code:px-1.5 prose-code:py-0.5 prose-code:font-mono prose-code:text-[0.85em] prose-code:before:content-none prose-code:after:content-none
+                        prose-pre:bg-ink prose-pre:text-paper prose-pre:border-2 prose-pre:border-ink prose-pre:rounded-none
+                        prose-ul:my-2 prose-ul:pl-4 prose-li:my-0.5 prose-li:text-ink prose-li:marker:text-oxide
+                        prose-ol:my-2 prose-ol:pl-4
+                        prose-blockquote:border-l-2 prose-blockquote:border-oxide prose-blockquote:text-ink-soft prose-blockquote:italic prose-blockquote:not-italic">
                         <ReactMarkdown allowedElements={["p","strong","em","code","pre","ul","ol","li","h1","h2","h3","blockquote"]} unwrapDisallowed>{msg.content}</ReactMarkdown>
                       </div>
                     )}
@@ -315,22 +309,24 @@ export default function AiChat({
                 </div>
               ))}
 
-              {/* Streaming message */}
+              {/* Streaming */}
               {streamingContent && (
                 <div className="flex gap-3">
-                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center flex-shrink-0">
-                    <Bot size={14} className="text-white" />
+                  <div className="w-8 h-8 border border-ink bg-ink text-paper flex items-center justify-center flex-shrink-0 font-display font-bold text-xs">
+                    C
                   </div>
-                  <div className="max-w-[85%] px-4 py-3 rounded-2xl rounded-tl-sm bg-dark-900 border border-dark-700 text-dark-200 text-sm leading-relaxed">
+                  <div className="flex-1 border-l-2 border-ink pl-4 min-w-0">
+                    <div className="dossier-meta mb-1">Tutor · Claude · Transmitting</div>
                     <div className="prose prose-sm max-w-none
-                      prose-p:my-1 prose-p:text-dark-200
-                      prose-headings:text-dark-50
-                      prose-strong:text-dark-50
-                      prose-code:text-brand-700 prose-code:bg-brand-50 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-xs prose-code:before:content-none prose-code:after:content-none
-                      prose-ul:my-1 prose-ul:pl-4 prose-li:my-0.5 prose-li:text-dark-200
-                      prose-ol:my-1 prose-ol:pl-4">
+                      prose-p:my-1.5 prose-p:text-ink prose-p:font-body prose-p:text-[15px] prose-p:leading-[1.6]
+                      prose-headings:text-ink prose-headings:font-display prose-headings:font-bold
+                      prose-strong:text-ink prose-strong:font-semibold
+                      prose-code:text-oxide prose-code:bg-paper prose-code:px-1.5 prose-code:py-0.5 prose-code:font-mono prose-code:text-[0.85em] prose-code:before:content-none prose-code:after:content-none
+                      prose-pre:bg-ink prose-pre:text-paper
+                      prose-ul:my-2 prose-ul:pl-4 prose-li:my-0.5 prose-li:text-ink prose-li:marker:text-oxide
+                      prose-ol:my-2 prose-ol:pl-4">
                       <ReactMarkdown allowedElements={["p","strong","em","code","pre","ul","ol","li","h1","h2","h3","blockquote"]} unwrapDisallowed>{streamingContent}</ReactMarkdown>
-                      <span className="inline-block w-2 h-4 bg-brand-500 ml-1 animate-pulse" />
+                      <span className="inline-block w-2 h-4 bg-oxide ml-1 animate-pulse align-middle" />
                     </div>
                   </div>
                 </div>
@@ -338,15 +334,16 @@ export default function AiChat({
 
               {isStreaming && !streamingContent && (
                 <div className="flex gap-3">
-                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center flex-shrink-0">
-                    <Bot size={14} className="text-white" />
+                  <div className="w-8 h-8 border border-ink bg-ink text-paper flex items-center justify-center flex-shrink-0 font-display font-bold text-xs">
+                    C
                   </div>
-                  <div className="px-4 py-3 rounded-2xl rounded-tl-sm bg-dark-900 border border-dark-700">
-                    <div className="flex gap-1">
+                  <div className="flex-1 border-l-2 border-ink pl-4">
+                    <div className="dossier-meta mb-2">Tutor · Claude · Preparing reply</div>
+                    <div className="flex gap-1.5">
                       {[0, 1, 2].map((i) => (
                         <div
                           key={i}
-                          className="w-2 h-2 rounded-full bg-brand-400 animate-bounce"
+                          className="w-1.5 h-1.5 bg-oxide animate-bounce"
                           style={{ animationDelay: `${i * 150}ms` }}
                         />
                       ))}
@@ -361,31 +358,31 @@ export default function AiChat({
 
           {/* Input */}
           {!isAtLimit && (
-            <div className="p-4 border-t border-dark-700 bg-dark-950">
-              <div className="flex gap-2">
+            <div className="p-5 border-t-2 border-ink bg-paper-deep">
+              <div className="flex gap-3">
                 <textarea
                   ref={textareaRef}
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  placeholder="Ask a question or type your understanding of a concept..."
+                  placeholder="Dictate your inquiry…"
                   rows={2}
-                  className="flex-1 px-4 py-2.5 rounded-xl bg-white border border-dark-700 text-dark-50 placeholder-dark-500 text-sm resize-none focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-300 transition-colors"
+                  className="flex-1 px-4 py-3 bg-paper border-2 border-ink/40 text-ink placeholder-ink-fade/60 font-body text-[15px] leading-snug resize-none focus:outline-none focus:border-ink transition-colors"
                   disabled={isStreaming}
                 />
                 <button
                   onClick={() => sendMessage()}
                   disabled={!input.trim() || isStreaming}
-                  className="flex-shrink-0 w-10 h-10 my-auto rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 hover:from-brand-400 hover:to-brand-600 flex items-center justify-center text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
+                  className="flex-shrink-0 px-5 bg-ink text-paper hover:bg-oxide flex items-center justify-center transition-colors disabled:opacity-40 disabled:cursor-not-allowed self-stretch"
                 >
                   {isStreaming ? (
-                    <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                    <div className="w-4 h-4 border-2 border-paper/40 border-t-paper rounded-full animate-spin" />
                   ) : (
                     <Send size={16} />
                   )}
                 </button>
               </div>
-              <p className="text-xs text-dark-500 mt-2">Press Enter to send · Shift+Enter for new line</p>
+              <p className="dossier-meta mt-3">Enter to transmit · Shift + Enter new line</p>
             </div>
           )}
         </>

@@ -5,24 +5,18 @@ import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
 import {
-  Brain,
-  Award,
-  BookOpen,
   LogOut,
-  CheckCircle,
-  ArrowRight,
-  Zap,
   Shield,
   MessageSquare,
   UserCircle,
-  Sparkles,
   Bell,
+  ArrowUpRight,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { loadProgress, clearProgress, getOverallProgress, getCourseProgress, saveProgress } from "@/lib/progress";
+import { loadProgress, clearProgress, getOverallProgress, getCourseProgress } from "@/lib/progress";
 import { saveMembership } from "@/lib/membership";
 import { loadMembership, getLimit } from "@/lib/membership";
-import { courses, getDomainsForCourse, getDomainNumber, PASSING_SCORE } from "@/lib/curriculum";
+import { courses, getDomainsForCourse } from "@/lib/curriculum";
 import { AppProgress, Membership } from "@/lib/types";
 import DomainCard from "@/components/DomainCard";
 
@@ -36,6 +30,7 @@ export default function DashboardPage() {
   const [avatarEmoji, setAvatarEmoji] = useState<string | null>(null);
   const [avatarImage, setAvatarImage] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>("aai");
+  const [clock, setClock] = useState("");
 
   useEffect(() => {
     const p = loadProgress();
@@ -86,6 +81,19 @@ export default function DashboardPage() {
       .catch(() => setProgress(p));
   }, [router]);
 
+  useEffect(() => {
+    const update = () => {
+      const d = new Date();
+      const hh = String(d.getUTCHours()).padStart(2, "0");
+      const mm = String(d.getUTCMinutes()).padStart(2, "0");
+      const ss = String(d.getUTCSeconds()).padStart(2, "0");
+      setClock(`${hh}:${mm}:${ss} UTC`);
+    };
+    update();
+    const id = setInterval(update, 1000);
+    return () => clearInterval(id);
+  }, []);
+
   const handleLogout = async () => {
     clearProgress();
     await signOut({ callbackUrl: "/" });
@@ -93,8 +101,11 @@ export default function DashboardPage() {
 
   if (!progress || !progress.user) {
     return (
-      <div className="min-h-screen bg-surface flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-paper flex items-center justify-center">
+        <div className="font-label text-[11px] uppercase tracking-[0.2em] text-ink flex items-center gap-3">
+          <span className="inline-block w-2.5 h-2.5 bg-oxide animate-pulse" />
+          Retrieving Dossier…
+        </div>
       </div>
     );
   }
@@ -104,245 +115,279 @@ export default function DashboardPage() {
   const activeCourseProgress = getCourseProgress(progress, activeTab);
   const overallProgress = getOverallProgress(progress, activeTab);
   const completedDomains = activeCourseProgress?.domains.filter((d) => d.completed).length ?? 0;
+  const startedDomains = activeCourseProgress?.domains.filter((d) => d.started).length ?? 0;
   const totalDomains = activeDomains.length;
   const promptsLeft = membership ? Math.max(0, getLimit(membership.tier, membership.promptLimit) - membership.promptsUsed) : null;
+  const initials = (progress.user.name || "?").slice(0, 2).toUpperCase();
 
   return (
-    <div className="min-h-screen bg-surface text-on-surface">
+    <div className="min-h-screen bg-paper text-ink paper-fiber">
 
-      {/* Nav */}
-      <nav className="sticky top-0 z-50 border-b border-outline-variant/20 glass px-6 py-3">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
+      {/* ── Nav ── */}
+      <nav className="sticky top-0 z-50 bg-paper/92 backdrop-blur-sm border-b border-ink">
+        <div className="max-w-[1440px] mx-auto flex items-center justify-between px-8 py-3">
           <Link href="/" className="flex items-center gap-3">
-            <img src="/logo.svg" alt="LAA Logo" className="w-8 h-8 rounded-lg" />
-            <span className="font-headline font-bold text-on-surface text-sm hidden sm:block">Learn Agent Architecture</span>
+            <span className="font-display font-black text-ink text-lg leading-none tracking-tight">L·A·A</span>
+            <span className="hidden sm:block h-5 w-px bg-ink/40" />
+            <div className="hidden sm:flex flex-col leading-tight">
+              <span className="font-label text-[10px] uppercase tracking-[0.22em] text-ink-fade">Dossier</span>
+              <span className="font-display text-[13px] font-semibold text-ink italic -mt-0.5">Learn Agent Architecture</span>
+            </div>
           </Link>
 
           <div className="flex items-center gap-1">
-            <Link href="/updates" className="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-md text-on-surface-variant hover:text-primary hover:bg-primary/5 transition-colors text-sm font-label font-medium">
-              <Bell size={14} />
-              What&apos;s New
+            <Link href="/updates" className="hidden md:flex items-center gap-1.5 px-3 py-2 font-label text-[11px] uppercase tracking-[0.18em] text-ink hover:text-oxide transition-colors link-sweep">
+              <Bell size={13} />
+              Updates
             </Link>
-            <Link href="/about" className="hidden md:block px-3 py-2 rounded-md text-on-surface-variant hover:text-primary hover:bg-primary/5 transition-colors text-sm font-label font-medium">
+            <Link href="/about" className="hidden md:inline-block px-3 py-2 font-label text-[11px] uppercase tracking-[0.18em] text-ink hover:text-oxide transition-colors link-sweep">
               About
             </Link>
-            <Link href="/profile" className="hidden md:flex items-center gap-2 px-3 py-2 rounded-md text-on-surface-variant hover:text-primary hover:bg-primary/5 transition-colors text-sm font-label font-medium">
-              <UserCircle size={14} />
+            <Link href="/profile" className="hidden md:flex items-center gap-1.5 px-3 py-2 font-label text-[11px] uppercase tracking-[0.18em] text-ink hover:text-oxide transition-colors link-sweep">
+              <UserCircle size={13} />
               Profile
             </Link>
             {session?.user?.email === ADMIN_EMAIL && (
-              <Link href="/admin" className="flex items-center gap-2 px-3 py-2 rounded-md bg-error-container/30 text-on-error-container text-sm font-label font-medium">
-                <Shield size={14} />
+              <Link href="/admin" className="flex items-center gap-1.5 px-3 py-2 border border-oxide text-oxide font-label text-[11px] uppercase tracking-[0.18em] hover:bg-oxide hover:text-paper transition-colors">
+                <Shield size={13} />
                 <span className="hidden sm:inline">Admin</span>
               </Link>
             )}
 
-            {/* Avatar */}
-            <Link href="/profile" className="ml-1 flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-surface-container transition-colors">
-              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-primary-container flex items-center justify-center overflow-hidden flex-shrink-0">
+            <Link href="/profile" className="ml-2 flex items-center gap-2 px-2 py-1.5 hover:bg-paper-deep transition-colors">
+              <div className="w-7 h-7 border border-ink bg-paper-fade flex items-center justify-center overflow-hidden flex-shrink-0">
                 {avatarImage ? (
                   <img src={avatarImage} alt="" className="w-full h-full object-cover" />
                 ) : avatarEmoji ? (
                   <span className="text-sm leading-none">{avatarEmoji}</span>
                 ) : (
-                  <span className="text-on-primary text-xs font-headline font-bold">
-                    {(progress.user.name || "?").slice(0, 2).toUpperCase()}
-                  </span>
+                  <span className="text-ink text-[10px] font-display font-bold">{initials}</span>
                 )}
               </div>
-              <span className="text-on-surface font-label font-medium text-sm hidden md:block">{progress.user.name}</span>
+              <span className="text-ink font-label text-xs uppercase tracking-[0.14em] hidden md:block">{progress.user.name}</span>
             </Link>
 
             <button onClick={handleLogout}
-              className="ml-1 flex items-center gap-1.5 px-3 py-2 rounded-md text-on-surface-variant hover:text-error hover:bg-error-container/15 transition-colors text-sm font-label">
-              <LogOut size={15} />
-              <span className="hidden sm:block">Log Out</span>
+              className="ml-1 flex items-center gap-1.5 px-3 py-2 font-label text-[11px] uppercase tracking-[0.18em] text-ink hover:text-oxide transition-colors">
+              <LogOut size={14} />
+              <span className="hidden sm:block">Exit</span>
             </button>
           </div>
         </div>
       </nav>
 
-      <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
+      {/* ── Dossier masthead strip ── */}
+      <div className="border-b border-ink">
+        <div className="max-w-[1440px] mx-auto px-8 py-3 flex flex-wrap items-center justify-between gap-3 dossier-meta">
+          <span className="flex items-center gap-3">
+            <span className="inline-block w-2 h-2 bg-oxide rounded-full animate-pulse" />
+            Candidate File № {initials}-{progress.user.email.split("@")[0].slice(0,3).toUpperCase()}
+          </span>
+          <span className="hidden sm:block">Session · Authenticated</span>
+          <span className="hidden md:block tabular">{clock || "—"}</span>
+          <span>Dashboard</span>
+        </div>
+      </div>
 
-        {/* ── Welcome hero strip ── */}
-        <div className="relative rounded-xl overflow-hidden bg-gradient-to-r from-primary to-primary-container p-8 text-on-primary">
-          <div className="absolute inset-0 blueprint-grid opacity-10 pointer-events-none" />
-          <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-            <div>
-              <p className="text-on-primary/70 text-sm font-label mb-1">Welcome back</p>
-              <h1 className="text-3xl font-headline font-black tracking-tight">{progress.user.name}</h1>
-              <p className="text-on-primary/80 text-sm font-label mt-1">
+      <div className="max-w-[1440px] mx-auto px-8 py-10 space-y-12">
+
+        {/* ── Candidate File hero ── */}
+        <section className="border-2 border-ink bg-ink text-paper relative overflow-hidden">
+          <span aria-hidden className="absolute -top-2 -left-2 w-4 h-4 border-t-2 border-l-2 border-oxide pointer-events-none" />
+          <span aria-hidden className="absolute -top-2 -right-2 w-4 h-4 border-t-2 border-r-2 border-oxide pointer-events-none" />
+          <span aria-hidden className="absolute -bottom-2 -left-2 w-4 h-4 border-b-2 border-l-2 border-oxide pointer-events-none" />
+          <span aria-hidden className="absolute -bottom-2 -right-2 w-4 h-4 border-b-2 border-r-2 border-oxide pointer-events-none" />
+
+          <div className="grid grid-cols-12 gap-0">
+            {/* Candidate identity */}
+            <div className="col-span-12 lg:col-span-7 p-10 lg:p-12 relative border-b-2 lg:border-b-0 lg:border-r-2 border-paper/15">
+              <div className="dossier-meta !text-paper/60 mb-3">Candidate</div>
+              <h1 className="font-display font-bold text-[4.5rem] lg:text-[6rem] leading-[0.88] tracking-[-0.04em] text-paper">
+                {progress.user.name}
+              </h1>
+              <div className="rule-hair mt-6 mb-4 opacity-30" />
+              <p className="font-body text-[17px] leading-[1.5] text-paper/80 max-w-md italic">
                 {completedDomains === 0
-                  ? `You haven't started any ${activeCourse?.title ?? "course"} domains yet. Pick one below to begin.`
+                  ? `No domains passed yet in ${activeCourse?.title ?? "this course"}. Select a tile below to commence.`
                   : completedDomains === totalDomains
-                  ? `You've completed all ${totalDomains} domains in ${activeCourse?.title ?? "this course"}! Claim your certificate.`
-                  : `${completedDomains} of ${totalDomains} domains passed in ${activeCourse?.title ?? "this course"} · Keep going!`}
+                  ? `All ${totalDomains} domains of ${activeCourse?.title ?? "this course"} complete. Claim your certificate.`
+                  : `${completedDomains} of ${totalDomains} domains passed in ${activeCourse?.title ?? "this course"}. Forward, candidate.`}
               </p>
-            </div>
-            <div className="flex flex-col gap-2 min-w-[200px]">
-              <div className="flex justify-between text-sm">
-                <span className="text-on-primary/70 font-label">Overall Progress</span>
-                <span className="font-headline font-bold">{overallProgress}%</span>
-              </div>
-              <div className="h-2 bg-on-primary/20 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-on-primary rounded-full transition-all duration-700"
-                  style={{ width: `${overallProgress}%` }}
-                />
-              </div>
-              <div className="flex justify-between text-xs text-on-primary/60 font-label">
-                <span>{completedDomains} passed</span>
-                <span>{totalDomains} total</span>
+              <div className="mt-8 flex items-center gap-4 font-label text-[10px] uppercase tracking-[0.18em] text-paper/50">
+                <span>File opened · {new Date(progress.user.startedAt || Date.now()).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
+                <span className="text-paper/20">·</span>
+                <span>{progress.user.email}</span>
               </div>
             </div>
-          </div>
-        </div>
 
-        {/* ── Stats + Membership row ── */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="p-5 rounded-xl bg-surface-container-lowest border border-outline-variant/20 shadow-sm space-y-2">
-            <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center">
-              <CheckCircle size={18} className="text-emerald-600" />
-            </div>
-            <div className="text-2xl font-headline font-bold text-emerald-600">{completedDomains}/{totalDomains}</div>
-            <div className="text-on-surface-variant text-xs font-label">Domains Passed</div>
-          </div>
-
-          <div className="p-5 rounded-xl bg-surface-container-lowest border border-outline-variant/20 shadow-sm space-y-2">
-            <div className="w-9 h-9 rounded-lg bg-primary/8 flex items-center justify-center">
-              <BookOpen size={18} className="text-primary" />
-            </div>
-            <div className="text-2xl font-headline font-bold text-primary">
-              {activeCourseProgress?.domains.filter((d) => d.started).length ?? 0}/{totalDomains}
-            </div>
-            <div className="text-on-surface-variant text-xs font-label">Domains Started</div>
-          </div>
-
-          <div className="p-5 rounded-xl bg-surface-container-lowest border border-outline-variant/20 shadow-sm space-y-2">
-            <div className="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center">
-              <Zap size={18} className={membership?.tier === "pro" ? "text-primary" : "text-on-surface-variant"} />
-            </div>
-            <div className="text-2xl font-headline font-bold text-on-surface">
-              {promptsLeft !== null ? promptsLeft : <span className="text-base text-on-surface-variant">Loading…</span>}
-            </div>
-            <div className="text-on-surface-variant text-xs font-label">AI Prompts Left</div>
-          </div>
-
-          <div className="p-5 rounded-xl bg-surface-container-lowest border border-outline-variant/20 shadow-sm space-y-2">
-            <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${activeCourseProgress?.certificateEarned ? "bg-amber-50" : "bg-surface-container"}`}>
-              <Award size={18} className={activeCourseProgress?.certificateEarned ? "text-amber-600" : "text-on-surface-variant"} />
-            </div>
-            <div className={`text-2xl font-headline font-bold ${activeCourseProgress?.certificateEarned ? "text-amber-600" : "text-on-surface-variant"}`}>
-              {activeCourseProgress?.certificateEarned ? "Earned!" : "—"}
-            </div>
-            <div className="text-on-surface-variant text-xs font-label">Certificate</div>
-          </div>
-        </div>
-
-        {/* Upgrade nudge (only for free plan with low prompts) */}
-        {membership && membership.tier !== "pro" && promptsLeft !== null && promptsLeft < 5 && (
-          <div className="flex items-center justify-between p-4 rounded-xl bg-primary/5 border border-primary/15">
-            <div className="flex items-center gap-3">
-              <Zap size={18} className="text-primary flex-shrink-0" />
-              <div>
-                <p className="text-sm font-label text-on-surface">
-                  Only <span className="font-bold text-primary">{promptsLeft} AI prompts</span> left — unlock 500 more for $5.
-                </p>
-                <p className="text-xs text-on-surface-variant font-label mt-0.5">
-                  Each AI prompt costs ~$0.01 to run on a high-tier model. Your $5 goes directly toward covering these API costs.
-                </p>
+            {/* Overall progress gauge */}
+            <div className="col-span-12 lg:col-span-5 p-10 lg:p-12 flex flex-col justify-between gap-6">
+              <div className="flex items-baseline justify-between">
+                <div>
+                  <div className="dossier-meta !text-paper/60 mb-1">Overall</div>
+                  <div className="font-display font-bold text-paper leading-none tabular text-6xl">
+                    {overallProgress}<span className="text-foil text-3xl">%</span>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="dossier-meta !text-paper/60 mb-1">Ratio</div>
+                  <div className="font-display italic text-foil text-3xl tabular leading-none">
+                    {completedDomains} / {totalDomains}
+                  </div>
+                </div>
               </div>
-            </div>
-            <Link href="/upgrade"
-              className="flex items-center gap-1.5 px-4 py-2 rounded-md bg-gradient-to-r from-primary to-primary-container text-on-primary font-headline font-bold text-xs hover:opacity-90 whitespace-nowrap shadow-sm">
-              Upgrade <ArrowRight size={13} />
-            </Link>
-          </div>
-        )}
-
-        {/* Certificate banner */}
-        {activeCourseProgress?.certificateEarned && (
-          <div className="p-6 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
-                <Award size={24} className="text-amber-600" />
+              <div className="space-y-2">
+                <div className="h-1.5 bg-paper/15">
+                  <div
+                    className="h-full bg-foil transition-all duration-700"
+                    style={{ width: `${overallProgress}%` }}
+                  />
+                </div>
+                <div className="flex justify-between font-label text-[10px] uppercase tracking-[0.18em] text-paper/50">
+                  <span>{completedDomains} passed</span>
+                  <span>{startedDomains - completedDomains} underway</span>
+                  <span>{totalDomains - startedDomains} pending</span>
+                </div>
               </div>
-              <div>
-                <h3 className="font-headline font-bold text-amber-800">{activeCourse?.title} — Certification Complete!</h3>
-                <p className="text-amber-600 text-sm font-label">Congratulations, {progress.user.name}! All {totalDomains} sections passed.</p>
-              </div>
-            </div>
-            <Link href={`/certificate?course=${activeTab}`}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-md bg-amber-500 hover:bg-amber-400 text-white font-headline font-bold text-sm whitespace-nowrap shadow-sm">
-              View Certificate <ArrowRight size={15} />
-            </Link>
-          </div>
-        )}
 
-        {/* ── Course tabs + Forum ── */}
-        <div className="space-y-5">
-          <div className="flex items-center gap-1 border-b border-outline-variant/25">
-            {courses.map((course) => (
-              <button
-                key={course.id}
-                onClick={() => setActiveTab(course.id)}
-                className={`flex items-center gap-2 px-4 py-3 text-sm font-headline font-bold border-b-2 -mb-px transition-colors ${
-                  activeTab === course.id
-                    ? "text-primary border-primary"
-                    : "text-on-surface-variant hover:text-on-surface border-transparent hover:border-outline-variant"
-                }`}
-              >
-                {course.id === "aai" ? <Brain size={14} /> : <Sparkles size={14} />}
-                {course.title}
-              </button>
+              {activeCourseProgress?.certificateEarned && (
+                <Link
+                  href={`/certificate?course=${activeTab}`}
+                  className="flex items-center justify-between gap-2 px-5 py-3 bg-foil text-ink hover:bg-paper font-label text-[11px] uppercase tracking-[0.18em] font-semibold transition-colors"
+                >
+                  <span>Retrieve Certificate</span>
+                  <ArrowUpRight size={14} />
+                </Link>
+              )}
+            </div>
+          </div>
+        </section>
+
+        {/* ── Statistics rail ── */}
+        <section className="border-y-2 border-ink bg-paper-deep">
+          <div className="grid grid-cols-2 md:grid-cols-4 divide-x-0 md:divide-x md:divide-ink/20">
+            {[
+              { n: "I",   label: "Passed",     value: `${completedDomains}/${totalDomains}`, accent: completedDomains > 0 ? "text-emerald-700" : "text-ink" },
+              { n: "II",  label: "Started",    value: `${startedDomains}/${totalDomains}`,   accent: "text-oxide" },
+              { n: "III", label: "Prompts",    value: promptsLeft !== null ? String(promptsLeft) : "—", accent: "text-ink" },
+              { n: "IV",  label: "Certificate",value: activeCourseProgress?.certificateEarned ? "Earned" : "—", accent: activeCourseProgress?.certificateEarned ? "text-oxide" : "text-ink-fade" },
+            ].map(({ n, label, value, accent }) => (
+              <div key={n} className="p-6 lg:p-8">
+                <div className="flex items-baseline justify-between mb-3">
+                  <span className="font-display italic text-oxide text-xl leading-none">{n}</span>
+                  <span className="font-label text-[10px] uppercase tracking-[0.18em] text-ink-fade">§</span>
+                </div>
+                <div className={`font-display font-bold leading-none tabular text-4xl lg:text-5xl ${accent}`}>
+                  {value}
+                </div>
+                <div className="mt-3 font-label text-[10px] uppercase tracking-[0.18em] text-ink-soft">{label}</div>
+              </div>
             ))}
-            <Link href="/forum"
-              className="flex items-center gap-2 px-4 py-3 text-sm font-label font-medium text-on-surface-variant hover:text-on-surface border-b-2 border-transparent hover:border-outline-variant -mb-px transition-colors">
-              <MessageSquare size={14} />
-              Community Forum
+          </div>
+        </section>
+
+        {/* Upgrade nudge */}
+        {membership && membership.tier !== "pro" && promptsLeft !== null && promptsLeft < 5 && (
+          <aside className="border-2 border-oxide bg-paper-fade p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-4">
+              <span className="font-display italic text-oxide text-3xl leading-none">!</span>
+              <div>
+                <p className="font-display font-bold text-ink text-lg leading-tight">
+                  Only <span className="italic text-oxide" style={{ fontVariationSettings: '"opsz" 144, "SOFT" 100' }}>{promptsLeft} AI prompts</span> remaining.
+                </p>
+                <p className="font-body text-[14px] leading-snug text-ink-soft mt-1">
+                  Replenish for <strong>$5</strong>. 500 additional prompts. Each ≈ $0.01 API cost; your fee routes to coverage.
+                </p>
+              </div>
+            </div>
+            <Link href="/upgrade" className="btn-ink flex-shrink-0">
+              Replenish <ArrowUpRight size={14} />
+            </Link>
+          </aside>
+        )}
+
+        {/* ── Course tabs + forum ── */}
+        <section className="space-y-6">
+          <div className="flex flex-wrap items-end justify-between gap-4 border-b-2 border-ink pb-0">
+            <div className="flex gap-0">
+              {courses.map((course) => (
+                <button
+                  key={course.id}
+                  onClick={() => setActiveTab(course.id)}
+                  className={`flex items-center gap-3 px-5 py-3.5 font-label text-[11px] uppercase tracking-[0.18em] font-semibold border-b-2 -mb-[2px] transition-colors ${
+                    activeTab === course.id
+                      ? "text-oxide border-oxide"
+                      : "text-ink-fade hover:text-ink border-transparent"
+                  }`}
+                >
+                  <span className="font-display italic text-base normal-case tracking-normal text-ink">
+                    {course.id === "aai" ? "I" : "II"}
+                  </span>
+                  <span>{course.title}</span>
+                </button>
+              ))}
+            </div>
+            <Link
+              href="/forum"
+              className="flex items-center gap-2 px-4 py-2 font-label text-[11px] uppercase tracking-[0.18em] text-ink hover:text-oxide transition-colors link-sweep mb-2"
+            >
+              <MessageSquare size={13} />
+              Forum
+              <ArrowUpRight size={12} />
             </Link>
           </div>
 
           {/* First-time user hint */}
           {activeCourseProgress?.domains.every((d) => !d.started) && (
-            <div className="flex items-start gap-3 p-4 rounded-lg bg-primary/5 border border-primary/15">
-              <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center flex-shrink-0 mt-0.5">
-                <span className="text-on-primary text-xs font-headline font-black">1</span>
-              </div>
+            <div className="border-2 border-dashed border-ink/30 bg-paper-fade p-5 flex items-start gap-4">
+              <span className="font-display italic text-oxide text-3xl leading-none flex-shrink-0">I.</span>
               <div>
-                <p className="text-sm font-headline font-bold text-on-surface">Start with Domain 1</p>
-                <p className="text-xs text-on-surface-variant font-label mt-0.5">
-                  Work through the domains in order — each one builds on the last. Read the concepts first, then take the practice exam to pass.
+                <p className="font-display font-bold text-ink text-lg leading-tight">Begin with Domain I.</p>
+                <p className="font-body text-[14px] leading-snug text-ink-soft mt-1">
+                  Walk the domains in order — each builds on the last. Study concepts, summon the AI tutor, then sit the domain exam when ready.
                 </p>
               </div>
             </div>
           )}
 
-          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
             {activeDomains.map((domain, index) => {
               const domainProgress = activeCourseProgress?.domains.find((d) => d.domainId === domain.id);
               return <DomainCard key={domain.id} domain={domain} domainProgress={domainProgress || null} index={index} />;
             })}
           </div>
-        </div>
+        </section>
 
         {/* ── Exam Traps ── */}
         {activeCourse?.examTraps && activeCourse.examTraps.length > 0 && (
-          <div className="p-6 rounded-xl bg-error-container/15 border border-error/15 space-y-4">
-            <div className="flex items-center gap-2">
-              <Brain size={17} className="text-error" />
-              <h3 className="font-headline font-bold text-on-surface">Common Exam Traps</h3>
+          <section className="border-2 border-ink bg-paper-fade paper-grain relative">
+            <div className="border-b-2 border-ink bg-ink text-paper px-6 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="stamp stamp-rotate-back text-oxide border-oxide !transform-none text-[10px]">⚠ Warning</span>
+                <h3 className="font-display font-bold text-lg tracking-tight">Known Exam Traps</h3>
+              </div>
+              <span className="dossier-meta !text-paper/50 hidden sm:block">Classified · Study carefully</span>
             </div>
-            <div className="grid sm:grid-cols-2 gap-x-8 gap-y-2">
-              {activeCourse.examTraps.map((trap) => (
-                <div key={trap} className="flex items-start gap-2 text-sm">
-                  <span className="text-error mt-0.5 flex-shrink-0 font-headline font-bold">✗</span>
-                  <span className="text-on-surface-variant font-label">{trap}</span>
+            <div className="p-8 grid sm:grid-cols-2 gap-x-10 gap-y-4 relative z-10">
+              {activeCourse.examTraps.map((trap, i) => (
+                <div key={trap} className="flex items-start gap-4">
+                  <span className="font-display italic text-oxide text-xl leading-none tabular flex-shrink-0 w-8">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <span className="font-body text-[15px] leading-[1.55] text-ink">{trap}</span>
                 </div>
               ))}
             </div>
-          </div>
+          </section>
         )}
+
+        {/* ── Footer mark ── */}
+        <footer className="pt-8 pb-4 flex items-center justify-between border-t-2 border-ink">
+          <span className="font-label text-[10px] uppercase tracking-[0.18em] text-ink-fade">
+            © {new Date().getFullYear()} · Learn Agent Architecture
+          </span>
+          <span className="font-display italic text-ink">— End of File —</span>
+        </footer>
       </div>
     </div>
   );
